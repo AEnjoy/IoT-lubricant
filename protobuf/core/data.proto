@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package lubricant;
+
+option go_package = "protobuf/core";
+
+service coreService {
+  rpc ping(stream PingPong) returns (stream PingPong) {}
+  rpc getTask(stream Task) returns (stream Task) {} // 服务端可能需要向客户端推送任务
+  rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
+  rpc pushData(stream Data) returns (stream Data) {}
+}
+
+message PingPong {
+  int32 flag = 1; // 0:Ping 1:Pong 3: Error
+}
+message Task { // Resp
+  string taskId = 1;
+  string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
+  bytes content = 3; // json格式 []byte
+}
+
+message MessageIdInfo {
+  string messageId = 1; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;pushMessageId req.messageId应该与返回的resp.messageId一致
+  string gatewayId = 2;
+  string time = 3;
+  string emergency = 4; // 0: 不需要立即回应 1: 需要立即回应(将直接返回resp的消息ID)
+  bytes content = 5; // json格式 []byte 响应内容resp
+}
+
+message Data {
+  string messageId = 2; //如果messageId不符合uuid,则认为是返回错误信息
+  string gatewayId = 3;
+  repeated bytes data = 4;    // 二进制数据字段
+  int32 dataLen = 5;
+  string time = 6; // 起始时间
+  string cycle = 7; // 数据周期
+}

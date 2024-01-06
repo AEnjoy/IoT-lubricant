@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package lubricant;
+
+option go_package = "protobuf/gateway";
+
+service gatewayService {
+  rpc data(stream DataMessage) returns (stream DataMessage) {}
+  rpc ping(PingPong) returns (PingPong) {}
+  rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
+}
+
+message DataMessage {
+  int32 flag = 1;               // 功能Flag 0: 心跳包  1: 主动读取数据 2: 推送数据  3: 错误信息 4: 请求获取返回结果  5: 设置
+
+  string messageId = 2;
+  string agentId = 3;
+  bytes data = 4;              // 二进制数据字段
+}
+
+message MessageIdInfo {
+  string messageId = 1;
+  string time = 2;
+  string agentId = 3; //如果作为服务端的Response,则该内容为空或为下一条处理消息的messageId
+  string emergency = 4; // 0: 不需要立即回应 1: 需要立即回应(将直接返回resp的消息ID)
+}
+
+message PingPong {
+  int32 flag = 1; // 0:Ping 1:Pong
+}

@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "获取时间 API-Driver",
+    "description": "一个时钟的 RESTful API Example，用于获取和设置时间。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1"
+    }
+  ],
+  "paths": {
+    "/api/v1/get/time": {
+      "get": {
+        "summary": "获取当前模拟时间",
+        "responses": {
+          "200": {
+            "description": "成功获取时间",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "time": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "当前模拟时间"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/set/time": {
+      "post": {
+        "summary": "设置时间",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "time": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "新的时间"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "设置时间成功"
+          },
+          "400": {
+            "description": "无效的时间格式"
+          }
+        }
+      },
+      "get": {
+        "summary": "设置时间",
+        "parameters": [
+          {
+            "name": "time",
+            "in": "query",
+            "description": "新的时间",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "设置时间成功"
+          },
+          "400": {
+            "description": "无效的时间格式"
+          }
+        }
+      }
+    }
+  }
+}

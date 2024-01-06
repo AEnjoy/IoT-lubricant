@@ -1,0 +1,26 @@
+# Logs
+logs
+*.log
+
+# for developer doc
+docs/internal
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# go env
+go.work*
+*.out
+*.env
+mock
+
+# python cache
+__pycache__
+.pytest_cache

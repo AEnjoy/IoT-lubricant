@@ -1,0 +1,6 @@
+CREATE TABLE driver_data(
+    `agent_id` SERIAL PRIMARY KEY,
+    `data` BYTEA NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+)
