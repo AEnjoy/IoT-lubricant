@@ -4,10 +4,14 @@ import (
 	"context"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 	"github.com/goccy/go-json"
+	"github.com/google/uuid"
 )
 
-type clientMq struct {
+type clientMqRecv struct {
 	ctrl   context.Context
 	cancel context.CancelFunc
 	*chs
@@ -19,19 +23,72 @@ type chs struct {
 	messagePull      <-chan []byte
 }
 
-func (c *clientMq) SetContext(ctx context.Context) {
+func (c *clientMqRecv) SetContext(ctx context.Context) {
 	c.ctrl, c.cancel = context.WithCancel(ctx)
 }
-func (c *clientMq) handelCh() {
+func (c *clientMqRecv) handelCh() {
 	for {
 		select {
 		case <-c.ctrl.Done():
 			return
-		case v := <-c.agentDevice:
+		case v := <-c.agentDevice: //客户端命令
 			command := model.Command{}
 			_ = json.Unmarshal(v, &command)
 			if command.ID == model.Command_RemoveAgent {
 				removeAgent()
+			}
+		}
+	}
+}
+
+type clientMqSend struct {
+	ctrl    context.Context
+	cancel  context.CancelFunc
+	agentID string
+	mq      mq.Mq[[]byte]
+}
+
+func (c *clientMqSend) SetContext(ctx context.Context) {
+	c.ctrl, c.cancel = context.WithCancel(ctx)
+}
+
+func (c *clientMqSend) send() error {
+	for {
+		select {
+		case <-c.ctrl.Done():
+			logger.Info("send data to gateway worker routine canceled")
+			return nil
+		case data := <-dataChan2:
+			id := uuid.NewString()
+			dataMessage := &gateway.DataMessage{
+				Flag:      2,
+				MessageId: id,
+				AgentId:   c.agentID,
+				Data:      data.Data,
+			}
+			dataSend, err := json.Marshal(dataMessage)
+			if err != nil {
+				return err
+			}
+
+			err = c.mq.Publish(model.Topic_AgentDataPush+c.agentID, dataSend)
+			if err != nil {
+				return err
+			}
+
+			dataInfo := &gateway.MessageIdInfo{
+				MessageId: id,
+				Time:      data.Timestamp.Format("2006-01-02 15:04:05"),
+				AgentId:   c.agentID,
+			}
+			dataSend, err = json.Marshal(dataInfo)
+			if err != nil {
+				return err
+			}
+
+			err = c.mq.Publish(model.Topic_MessagePush+c.agentID, dataSend)
+			if err != nil {
+				return err
 			}
 		}
 	}

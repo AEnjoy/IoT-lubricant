@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
@@ -19,7 +20,8 @@ import (
 type app struct {
 	grpcClient gateway.GatewayServiceClient
 	mq         mq.Mq[[]byte]
-	*clientMq
+	*clientMqRecv
+	*clientMqSend
 
 	openapi.OpenApi
 
@@ -36,7 +38,18 @@ type app struct {
 
 func (a *app) Run() error {
 	a.errPanic = make(chan error)
-	a.clientMq = new(clientMq)
+	a.clientMqRecv = new(clientMqRecv)
+	a.clientMqSend = new(clientMqSend)
+	a.agentID = a.config.ID
+	a.clientMqSend.mq = a.mq
+	a.clientMqSend.SetContext(a.ctrl)
+
+	go func() {
+		err := a.send()
+		if err != nil {
+			exception.ErrCh <- err
+		}
+	}()
 	//if a.grpcClient != nil {
 	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
 	//}
@@ -47,6 +60,16 @@ func (a *app) Run() error {
 			a.errPanic <- err
 		}
 	}()
+
+	err := a.joinGateway()
+	if err != nil {
+		return err
+	}
+	err = a.initClientMq()
+	if err != nil {
+		return err
+	}
+
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 	//go a.clientGrpc() //grpc
