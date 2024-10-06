@@ -19,6 +19,9 @@ type NatsMq[T any] struct {
 func (mq *NatsMq[T]) Publish(topic string, msg T) error {
 	return mq.nc.Publish(topic, msgToBytes(msg)) // Helper function to convert message to []byte
 }
+func (mq *NatsMq[T]) PublishBytes(topic string, msg []byte) error {
+	return mq.nc.Publish(topic, msg) // Helper function to convert message to []byte
+}
 
 // Subscribe subscribes to a topic and returns a channel for receiving messages
 func (mq *NatsMq[T]) Subscribe(topic string) (<-chan T, error) {

@@ -47,7 +47,11 @@ func (mq *MessageQueue[T]) Publish(topic string, msg T) error {
 
 	return nil
 }
-
+func (mq *MessageQueue[T]) PublishBytes(topic string, msg []byte) error {
+	var msgT T
+	bytesToMsg[T](msg, &msgT)
+	return mq.Publish(topic, msgT)
+}
 func (mq *MessageQueue[T]) Subscribe(topic string) (<-chan T, error) {
 	ch := make(chan T, mq.capacity)
 
