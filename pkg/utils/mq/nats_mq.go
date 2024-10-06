@@ -50,9 +50,9 @@ func (mq *NatsMq[T]) Unsubscribe(topic string, sub <-chan T) error {
 	defer mq.mu.Unlock()
 
 	if subscription, exists := mq.subs[topic]; exists {
-		subscription.Unsubscribe() // Unsubscribe from NATS
-		close(mq.channels[topic])  // Close the channel
-		delete(mq.subs, topic)     // Remove from map
+		_ = subscription.Unsubscribe() // Unsubscribe from NATS
+		close(mq.channels[topic])      // Close the channel
+		delete(mq.subs, topic)         // Remove from map
 		delete(mq.channels, topic)
 		return nil
 	}
@@ -65,7 +65,7 @@ func (mq *NatsMq[T]) Close() {
 	defer mq.mu.Unlock()
 
 	for topic, subscription := range mq.subs {
-		subscription.Unsubscribe()
+		_ = subscription.Unsubscribe()
 		close(mq.channels[topic])
 	}
 	mq.nc.Close()
@@ -94,5 +94,5 @@ func msgToBytes[T any](msg T) []byte {
 func bytesToMsg[T any](data []byte, msg *T) {
 	// Implement deserialization logic (e.g., JSON decoding)
 	// Example using JSON:
-	json.Unmarshal(data, msg)
+	_ = json.Unmarshal(data, msg)
 }

@@ -26,7 +26,7 @@ func TestMq_SetConditions(t *testing.T) {
 	}
 
 	// 清理
-	mq.Unsubscribe("testTopic", sub)
+	assert.NoError(t, mq.Unsubscribe("testTopic", sub))
 	mq.Close()
 }
 

@@ -134,5 +134,5 @@ func TestEdgeApp(t *testing.T) {
 		mq:      natsMq,
 	}
 
-	go app.Run()
+	go assert.NoError(app.Run())
 }

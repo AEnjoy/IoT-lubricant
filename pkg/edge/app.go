@@ -41,7 +41,12 @@ func (a *app) Run() error {
 	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
 	//}
 
-	go a.StartGather(a.ctrl)
+	go func() {
+		err := a.StartGather(a.ctrl)
+		if err != nil {
+			a.errPanic <- err
+		}
+	}()
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 	//go a.clientGrpc() //grpc
