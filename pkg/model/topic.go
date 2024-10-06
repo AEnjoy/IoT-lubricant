@@ -16,7 +16,7 @@ const (
 	Topic_GatewayData      = "/gateway/data"              // agent->gateway->agent
 	Topic_AgentDataPush    = "/gateway/data/push/"        // + agentId agent->gateway
 	Topic_AgentDataPushAck = "/gateway/data/push/ack/"    // + agentId agent->gateway
-	Topic_MessagePush      = "/gateway/message/push"      // agent->gateway
+	Topic_MessagePush      = "/gateway/message/push/"     // agent->gateway
 	Topic_MessagePushAck   = "/gateway/message/push/ack/" // + messageId gateway->agent
 	Topic_MessagePull      = "/gateway/message/pull/"     // + messageId gateway->agent
 )

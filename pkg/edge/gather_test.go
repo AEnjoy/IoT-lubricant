@@ -9,7 +9,7 @@ import (
 )
 
 func TestApp_StartGather(t *testing.T) {
-	t.Log("This test will cost 8s to finish")
+	t.Log("This test will take about 10s to complete")
 	WriteConfig()
 	assert := assert.New(t)
 	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
@@ -30,8 +30,7 @@ func TestApp_StartGather(t *testing.T) {
 			return
 		case v := <-dataSetCh:
 			str := string(v)
-			t.Log(str)
-			assert.Contains(str, "string-key1string-key2")
+			assert.Contains(str, "string-key1-string-key2")
 		}
 	}
 }

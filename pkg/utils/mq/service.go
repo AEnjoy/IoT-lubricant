@@ -7,6 +7,7 @@ import (
 
 type Mq[T any] interface {
 	Publish(topic string, msg T) error
+	PublishBytes(topic string, msg []byte) error
 	Subscribe(topic string) (<-chan T, error)
 	Unsubscribe(topic string, sub <-chan T) error
 	Close()

@@ -14,37 +14,48 @@ type DataPacket struct {
 
 var (
 	triggerChan    = make(chan struct{})
-	compressedChan = make(chan []byte)
+	compressedChan = make(chan *DataPacket)
 	dataSetCh      = make(chan []byte, 3)
-	dataChan2      = make(chan []byte) // send to gateway
+	dataChan2      = make(chan *DataPacket) // send to gateway
 )
 
-func (a *app) dataService(method string) {
-	go compressor(method, dataSetCh, compressedChan)
-	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
-}
-
-func compressor(method string, dataChan <-chan []byte, compressedChan chan<- []byte) {
+func compressor(method string, dataChan <-chan []byte, compressedChan chan<- *DataPacket) {
 	compressor, _ := compress.NewCompressor(method)
 	for dataPacket := range dataChan {
+		timeNow := time.Now()
 		data, _ := compressor.Compress(dataPacket)
-		compressedChan <- data
+		compressedChan <- &DataPacket{
+			Data:      data,
+			Timestamp: timeNow,
+		}
 	}
 }
-func transmitter(cycle int, compressedChan <-chan []byte, triggerChan chan struct{}, dataChan chan<- []byte) {
+func transmitter(cycle int, compressedChan <-chan *DataPacket, triggerChan chan struct{}, dataChan chan<- *DataPacket) {
 	var buffer [][]byte
+	var firstPacketTime *time.Time
 	for {
 		select {
 		case compressedData := <-compressedChan:
-			buffer = append(buffer, compressedData)
+			if firstPacketTime == nil {
+				firstPacketTime = &compressedData.Timestamp
+			}
+			buffer = append(buffer, compressedData.Data)
 			if len(buffer) >= cycle {
-				dataChan <- bytes.Join(buffer, compress.Sepa)
+				dataChan <- &DataPacket{
+					Data:      bytes.Join(buffer, compress.Sepa),
+					Timestamp: *firstPacketTime,
+				}
 				buffer = nil
+				firstPacketTime = nil
 			}
 		case <-triggerChan:
 			if len(buffer) > 0 {
-				dataChan <- bytes.Join(buffer, compress.Sepa)
+				dataChan <- &DataPacket{
+					Data:      bytes.Join(buffer, compress.Sepa),
+					Timestamp: *firstPacketTime,
+				}
 				buffer = nil
+				firstPacketTime = nil
 			}
 		}
 	}

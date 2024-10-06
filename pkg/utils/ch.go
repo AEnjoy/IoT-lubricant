@@ -14,8 +14,7 @@ func CloseChannel[T any](ch chan T) {
 		return
 	}
 	defer func() {
-		if r := recover(); r != nil {
-		}
+		_ = recover()
 	}()
 	close(ch)
 }
