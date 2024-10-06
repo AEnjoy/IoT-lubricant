@@ -24,3 +24,6 @@ mock
 # python cache
 __pycache__
 .pytest_cache
+
+# test cache
+pkg/edge/test
