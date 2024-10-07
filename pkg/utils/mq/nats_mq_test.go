@@ -5,14 +5,13 @@ import (
 	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
-	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNatsMq(t *testing.T) {
 	assert := assert.New(t)
 	opts := &server.Options{
-		Port: 4222,
+		Port: 4223,
 	}
 
 	natsServer, err := server.NewServer(opts)
@@ -26,7 +25,7 @@ func TestNatsMq(t *testing.T) {
 	defer natsServer.Shutdown()
 
 	t.Log("starting mq")
-	mq, err := NewNatsMq[string](nats.DefaultURL)
+	mq, err := NewNatsMq[string]("nats://127.0.0.1:4223")
 	assert.NoError(err)
 	defer mq.Close()
 	mq.SetConditions(100)
