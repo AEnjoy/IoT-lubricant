@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrAgentNotFound = errors.New("agentData not found")
+	ErrAgentNotFound = errors.New("agent not found")
 )
 
 func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
