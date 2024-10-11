@@ -73,7 +73,7 @@ func (a *clientMq) handelAgentDataPush(in <-chan []byte, err error, id string) e
 		}
 	}
 }
-func (a *clientMq) handelAgentMessagePush(in <-chan []byte, err error) error {
+func (a *clientMq) handelAgentMessagePush(in <-chan []byte, err error, id string) error {
 	if err != nil {
 		return err
 	}
