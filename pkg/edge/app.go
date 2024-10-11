@@ -49,7 +49,6 @@ func (a *app) Run() error {
 			exception.ErrCh <- err
 		}
 	}()
-	go a.clientMqRecv.handelCh()
 
 	//if a.grpcClient != nil {
 	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
@@ -71,6 +70,7 @@ func (a *app) Run() error {
 		return err
 	}
 
+	go a.clientMqRecv.handelCh()
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 	//go a.clientGrpc() //grpc
