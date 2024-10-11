@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrAgentNotFound = errors.New("agent not found")
+	ErrAgentNotFound = errors.New("agentData not found")
 )
 
 func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
@@ -49,6 +49,9 @@ func (a *app) joinAgent(id string) (errs error) {
 	}
 	a.deviceList.Store(id, ch)
 	agentStore.Store(id, ag)
+	go func() {
+		_ = a.pushDataToServer(ctx, id)
+	}()
 
 	go func() {
 		_ = a.handelSignal(id)
