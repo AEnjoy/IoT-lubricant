@@ -159,21 +159,14 @@ func TestEdgeApp(t *testing.T) {
 	// mq test (mock-gateway)
 	var success bool
 	t.Log("Test send message to topic")
-	ch1, err := app.mq.Subscribe(model.Topic_MessagePush + mockID)
-	assert.NoError(err)
-	ch2, err := app.mq.Subscribe(model.Topic_AgentDataPush + mockID)
+	ch, err := app.mq.Subscribe(model.Topic_AgentDataPush + mockID)
 	assert.NoError(err)
 	for {
 		select {
 		case <-ctx.Done():
 			assert.True(success, "test failed because no data send success")
 			return
-		case d := <-ch1:
-			var data gateway.AgentMessageIdInfo
-			assert.NoError(json.Unmarshal(d, &data))
-			assert.Equal(mockID, data.AgentId)
-			success = true
-		case d := <-ch2:
+		case d := <-ch:
 			var data gateway.DataMessage
 			t.Log("receive data from topic:", time.Now())
 			assert.NoError(json.Unmarshal(d, &data))
