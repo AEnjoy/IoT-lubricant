@@ -1,6 +1,6 @@
 package gateway
 
-// grpc-server-auth
+// grpcServer-server-auth
 import (
 	"fmt"
 
