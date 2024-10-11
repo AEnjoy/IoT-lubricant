@@ -30,7 +30,7 @@ const (
 type GatewayServiceClient interface {
 	Data(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[DataMessage, DataMessage], error)
 	Ping(ctx context.Context, in *PingPong, opts ...grpc.CallOption) (*PingPong, error)
-	PushMessageId(ctx context.Context, in *MessageIdInfo, opts ...grpc.CallOption) (*MessageIdInfo, error)
+	PushMessageId(ctx context.Context, in *AgentMessageIdInfo, opts ...grpc.CallOption) (*AgentMessageIdInfo, error)
 }
 
 type gatewayServiceClient struct {
@@ -64,9 +64,9 @@ func (c *gatewayServiceClient) Ping(ctx context.Context, in *PingPong, opts ...g
 	return out, nil
 }
 
-func (c *gatewayServiceClient) PushMessageId(ctx context.Context, in *MessageIdInfo, opts ...grpc.CallOption) (*MessageIdInfo, error) {
+func (c *gatewayServiceClient) PushMessageId(ctx context.Context, in *AgentMessageIdInfo, opts ...grpc.CallOption) (*AgentMessageIdInfo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MessageIdInfo)
+	out := new(AgentMessageIdInfo)
 	err := c.cc.Invoke(ctx, GatewayService_PushMessageId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (c *gatewayServiceClient) PushMessageId(ctx context.Context, in *MessageIdI
 type GatewayServiceServer interface {
 	Data(grpc.BidiStreamingServer[DataMessage, DataMessage]) error
 	Ping(context.Context, *PingPong) (*PingPong, error)
-	PushMessageId(context.Context, *MessageIdInfo) (*MessageIdInfo, error)
+	PushMessageId(context.Context, *AgentMessageIdInfo) (*AgentMessageIdInfo, error)
 	mustEmbedUnimplementedGatewayServiceServer()
 }
 
@@ -97,7 +97,7 @@ func (UnimplementedGatewayServiceServer) Data(grpc.BidiStreamingServer[DataMessa
 func (UnimplementedGatewayServiceServer) Ping(context.Context, *PingPong) (*PingPong, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
-func (UnimplementedGatewayServiceServer) PushMessageId(context.Context, *MessageIdInfo) (*MessageIdInfo, error) {
+func (UnimplementedGatewayServiceServer) PushMessageId(context.Context, *AgentMessageIdInfo) (*AgentMessageIdInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushMessageId not implemented")
 }
 func (UnimplementedGatewayServiceServer) mustEmbedUnimplementedGatewayServiceServer() {}
@@ -147,7 +147,7 @@ func _GatewayService_Ping_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _GatewayService_PushMessageId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MessageIdInfo)
+	in := new(AgentMessageIdInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func _GatewayService_PushMessageId_Handler(srv interface{}, ctx context.Context,
 		FullMethod: GatewayService_PushMessageId_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).PushMessageId(ctx, req.(*MessageIdInfo))
+		return srv.(GatewayServiceServer).PushMessageId(ctx, req.(*AgentMessageIdInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }

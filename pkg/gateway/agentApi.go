@@ -3,6 +3,7 @@ package gateway
 import (
 	"encoding/json"
 	"errors"
+	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
@@ -36,7 +37,13 @@ func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
 
 func (a *app) joinAgent(id string) (errs error) {
 	ch := &chs{}
+	ag := &agent{
+		data:       make([]gateway.DataMessage, 0),
+		sendSignal: make(chan struct{}),
+		l:          sync.Mutex{},
+	}
 	a.deviceList.Store(id, ch)
+	agentStore.Store(id, ag)
 
 	go func() {
 		chData, e := a.mq.Subscribe(model.Topic_AgentRegister + id)
@@ -55,6 +62,13 @@ func (a *app) joinAgent(id string) (errs error) {
 	go func() {
 		ch, err := a.mq.Subscribe(model.Topic_AgentDataPush + id)
 		err = a.handelAgentDataPush(ch, err, id)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		}
+	}()
+	go func() {
+		ch, err := a.mq.Subscribe(model.Topic_MessagePush + id)
+		err = a.handelAgentMessagePush(ch, err, id)
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}
@@ -81,6 +95,7 @@ func (a *app) removeAgent(id string) (errs error) {
 	errs = errors.Join(errs, e1, e2, e3, e4, e5)
 
 	a.deviceList.Delete(id)
+	agentStore.Delete(id)
 	a.GatewayDbCli.RemoveAgent(id)
 	return
 }
@@ -90,7 +105,7 @@ func (a *app) subscribeDeviceMQ(in *chs, id string) error {
 	in.agentDevice, _ = mq.Subscribe(model.Topic_AgentDevice + id)
 	//in.regAck, _ = mq.Subscribe(model.Topic_AgentRegisterAck + id)
 	in.messagePushAck, _ = mq.Subscribe(model.Topic_MessagePushAck + id)
-	in.messagePull, _ = mq.Subscribe(model.Topic_MessagePull + id)
+	//in.messagePull, _ = mq.Subscribe(model.Topic_MessagePull + id)
 	for {
 		select {
 		case <-a.ctrl.Done():
@@ -126,12 +141,12 @@ func (a *app) initClientMq() (errs error) {
 			errs = errors.Join(errs, err)
 		}
 	}()
-	go func() {
-		err := a.handelAgentMessagePush(mq.Subscribe(model.Topic_MessagePush))
-		if err != nil {
-			errs = errors.Join(errs, err)
-		}
-	}()
+	//go func() {
+	//	err := a.handelAgentMessagePush(mq.Subscribe(model.Topic_MessagePush))
+	//	if err != nil {
+	//		errs = errors.Join(errs, err)
+	//	}
+	//}()
 
 	return
 }

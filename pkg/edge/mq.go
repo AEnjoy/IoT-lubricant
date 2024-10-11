@@ -76,7 +76,7 @@ func (c *clientMqSend) send() error {
 				return err
 			}
 
-			dataInfo := &gateway.MessageIdInfo{
+			dataInfo := &gateway.AgentMessageIdInfo{
 				MessageId: id,
 				Time:      data.Timestamp.Format("2006-01-02 15:04:05"),
 				AgentId:   c.agentID,

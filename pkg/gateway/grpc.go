@@ -62,19 +62,19 @@ func (*grpcServer) Ping(_ context.Context, ping *gateway.PingPong) (*gateway.Pin
 	}
 	return &gateway.PingPong{Flag: 2}, nil
 }
-func (*grpcServer) PushMessageId(_ context.Context, in *gateway.MessageIdInfo) (*gateway.MessageIdInfo, error) {
+func (*grpcServer) PushMessageId(_ context.Context, in *gateway.AgentMessageIdInfo) (*gateway.AgentMessageIdInfo, error) {
 	messageQueue <- in
 	finish.Store(in.MessageId, make(chan struct{}))
 	if v, ok := finish.Load(in.MessageId); ok {
 		ch := v.(chan struct{})
 		<-ch
 		finish.Delete(in.MessageId)
-		return &gateway.MessageIdInfo{
+		return &gateway.AgentMessageIdInfo{
 			MessageId: in.MessageId,
 			Time:      time.Now().Format("2006-01-02 15:04:05"),
 		}, nil
 	}
-	return &gateway.MessageIdInfo{}, nil
+	return &gateway.AgentMessageIdInfo{}, nil
 }
 
 func recvFromStream(stream grpc.BidiStreamingServer[gateway.DataMessage, gateway.DataMessage]) <-chan *gateway.DataMessage {

@@ -45,11 +45,11 @@ func (a *app) clientGrpc() {
 	// send
 	for {
 		select {
-		case dataPacket := <-dataSetCh:
+		case _ = <-dataSetCh:
 			id := uuid.New()
 			msg := &pb.DataMessage{
-				AgentId:   a.config.ID,
-				Data:      dataPacket,
+				AgentId: a.config.ID,
+				//Data:      dataPacket, // todo: need to covert to []byte
 				Flag:      2,
 				MessageId: id.String(),
 			}
@@ -59,7 +59,7 @@ func (a *app) clientGrpc() {
 			}
 
 			go func() {
-				resp, err := a.grpcClient.PushMessageId(context.Background(), &pb.MessageIdInfo{
+				resp, err := a.grpcClient.PushMessageId(context.Background(), &pb.AgentMessageIdInfo{
 					MessageId: id.String(),
 					AgentId:   a.config.ID,
 					Time:      time.Now().Format("2006-01-02 15:04:05"),

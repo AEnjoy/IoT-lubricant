@@ -169,7 +169,7 @@ func TestEdgeApp(t *testing.T) {
 			assert.True(success, "test failed because no data send success")
 			return
 		case d := <-ch1:
-			var data gateway.MessageIdInfo
+			var data gateway.AgentMessageIdInfo
 			assert.NoError(json.Unmarshal(d, &data))
 			assert.Equal(mockID, data.AgentId)
 			success = true

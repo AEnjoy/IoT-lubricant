@@ -5,13 +5,13 @@ package lubricant;
 option go_package = "protobuf/core";
 
 service coreService {
-  rpc ping(stream PingPong) returns (stream PingPong) {}
+  rpc ping(stream Ping) returns (stream Ping) {}
   rpc getTask(stream Task) returns (stream Task) {} // 服务端可能需要向客户端推送任务
   rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
   rpc pushData(stream Data) returns (stream Data) {}
 }
 
-message PingPong {
+message Ping {
   int32 flag = 1; // 0:Ping 1:Pong 3: Error
 }
 message Task { // Resp
@@ -29,8 +29,9 @@ message MessageIdInfo {
 }
 
 message Data {
-  string messageId = 2; //如果messageId不符合uuid,则认为是返回错误信息
-  string gatewayId = 3;
+  string messageId = 1; //如果messageId不符合uuid,则认为是返回错误信息
+  string gatewayId = 2;
+  string agentID = 3; // agentID用于标记数据所属
   repeated bytes data = 4;    // 二进制数据字段
   int32 dataLen = 5;
   string time = 6; // 起始时间

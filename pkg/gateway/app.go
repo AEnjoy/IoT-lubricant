@@ -124,7 +124,7 @@ func LinkToGrpcServer(address string, tls *model.Tls) func(*app) error {
 		if err != nil {
 			return err
 		}
-		if err := stream.Send(&core.PingPong{Flag: 0}); err != nil {
+		if err := stream.Send(&core.Ping{Flag: 0}); err != nil {
 			return err
 		}
 		resp, err := stream.Recv()

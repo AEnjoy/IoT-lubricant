@@ -15,7 +15,7 @@ var (
 	dataSend     = make(chan *model.EdgeData, maxBuffer)
 	dataRev      = make(chan *model.EdgeData, maxBuffer)
 	errMessages  = make(chan *model.EdgeData, maxBuffer)
-	messageQueue = make(chan *gateway.MessageIdInfo, maxBuffer)
+	messageQueue = make(chan *gateway.AgentMessageIdInfo, maxBuffer)
 
 	finish = sync.Map{}
 )
@@ -62,7 +62,7 @@ func (d *data) handleData(in *model.EdgeData) {
 	dataModel.edgeId = in.AgentId
 
 }
-func (d *data) handleMessage(in *gateway.MessageIdInfo) {
+func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
 	v, _ := finish.Load(in.MessageId)
 	v.(chan struct{}) <- struct{}{} // 通知数据处理完成
 
