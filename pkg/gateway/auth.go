@@ -74,7 +74,7 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 	}
 
 	if !i.db.IsAgentIdExists(ul[0]) {
-		return nil, fmt.Errorf("error agent client")
+		return nil, fmt.Errorf("error agentData client")
 	}
 
 	// 响应后的处理

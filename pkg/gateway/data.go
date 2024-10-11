@@ -7,6 +7,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
+	"github.com/google/uuid"
 )
 
 const maxBuffer = 50
@@ -58,8 +59,6 @@ func (d *data) HandleData(ctx context.Context) {
 	}
 }
 func (d *data) handleData(in *model.EdgeData) {
-	var dataModel uploadModel
-	dataModel.edgeId = in.AgentId
 
 }
 func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
@@ -67,4 +66,33 @@ func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
 	v.(chan struct{}) <- struct{}{} // 通知数据处理完成
 
 	// TODO: handle message
+}
+func (a *app) pushDataToServer(ctx context.Context, id string) error {
+	v, ok := agentStore.Load(id)
+	if !ok {
+		return ErrAgentNotFound
+	}
+	agentMap := v.(*agentData)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-agentMap.sendSignal:
+			stream, err := a.grpcClient.PushData(ctx)
+			if err != nil {
+				return err
+			}
+			data := agentMap.coverToGrpcData()
+			agentMap.cleanData()
+
+			data.GatewayId = gatewayId
+			data.AgentID = id
+			data.MessageId = uuid.NewString()
+
+			err = stream.Send(data)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }

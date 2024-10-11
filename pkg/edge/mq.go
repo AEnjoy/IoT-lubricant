@@ -65,6 +65,7 @@ func (c *clientMqSend) send() error {
 				MessageId: id,
 				AgentId:   c.agentID,
 				Data:      data.Data,
+				Time:      data.Timestamp.Format("2006-01-02 15:04:05"),
 			}
 			dataSend, err := json.Marshal(dataMessage)
 			if err != nil {
@@ -72,21 +73,6 @@ func (c *clientMqSend) send() error {
 			}
 
 			err = c.mq.Publish(model.Topic_AgentDataPush+c.agentID, dataSend)
-			if err != nil {
-				return err
-			}
-
-			dataInfo := &gateway.AgentMessageIdInfo{
-				MessageId: id,
-				Time:      data.Timestamp.Format("2006-01-02 15:04:05"),
-				AgentId:   c.agentID,
-			}
-			dataSend, err = json.Marshal(dataInfo)
-			if err != nil {
-				return err
-			}
-
-			err = c.mq.Publish(model.Topic_MessagePush+c.agentID, dataSend)
 			if err != nil {
 				return err
 			}

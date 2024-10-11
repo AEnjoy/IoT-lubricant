@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"sync"
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	ErrAgentNotFound = errors.New("agent not found")
+	ErrAgentNotFound = errors.New("agentData not found")
 )
 
 func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
@@ -36,14 +37,21 @@ func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
 }
 
 func (a *app) joinAgent(id string) (errs error) {
-	ch := &chs{}
-	ag := &agent{
-		data:       make([]gateway.DataMessage, 0),
+	ctx, cf := context.WithCancel(context.Background())
+	ch := &agentCtrl{
+		ctx:  ctx,
+		ctrl: cf,
+	}
+	ag := &agentData{
+		data:       make([]*gateway.DataMessage, 0),
 		sendSignal: make(chan struct{}),
 		l:          sync.Mutex{},
 	}
 	a.deviceList.Store(id, ch)
 	agentStore.Store(id, ag)
+	go func() {
+		_ = a.pushDataToServer(ctx, id)
+	}()
 
 	go func() {
 		chData, e := a.mq.Subscribe(model.Topic_AgentRegister + id)
@@ -76,12 +84,14 @@ func (a *app) joinAgent(id string) (errs error) {
 	return
 }
 
-func (a *app) removeAgent(id string) (errs error) {
+func (a *app) stopAgent(id string) (errs error) {
 	v, ok := a.deviceList.Load(id)
 	if !ok {
 		return ErrAgentNotFound
 	}
-	ch := v.(*chs)
+	ch := v.(*agentCtrl)
+	ch.ctrl() // stop
+
 	e1 := a.mq.Unsubscribe(model.Topic_AgentRegister+id, ch.reg)
 	e2 := a.mq.Unsubscribe(model.Topic_AgentDevice+id, ch.agentDevice)
 	e3 := a.mq.Unsubscribe(model.Topic_MessagePushAck+id, ch.messagePushAck)
@@ -99,8 +109,18 @@ func (a *app) removeAgent(id string) (errs error) {
 	a.GatewayDbCli.RemoveAgent(id)
 	return
 }
+func (a *app) removeAgent(id ...string) bool {
+	for _, s := range id {
+		err := a.stopAgent(s)
+		if err != nil {
+			return false
+		}
+		// todo: remove agent data and other operation
+	}
+	return true
+}
 
-func (a *app) subscribeDeviceMQ(in *chs, id string) error {
+func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 	mq := a.mq
 	in.agentDevice, _ = mq.Subscribe(model.Topic_AgentDevice + id)
 	//in.regAck, _ = mq.Subscribe(model.Topic_AgentRegisterAck + id)

@@ -35,5 +35,5 @@ message Data {
   repeated bytes data = 4;    // 二进制数据字段
   int32 dataLen = 5;
   string time = 6; // 起始时间
-  string cycle = 7; // 数据周期
+  int32 cycle = 7; // 数据周期 s
 }

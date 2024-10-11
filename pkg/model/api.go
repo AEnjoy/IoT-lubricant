@@ -9,6 +9,8 @@ type GatewayDbCli interface {
 	IsAgentIdExists(string) bool
 	GetAllAgentId() []string
 	RemoveAgent(...string) bool
+	GetAgentReportCycle(string) int
+	GetAgentGatherCycle(string) int
 }
 
 type CoreDb struct {
@@ -51,4 +53,14 @@ func (d *GatewayDb) GetAllAgentId() (retVal []string) {
 }
 func (d *GatewayDb) RemoveAgent(id ...string) bool {
 	return d.db.Where("id in (?)", id).Delete(&Agent{}).Error == nil
+}
+func (d *GatewayDb) GetAgentReportCycle(id string) int {
+	var agent Agent
+	d.db.Where("id = ?", id).First(&agent)
+	return agent.Cycle
+}
+func (d *GatewayDb) GetAgentGatherCycle(id string) int {
+	var agent Agent
+	d.db.Where("id = ?", id).First(&agent)
+	return agent.GatherCycle
 }

@@ -15,7 +15,8 @@ message DataMessage {
 
   string messageId = 2;
   string agentId = 3;
-  bytes data = 4;              // 二进制数据字段
+  string time = 4;
+  bytes data = 5;              // 二进制数据字段
 }
 
 message AgentMessageIdInfo {
