@@ -30,7 +30,6 @@ type app struct {
 	model.GatewayDbCli
 
 	port       string
-	grpcServer *grpc.Server
 	grpcClient core.CoreServiceClient //grpc
 }
 
@@ -72,15 +71,7 @@ func (a *app) Run() error {
 	}
 
 	a.Start()
-
-	select {}
-}
-
-func UseGRPC(grpcServer *grpc.Server) func(*app) error {
-	return func(a *app) error {
-		a.grpcServer = grpcServer
-		return nil
-	}
+	return a.grpcApp()
 }
 func SetPort(port string) func(*app) error {
 	return func(s *app) error {
@@ -112,11 +103,16 @@ func LinkToGrpcServer(address string, tls *model.Tls) func(*app) error {
 				return err
 			}
 			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(config))
+			if err != nil {
+				return err
+			}
+		} else {
+			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				return err
+			}
 		}
-		conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			return err
-		}
+
 		a.grpcClient = core.NewCoreServiceClient(conn)
 
 		// ping stream

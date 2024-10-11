@@ -94,15 +94,13 @@ func (a *app) stopAgent(id string) (errs error) {
 
 	e1 := a.mq.Unsubscribe(model.Topic_AgentRegister+id, ch.reg)
 	e2 := a.mq.Unsubscribe(model.Topic_AgentDevice+id, ch.agentDevice)
-	e3 := a.mq.Unsubscribe(model.Topic_MessagePushAck+id, ch.messagePushAck)
-	e4 := a.mq.Unsubscribe(model.Topic_MessagePull+id, ch.messagePull)
 
 	commend, _ := json.Marshal(model.Command{ID: model.Command_RemoveAgent})
 	data, _ := json.Marshal(gateway.DataMessage{Flag: 5, AgentId: id, Data: commend})
-	e5 := a.mq.Publish(model.Topic_AgentDevice+id, data)
+	e3 := a.mq.Publish(model.Topic_AgentDevice+id, data)
 
 	//e5 := a.mq.Unsubscribe(model.Topic_AgentRegisterAck+id, ch.regAck)
-	errs = errors.Join(errs, e1, e2, e3, e4, e5)
+	errs = errors.Join(errs, e1, e2, e3)
 
 	a.deviceList.Delete(id)
 	agentStore.Delete(id)
@@ -124,12 +122,14 @@ func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 	mq := a.mq
 	in.agentDevice, _ = mq.Subscribe(model.Topic_AgentDevice + id)
 	//in.regAck, _ = mq.Subscribe(model.Topic_AgentRegisterAck + id)
-	in.messagePushAck, _ = mq.Subscribe(model.Topic_MessagePushAck + id)
+	//in.messagePushAck, _ = mq.Subscribe(model.Topic_MessagePushAck + id)
 	//in.messagePull, _ = mq.Subscribe(model.Topic_MessagePull + id)
 	for {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in.agentDevice:
+			// todo: handle agent command
 		}
 	}
 }

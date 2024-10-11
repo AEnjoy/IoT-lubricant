@@ -12,14 +12,12 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 )
 
 type app struct {
-	grpcClient gateway.GatewayServiceClient
-	mq         mq.Mq[[]byte]
+	mq mq.Mq[[]byte]
 	*clientMqRecv
 	*clientMqSend
 
@@ -43,6 +41,7 @@ func (a *app) Run() error {
 	a.agentID = a.config.ID
 	a.clientMqSend.mq = a.mq
 	a.clientMqSend.SetContext(a.ctrl)
+	a.clientMqRecv.SetContext(a.ctrl)
 
 	go func() {
 		err := a.send()
@@ -50,6 +49,8 @@ func (a *app) Run() error {
 			exception.ErrCh <- err
 		}
 	}()
+	go a.clientMqRecv.handelCh()
+
 	//if a.grpcClient != nil {
 	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
 	//}

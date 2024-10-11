@@ -13,7 +13,6 @@ import (
 const maxBuffer = 50
 
 var (
-	dataSend     = make(chan *model.EdgeData, maxBuffer)
 	dataRev      = make(chan *model.EdgeData, maxBuffer)
 	errMessages  = make(chan *model.EdgeData, maxBuffer)
 	messageQueue = make(chan *gateway.AgentMessageIdInfo, maxBuffer)

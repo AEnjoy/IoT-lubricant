@@ -9,13 +9,10 @@ import (
 )
 
 type agentCtrl struct {
-	agentDevice    <-chan []byte // /agentData/+agentID
-	regAck         <-chan []byte // /agentData/register/ack/+agentID
-	messagePushAck <-chan []byte // /gateway/message/push/ack/+agentID
-	messagePull    <-chan []byte // /gateway/message/pull/+agentID
-	reg            <-chan []byte // Topic_AgentRegister
-	ctx            context.Context
-	ctrl           context.CancelFunc
+	agentDevice <-chan []byte // /agentData/+agentID
+	reg         <-chan []byte // Topic_AgentRegister
+	ctx         context.Context
+	ctrl        context.CancelFunc
 }
 
 type clientMq struct {
@@ -42,6 +39,8 @@ func (a *clientMq) handelGatewayInfo(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
@@ -53,6 +52,8 @@ func (a *clientMq) handelGatewayData(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
@@ -64,6 +65,8 @@ func (a *clientMq) handelPing(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
@@ -101,6 +104,8 @@ func (a *clientMq) handelAgentMessagePush(in <-chan []byte, err error, id string
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
