@@ -23,6 +23,12 @@ type agentData struct {
 func (a *agentData) parseData(in *gateway.DataMessage, cycle int) {
 	a.l.Lock()
 	defer a.l.Unlock()
+	if in == nil {
+		return
+	}
+	if cycle <= 0 {
+		cycle = 1
+	}
 	a.cycle = cycle
 	t, _ := time.Parse("2006-01-02 15:04:05", in.Time)
 	for i, data := range bytes.Split(in.Data, compress.Sepa) {
@@ -41,13 +47,12 @@ func (a *agentData) coverToGrpcData() *core.Data {
 	a.l.Lock()
 	defer a.l.Unlock()
 	var data core.Data
-	data.DataLen = int32(len(data.Data))
-	data.Cycle = int32(a.cycle)
-	data.Time = a.data[0].GetTime()
-
 	for _, datum := range a.data {
 		data.Data = append(data.Data, datum.GetData())
 	}
 
+	data.DataLen = int32(len(data.Data))
+	data.Cycle = int32(a.cycle)
+	data.Time = a.data[0].GetTime()
 	return &data
 }
