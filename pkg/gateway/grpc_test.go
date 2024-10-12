@@ -122,18 +122,6 @@ func (mr *MockCoreServiceServerMockRecorder) PushMessageId(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PushMessageId", reflect.TypeOf((*MockCoreServiceServer)(nil).PushMessageId), arg0, arg1)
 }
 
-// mustEmbedUnimplementedCoreServiceServer mocks base method.
-func (m *MockCoreServiceServer) mustEmbedUnimplementedCoreServiceServer() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "mustEmbedUnimplementedCoreServiceServer")
-}
-
-// mustEmbedUnimplementedCoreServiceServer indicates an expected call of mustEmbedUnimplementedCoreServiceServer.
-func (mr *MockCoreServiceServerMockRecorder) mustEmbedUnimplementedCoreServiceServer() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mustEmbedUnimplementedCoreServiceServer", reflect.TypeOf((*MockCoreServiceServer)(nil).mustEmbedUnimplementedCoreServiceServer))
-}
-
 // MockUnsafeCoreServiceServer is a mock of UnsafeCoreServiceServer interface.
 type MockUnsafeCoreServiceServer struct {
 	ctrl     *gomock.Controller
@@ -155,16 +143,4 @@ func NewMockUnsafeCoreServiceServer(ctrl *gomock.Controller) *MockUnsafeCoreServ
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUnsafeCoreServiceServer) EXPECT() *MockUnsafeCoreServiceServerMockRecorder {
 	return m.recorder
-}
-
-// mustEmbedUnimplementedCoreServiceServer mocks base method.
-func (m *MockUnsafeCoreServiceServer) mustEmbedUnimplementedCoreServiceServer() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "mustEmbedUnimplementedCoreServiceServer")
-}
-
-// mustEmbedUnimplementedCoreServiceServer indicates an expected call of mustEmbedUnimplementedCoreServiceServer.
-func (mr *MockUnsafeCoreServiceServerMockRecorder) mustEmbedUnimplementedCoreServiceServer() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mustEmbedUnimplementedCoreServiceServer", reflect.TypeOf((*MockUnsafeCoreServiceServer)(nil).mustEmbedUnimplementedCoreServiceServer))
 }
