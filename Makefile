@@ -12,4 +12,6 @@ install:
 	@which mockgen > /dev/null || go install github.com/golang/mock/mockgen@v1.6.0
 
 mock: install
-
+	mockgen \
+		-source=pkg/model/api.go -destination=pkg/mock/db/mockdb.go \
+		-package=db

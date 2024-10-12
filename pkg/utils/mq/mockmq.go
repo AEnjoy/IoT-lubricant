@@ -38,7 +38,7 @@ func (m *MockMq[T]) Close() {
 // Close indicates an expected call of Close.
 func (mr *MockMqMockRecorder[T]) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockMq)(nil).Close))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockMq[T])(nil).Close))
 }
 
 // GetPayLoad mocks base method.
@@ -52,7 +52,7 @@ func (m *MockMq[T]) GetPayLoad(sub <-chan T) T {
 // GetPayLoad indicates an expected call of GetPayLoad.
 func (mr *MockMqMockRecorder[T]) GetPayLoad(sub interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPayLoad", reflect.TypeOf((*MockMq)(nil).GetPayLoad), sub)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPayLoad", reflect.TypeOf((*MockMq[T])(nil).GetPayLoad), sub)
 }
 
 // Publish mocks base method.
@@ -66,7 +66,7 @@ func (m *MockMq[T]) Publish(topic string, msg T) error {
 // Publish indicates an expected call of Publish.
 func (mr *MockMqMockRecorder[T]) Publish(topic, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockMq)(nil).Publish), topic, msg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockMq[T])(nil).Publish), topic, msg)
 }
 
 // PublishBytes mocks base method.
@@ -80,7 +80,7 @@ func (m *MockMq[T]) PublishBytes(topic string, msg []byte) error {
 // PublishBytes indicates an expected call of PublishBytes.
 func (mr *MockMqMockRecorder[T]) PublishBytes(topic, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishBytes", reflect.TypeOf((*MockMq)(nil).PublishBytes), topic, msg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishBytes", reflect.TypeOf((*MockMq[T])(nil).PublishBytes), topic, msg)
 }
 
 // SetConditions mocks base method.
@@ -92,7 +92,7 @@ func (m *MockMq[T]) SetConditions(capacity int) {
 // SetConditions indicates an expected call of SetConditions.
 func (mr *MockMqMockRecorder[T]) SetConditions(capacity interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConditions", reflect.TypeOf((*MockMq)(nil).SetConditions), capacity)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConditions", reflect.TypeOf((*MockMq[T])(nil).SetConditions), capacity)
 }
 
 // Subscribe mocks base method.
@@ -107,7 +107,7 @@ func (m *MockMq[T]) Subscribe(topic string) (<-chan T, error) {
 // Subscribe indicates an expected call of Subscribe.
 func (mr *MockMqMockRecorder[T]) Subscribe(topic interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockMq)(nil).Subscribe), topic)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockMq[T])(nil).Subscribe), topic)
 }
 
 // Unsubscribe mocks base method.
@@ -121,5 +121,5 @@ func (m *MockMq[T]) Unsubscribe(topic string, sub <-chan T) error {
 // Unsubscribe indicates an expected call of Unsubscribe.
 func (mr *MockMqMockRecorder[T]) Unsubscribe(topic, sub interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsubscribe", reflect.TypeOf((*MockMq)(nil).Unsubscribe), topic, sub)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unsubscribe", reflect.TypeOf((*MockMq[T])(nil).Unsubscribe), topic, sub)
 }
