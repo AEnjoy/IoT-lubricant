@@ -48,24 +48,7 @@ func (a *app) Run() error {
 	a.dataCli = new(data)
 	a.dataCli.Start()
 
-	portInt, err := strconv.Atoi(a.port)
-	if err != nil {
-		logger.Warn("Invalid port number, using default value.")
-		portInt = 4222
-	}
-
-	server, err := nats.NewNatsServer(portInt)
-	if err != nil {
-		return err
-	}
-	go server.Start()
-
-	a.mq, err = mq.NewNatsMq[[]byte](fmt.Sprintf("nats://127.0.0.1:%s", a.port))
-	if err != nil {
-		return err
-	}
-
-	err = a.initClientMq()
+	err := a.initClientMq()
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +58,25 @@ func (a *app) Run() error {
 }
 func SetPort(port string) func(*app) error {
 	return func(s *app) error {
+		portInt, err := strconv.Atoi(port)
+		if err != nil {
+			logger.Warn("Invalid port number, using default value.")
+			portInt = 4222
+			port = "4222"
+		}
+
 		s.port = port
+
+		server, err := nats.NewNatsServer(portInt)
+		if err != nil {
+			return err
+		}
+		go server.Start()
+
+		s.mq, err = mq.NewNatsMq[[]byte](fmt.Sprintf("nats://127.0.0.1:%s", s.port))
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 }
