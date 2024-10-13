@@ -14,8 +14,7 @@ import (
 
 var timer = time.Now().Format("2006-01-02 15:04:05")
 
-func newTestAgent(n int) *agentData {
-	agent := &agentData{data: make([]*gateway.DataMessage, 0)}
+func newRandomDataMessage(n int) *gateway.DataMessage {
 	data := &gateway.DataMessage{
 		Flag:      2,
 		MessageId: uuid.NewString(),
@@ -29,6 +28,12 @@ func newTestAgent(n int) *agentData {
 	}
 
 	data.Data = bytes.Join(s, compress.Sepa)
+	return data
+}
+func newTestAgent(n int) *agentData {
+	agent := &agentData{data: make([]*gateway.DataMessage, 0)}
+
+	data := newRandomDataMessage(n)
 	agent.parseData(data, 1)
 	return agent
 }
