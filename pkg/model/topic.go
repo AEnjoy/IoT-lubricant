@@ -34,6 +34,8 @@ type Command struct {
 }
 
 const (
+	Command_nil = 0
+	Command_Add = iota
+
 	Command_RemoveAgent = 18
-	Command_Add         = iota
 )
