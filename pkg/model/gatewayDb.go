@@ -1,29 +1,6 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
-type GatewayDbCli interface {
-	GetServerInfo() ServerInfo
-	IsAgentIdExists(string) bool
-	GetAllAgentId() []string
-	RemoveAgent(...string) bool
-	GetAgentReportCycle(string) int
-	GetAgentGatherCycle(string) int
-}
-
-type CoreDb struct {
-	db *gorm.DB
-}
-
-func (*CoreDb) Name() string {
-	return "Core-database-client"
-}
-func (d *CoreDb) Init() error {
-	d.db = DefaultCoreClient().db
-	return nil
-}
+import "gorm.io/gorm"
 
 type GatewayDb struct {
 	db *gorm.DB
