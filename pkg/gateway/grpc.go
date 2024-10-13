@@ -30,6 +30,8 @@ func (a *app) grpcApp() error {
 		switch t.ID {
 		case model.Command_RemoveAgent:
 			a.removeAgent(t.Data)
+		case model.Command_nil:
+
 		default:
 			panic("unhandled default case")
 		}
