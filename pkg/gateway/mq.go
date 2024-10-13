@@ -70,10 +70,7 @@ func (a *clientMq) handelPing(in <-chan []byte, err error) error {
 		}
 	}
 }
-func (a *app) handelAgentDataPush(in <-chan []byte, err error, id string) error {
-	if err != nil {
-		return err
-	}
+func (a *app) handelAgentDataPush(in <-chan []byte, id string) error {
 	for {
 		select {
 		case <-a.ctrl.Done():

@@ -73,7 +73,11 @@ func (a *app) joinAgent(id string) (errs error) {
 	}()
 	go func() {
 		ch, err := a.mq.Subscribe(model.Topic_AgentDataPush + id)
-		err = a.handelAgentDataPush(ch, err, id)
+		if err != nil {
+			errs = errors.Join(errs, err)
+			return
+		}
+		err = a.handelAgentDataPush(ch, id)
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}
