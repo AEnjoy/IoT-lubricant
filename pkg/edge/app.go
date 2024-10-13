@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
 )
 
 type app struct {
-	grpcClient gateway.GatewayServiceClient
-	mq         mq.Mq[[]byte]
-	*clientMq
+	mq mq.Mq[[]byte]
+	*clientMqRecv
+	*clientMqSend
 
 	openapi.OpenApi
 
@@ -36,12 +36,41 @@ type app struct {
 
 func (a *app) Run() error {
 	a.errPanic = make(chan error)
-	a.clientMq = new(clientMq)
+	a.clientMqRecv = new(clientMqRecv)
+	a.clientMqSend = new(clientMqSend)
+	a.agentID = a.config.ID
+	a.clientMqSend.mq = a.mq
+	a.clientMqSend.SetContext(a.ctrl)
+	a.clientMqRecv.SetContext(a.ctrl)
+
+	go func() {
+		err := a.send()
+		if err != nil {
+			exception.ErrCh <- err
+		}
+	}()
+
 	//if a.grpcClient != nil {
 	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
 	//}
 
-	go a.StartGather(a.ctrl)
+	go func() {
+		err := a.StartGather(a.ctrl)
+		if err != nil {
+			a.errPanic <- err
+		}
+	}()
+
+	err := a.joinGateway()
+	if err != nil {
+		return err
+	}
+	err = a.initClientMq()
+	if err != nil {
+		return err
+	}
+
+	go a.clientMqRecv.handelCh()
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 	//go a.clientGrpc() //grpc

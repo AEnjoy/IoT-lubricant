@@ -16,7 +16,7 @@ const (
 	Topic_GatewayData      = "/gateway/data"              // agent->gateway->agent
 	Topic_AgentDataPush    = "/gateway/data/push/"        // + agentId agent->gateway
 	Topic_AgentDataPushAck = "/gateway/data/push/ack/"    // + agentId agent->gateway
-	Topic_MessagePush      = "/gateway/message/push"      // agent->gateway
+	Topic_MessagePush      = "/gateway/message/push/"     // agent->gateway
 	Topic_MessagePushAck   = "/gateway/message/push/ack/" // + messageId gateway->agent
 	Topic_MessagePull      = "/gateway/message/pull/"     // + messageId gateway->agent
 )
@@ -34,6 +34,8 @@ type Command struct {
 }
 
 const (
+	Command_nil = 0
+	Command_Add = iota
+
 	Command_RemoveAgent = 18
-	Command_Add         = iota
 )

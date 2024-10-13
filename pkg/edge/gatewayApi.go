@@ -41,6 +41,6 @@ func (a *app) initClientMq() (errs error) {
 	ch.messagePushAck = ch2
 	ch.messagePull = ch3
 	ch.agentDataPushAck = ch4
-	a.clientMq.chs = ch
+	a.clientMqRecv.chs = ch
 	return errors.Join(errs, e1, e2, e3, e4)
 }

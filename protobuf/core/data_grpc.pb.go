@@ -29,7 +29,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreServiceClient interface {
-	Ping(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PingPong, PingPong], error)
+	Ping(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Ping, Ping], error)
 	GetTask(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Task, Task], error)
 	PushMessageId(ctx context.Context, in *MessageIdInfo, opts ...grpc.CallOption) (*MessageIdInfo, error)
 	PushData(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error)
@@ -43,18 +43,18 @@ func NewCoreServiceClient(cc grpc.ClientConnInterface) CoreServiceClient {
 	return &coreServiceClient{cc}
 }
 
-func (c *coreServiceClient) Ping(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PingPong, PingPong], error) {
+func (c *coreServiceClient) Ping(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Ping, Ping], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &CoreService_ServiceDesc.Streams[0], CoreService_Ping_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[PingPong, PingPong]{ClientStream: stream}
+	x := &grpc.GenericClientStream[Ping, Ping]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type CoreService_PingClient = grpc.BidiStreamingClient[PingPong, PingPong]
+type CoreService_PingClient = grpc.BidiStreamingClient[Ping, Ping]
 
 func (c *coreServiceClient) GetTask(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Task, Task], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -96,7 +96,7 @@ type CoreService_PushDataClient = grpc.BidiStreamingClient[Data, Data]
 // All implementations must embed UnimplementedCoreServiceServer
 // for forward compatibility.
 type CoreServiceServer interface {
-	Ping(grpc.BidiStreamingServer[PingPong, PingPong]) error
+	Ping(grpc.BidiStreamingServer[Ping, Ping]) error
 	GetTask(grpc.BidiStreamingServer[Task, Task]) error
 	PushMessageId(context.Context, *MessageIdInfo) (*MessageIdInfo, error)
 	PushData(grpc.BidiStreamingServer[Data, Data]) error
@@ -110,7 +110,7 @@ type CoreServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedCoreServiceServer struct{}
 
-func (UnimplementedCoreServiceServer) Ping(grpc.BidiStreamingServer[PingPong, PingPong]) error {
+func (UnimplementedCoreServiceServer) Ping(grpc.BidiStreamingServer[Ping, Ping]) error {
 	return status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedCoreServiceServer) GetTask(grpc.BidiStreamingServer[Task, Task]) error {
@@ -144,11 +144,11 @@ func RegisterCoreServiceServer(s grpc.ServiceRegistrar, srv CoreServiceServer) {
 }
 
 func _CoreService_Ping_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(CoreServiceServer).Ping(&grpc.GenericServerStream[PingPong, PingPong]{ServerStream: stream})
+	return srv.(CoreServiceServer).Ping(&grpc.GenericServerStream[Ping, Ping]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type CoreService_PingServer = grpc.BidiStreamingServer[PingPong, PingPong]
+type CoreService_PingServer = grpc.BidiStreamingServer[Ping, Ping]
 
 func _CoreService_GetTask_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(CoreServiceServer).GetTask(&grpc.GenericServerStream[Task, Task]{ServerStream: stream})
