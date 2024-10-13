@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/mock/db"
+	grpcmock "github.com/AEnjoy/IoT-lubricant/pkg/mock/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
@@ -14,25 +15,25 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
+	"github.com/stretchr/testify/mock"
 )
 
-// grpc Mock
-// https://github.com/nhatthm/grpcmock
-func RegisterServiceServer(s grpc.ServiceRegistrar, srv core.CoreServiceServer) {
-	s.RegisterService(&core.CoreService_ServiceDesc, srv)
-}
+const TestTime = 8
+
 func TestGatewayAPP(t *testing.T) {
-	t.Skip("not all implement yet")
+	//t.Skip("not all implement yet")
 	assert := assert.New(t)
 	ctrl := gomock.NewController(t)
+
 	mockMqClient := mq.NewMockMq[[]byte](ctrl)
 	mockDbClient := db.NewMockGatewayDbCli(ctrl)
-	mockGrpcClient := NewMockCoreServiceClient(ctrl)
+	mockGrpcClient := grpcmock.NewCoreServiceClient(t)
+	mockGrpcTaskStream := grpcmock.NewBidiStreamingServer[core.Task, core.Task](t)
+	mockGrpcDataStream := grpcmock.NewBidiStreamingServer[core.Data, core.Data](t)
 
 	deviceList := &sync.Map{}
 
-	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
+	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(TestTime*time.Second))
 	defer cf()
 
 	app := &app{
@@ -41,44 +42,66 @@ func TestGatewayAPP(t *testing.T) {
 		deviceList:   deviceList,
 		GatewayDbCli: mockDbClient,
 		grpcClient:   mockGrpcClient,
-		clientMq: &clientMq{
-			ctrl:       ctx,
-			cancel:     cf,
-			deviceList: deviceList,
-		},
 	}
+
 	// mock link an agent to gateway
 	agentId := uuid.NewString()
-	regCh := make(chan []byte)
 	nilCh := make(chan []byte) // agentDevice dataPush messagePush
+	regCh := make(chan []byte, 1)
+	dataPushCh := make(chan []byte, 1)
 
-	ping, err := json.Marshal(model.Ping{Status: 1})
-	assert.NoError(err)
+	mockDbClient.EXPECT().GetAllAgentId().Return([]string{agentId})
+	mockDbClient.EXPECT().GetAgentGatherCycle(agentId).Return(1)
 
-	// Subscribe Topic_AgentRegister
 	mockMqClient.EXPECT().Subscribe(model.Topic_AgentRegister+agentId).Return(regCh, nil)
 
-	// handelAgentRegister
-	// send register success to channel
-	go func() {
-		t.Logf("Join %s to Gateway", agentId)
-		data, err := json.Marshal(model.Register{ID: agentId})
-		assert.NoError(err)
-		regCh <- data
-	}()
+	// send register ack to agent
+	ping, err := json.Marshal(model.Ping{Status: 1})
+	assert.NoError(err)
 	mockMqClient.EXPECT().Publish(model.Topic_AgentRegisterAck+agentId, ping).Return(nil)
 
-	// subscribeDeviceMQ
-	mockMqClient.EXPECT().Subscribe(model.Topic_AgentDevice+agentId).Return(nilCh, nil)
+	// mock-agent register
+	data, err := json.Marshal(model.Register{ID: agentId})
+	assert.NoError(err)
+	regCh <- data
 
-	// handelAgentDataPush
-	// Subscribe Topic_AgentDataPush
-	mockMqClient.EXPECT().Subscribe(model.Topic_AgentDataPush+agentId).Return(nilCh, nil)
+	// mock agent register and data send
+	mockMqClient.EXPECT().Subscribe(model.Topic_AgentDataPush+agentId).Return(dataPushCh, nil)
+	messageData, err := json.Marshal(newRandomDataMessage(45))
+	assert.NoError(err)
+	dataPushCh <- messageData
 
-	// Subscribe Topic_MessagePush
-	mockMqClient.EXPECT().Subscribe(model.Topic_MessagePush+agentId).Return(nilCh, nil)
+	// mock grpc server
+	mockGrpcClient.On("GetTask", mock.Anything).Return(mockGrpcTaskStream, nil)
+	mockGrpcClient.On("PushData", mock.Anything).Return(mockGrpcDataStream, nil)
+	var resp core.Task
+	var command model.Command
+	data, err = json.Marshal(command)
+	assert.NoError(err)
+	resp.Content = data
+	mockGrpcTaskStream.On("Recv").WaitUntil(time.Tick((TestTime+4)*time.Second)).Return(&resp, nil)
+	mockGrpcDataStream.On("Send", mock.Anything).Return(nil)
+
+	// mock mq Subscribe and publish
+	{
+		// handelGatewayInfo
+		mockMqClient.EXPECT().Subscribe(model.Topic_GatewayInfo).Return(nilCh, nil)
+
+		// handelGatewayData
+		mockMqClient.EXPECT().Subscribe(model.Topic_GatewayData).Return(nilCh, nil)
+
+		// handelPing
+		mockMqClient.EXPECT().Subscribe(model.Topic_Ping).Return(nilCh, nil)
+
+		// subscribeDeviceMQ
+		mockMqClient.EXPECT().Subscribe(model.Topic_AgentDevice+agentId).Return(nilCh, nil)
+
+		// Subscribe Topic_MessagePush
+		mockMqClient.EXPECT().Subscribe(model.Topic_MessagePush+agentId).Return(nilCh, nil)
+	}
 	go func() {
 		assert.NoError(app.Run())
 	}()
 
+	<-time.After(TestTime * time.Second)
 }
