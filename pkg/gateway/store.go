@@ -53,6 +53,9 @@ func (a *agentData) coverToGrpcData() *core.Data {
 
 	data.DataLen = int32(len(data.Data))
 	data.Cycle = int32(a.cycle)
-	data.Time = a.data[0].GetTime()
-	return &data
+	if len(a.data) > 0 {
+		data.Time = a.data[0].GetTime()
+		return &data
+	}
+	return nil
 }

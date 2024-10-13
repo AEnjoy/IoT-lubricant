@@ -7,17 +7,22 @@ import (
 	"testing"
 	"time"
 
+	grpcmock "github.com/AEnjoy/IoT-lubricant/pkg/mock/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestAPP_JoinAgent(t *testing.T) {
 	assert := assert.New(t)
 	ctrl := gomock.NewController(t)
 	mockMqClient := mq.NewMockMq[[]byte](ctrl)
+	mockGrpcClient := grpcmock.NewCoreServiceClient(t)
+	mockGrpcDataStream := grpcmock.NewBidiStreamingServer[core.Data, core.Data](t)
 	deviceList := &sync.Map{}
 
 	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
@@ -29,13 +34,14 @@ func TestAPP_JoinAgent(t *testing.T) {
 		mq:         mockMqClient,
 		ctrl:       ctx,
 		deviceList: deviceList,
+		grpcClient: mockGrpcClient,
 		clientMq: &clientMq{
 			ctrl:       ctx,
 			cancel:     cf,
 			deviceList: deviceList,
 		},
 	}
-
+	mockGrpcClient.On("PushData", mock.Anything).Return(mockGrpcDataStream, nil)
 	for {
 		select {
 		case <-ctx.Done():

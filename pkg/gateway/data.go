@@ -97,6 +97,9 @@ func (a *app) pushDataToServer(ctx context.Context, id string) error {
 				return err
 			}
 			data := agentMap.coverToGrpcData()
+			if data == nil {
+				continue
+			}
 			agentMap.cleanData()
 
 			data.GatewayId = gatewayId
