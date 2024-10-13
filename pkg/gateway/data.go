@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -65,6 +66,20 @@ func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
 	v.(chan struct{}) <- struct{}{} // 通知数据处理完成
 
 	// TODO: handle message
+}
+func (a *app) handelSignal(id string) error {
+	// todo: not all implemented yet
+	//  task: 1. need to support choose report cycle
+	//        2. need to support modify and trigger by core server manually
+	v, ok := agentStore.Load(id)
+	if !ok {
+		return ErrAgentNotFound
+	}
+	agentMap := v.(*agentData)
+	for range time.Tick(time.Second * 5) {
+		agentMap.sendSignal <- struct{}{}
+	}
+	return nil
 }
 func (a *app) pushDataToServer(ctx context.Context, id string) error {
 	v, ok := agentStore.Load(id)

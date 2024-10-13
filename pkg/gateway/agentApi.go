@@ -50,6 +50,7 @@ func (a *app) joinAgent(id string) (errs error) {
 	a.deviceList.Store(id, ch)
 	agentStore.Store(id, ag)
 	go func() {
+		_ = a.handelSignal(id)
 		_ = a.pushDataToServer(ctx, id)
 	}()
 
@@ -136,7 +137,6 @@ func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 
 func (a *app) initClientMq() (errs error) {
 	mq := a.mq
-	a.clientMq.deviceList = a.deviceList
 	for _, id := range a.GatewayDbCli.GetAllAgentId() {
 		if err := a.joinAgent(id); err != nil {
 			errs = errors.Join(errs, err)
