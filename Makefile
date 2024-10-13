@@ -17,6 +17,6 @@ mock: install
 	mockgen \
 		-source=pkg/model/api.go -destination=pkg/mock/db/mockdb.go \
 		-package=db
-	mockery --dir=protobuf/core --name=CoreServiceServer --output=pkg/mock/grpc --outpkg=grpc
+	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
 
