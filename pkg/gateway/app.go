@@ -47,6 +47,8 @@ func (a *app) Run() error {
 	a.clientMq = new(clientMq)
 	a.dataCli = new(data)
 	a.dataCli.Start()
+	a.clientMq.ctrl = a.ctrl
+	a.clientMq.deviceList = a.deviceList
 
 	err := a.initClientMq()
 	if err != nil {
