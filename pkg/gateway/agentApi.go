@@ -49,8 +49,11 @@ func (a *app) joinAgent(id string) (errs error) {
 	}
 	a.deviceList.Store(id, ch)
 	agentStore.Store(id, ag)
+
 	go func() {
 		_ = a.handelSignal(id)
+	}()
+	go func() {
 		_ = a.pushDataToServer(ctx, id)
 	}()
 
