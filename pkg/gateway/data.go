@@ -3,19 +3,20 @@ package gateway
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
+	"github.com/google/uuid"
 )
 
 const maxBuffer = 50
 
 var (
-	dataSend     = make(chan *model.EdgeData, maxBuffer)
 	dataRev      = make(chan *model.EdgeData, maxBuffer)
 	errMessages  = make(chan *model.EdgeData, maxBuffer)
-	messageQueue = make(chan *gateway.MessageIdInfo, maxBuffer)
+	messageQueue = make(chan *gateway.AgentMessageIdInfo, maxBuffer)
 
 	finish = sync.Map{}
 )
@@ -58,13 +59,57 @@ func (d *data) HandleData(ctx context.Context) {
 	}
 }
 func (d *data) handleData(in *model.EdgeData) {
-	var dataModel uploadModel
-	dataModel.edgeId = in.AgentId
 
 }
-func (d *data) handleMessage(in *gateway.MessageIdInfo) {
+func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
 	v, _ := finish.Load(in.MessageId)
 	v.(chan struct{}) <- struct{}{} // 通知数据处理完成
 
 	// TODO: handle message
+}
+func (a *app) handelSignal(id string) error {
+	// todo: not all implemented yet
+	//  task: 1. need to support choose report cycle
+	//        2. need to support modify and trigger by core server manually
+	v, ok := agentStore.Load(id)
+	if !ok {
+		return ErrAgentNotFound
+	}
+	agentMap := v.(*agentData)
+	for range time.Tick(time.Second * 5) {
+		agentMap.sendSignal <- struct{}{}
+	}
+	return nil
+}
+func (a *app) pushDataToServer(ctx context.Context, id string) error {
+	v, ok := agentStore.Load(id)
+	if !ok {
+		return ErrAgentNotFound
+	}
+	agentMap := v.(*agentData)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-agentMap.sendSignal:
+			stream, err := a.grpcClient.PushData(ctx)
+			if err != nil {
+				return err
+			}
+			data := agentMap.coverToGrpcData()
+			if data == nil {
+				continue
+			}
+			agentMap.cleanData()
+
+			data.GatewayId = gatewayId
+			data.AgentID = id
+			data.MessageId = uuid.NewString()
+
+			err = stream.Send(data)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }

@@ -7,7 +7,7 @@ option go_package = "protobuf/gateway";
 service gatewayService {
   rpc data(stream DataMessage) returns (stream DataMessage) {}
   rpc ping(PingPong) returns (PingPong) {}
-  rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
+  rpc pushMessageId(AgentMessageIdInfo) returns (AgentMessageIdInfo) {}
 }
 
 message DataMessage {
@@ -15,10 +15,11 @@ message DataMessage {
 
   string messageId = 2;
   string agentId = 3;
-  bytes data = 4;              // 二进制数据字段
+  string time = 4;
+  bytes data = 5;              // 二进制数据字段
 }
 
-message MessageIdInfo {
+message AgentMessageIdInfo {
   string messageId = 1;
   string time = 2;
   string agentId = 3; //如果作为服务端的Response,则该内容为空或为下一条处理消息的messageId

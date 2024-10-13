@@ -12,6 +12,13 @@ type MapContainer struct {
 	storge map[string]Object
 }
 
+func (c *MapContainer) Version(name string) string {
+	if obj, ok := c.storge[name]; ok {
+		return obj.Version()
+	}
+	return ""
+}
+
 func (c *MapContainer) Registry(name string, obj Object) {
 	c.storge[name] = obj
 }

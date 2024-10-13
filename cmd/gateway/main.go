@@ -61,8 +61,6 @@ func main() {
 	app := gateway.NewApp(
 		gateway.SetGatewayId(id),
 		gateway.SetPort(port),
-		//gateway.UseGRPC(gateway.NewGrpcServer()),
-		//gateway.UseMq(mq.NewNatsMq[[]byte](fmt.Sprintf("nats://127.0.0.1:%s", port))),
 		gateway.UseDB(model.Gateway(nil)),
 	)
 	panic(app.Run())

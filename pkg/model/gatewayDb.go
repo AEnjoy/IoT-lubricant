@@ -1,27 +1,6 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
-type GatewayDbCli interface {
-	GetServerInfo() ServerInfo
-	IsAgentIdExists(string) bool
-	GetAllAgentId() []string
-	RemoveAgent(...string) bool
-}
-
-type CoreDb struct {
-	db *gorm.DB
-}
-
-func (*CoreDb) Name() string {
-	return "Core-database-client"
-}
-func (d *CoreDb) Init() error {
-	d.db = DefaultCoreClient().db
-	return nil
-}
+import "gorm.io/gorm"
 
 type GatewayDb struct {
 	db *gorm.DB
@@ -51,4 +30,14 @@ func (d *GatewayDb) GetAllAgentId() (retVal []string) {
 }
 func (d *GatewayDb) RemoveAgent(id ...string) bool {
 	return d.db.Where("id in (?)", id).Delete(&Agent{}).Error == nil
+}
+func (d *GatewayDb) GetAgentReportCycle(id string) int {
+	var agent Agent
+	d.db.Where("id = ?", id).First(&agent)
+	return agent.Cycle
+}
+func (d *GatewayDb) GetAgentGatherCycle(id string) int {
+	var agent Agent
+	d.db.Where("id = ?", id).First(&agent)
+	return agent.GatherCycle
 }

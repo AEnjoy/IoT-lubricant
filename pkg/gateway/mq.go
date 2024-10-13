@@ -2,21 +2,23 @@ package gateway
 
 import (
 	"context"
+	"encoding/json"
 	"sync"
+
+	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
 
-type chs struct {
-	agentDevice    <-chan []byte // /agent/+agentID
-	regAck         <-chan []byte // /agent/register/ack/+agentID
-	messagePushAck <-chan []byte // /gateway/message/push/ack/+agentID
-	messagePull    <-chan []byte // /gateway/message/pull/+agentID
-	reg            <-chan []byte // Topic_AgentRegister
+type agentCtrl struct {
+	agentDevice <-chan []byte // /agentData/+agentID
+	reg         <-chan []byte // Topic_AgentRegister
+	ctx         context.Context
+	ctrl        context.CancelFunc
 }
 
 type clientMq struct {
 	ctrl       context.Context
 	cancel     context.CancelFunc
-	deviceList *sync.Map // agentId - chs channel
+	deviceList *sync.Map // agentId - agentCtrl channel
 }
 
 func (a *clientMq) Start() {
@@ -37,6 +39,8 @@ func (a *clientMq) handelGatewayInfo(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
@@ -48,6 +52,8 @@ func (a *clientMq) handelGatewayData(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
@@ -59,28 +65,41 @@ func (a *clientMq) handelPing(in <-chan []byte, err error) error {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
-func (a *clientMq) handelAgentDataPush(in <-chan []byte, err error, id string) error {
-	if err != nil {
-		return err
-	}
+func (a *app) handelAgentDataPush(in <-chan []byte, id string) error {
 	for {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case data := <-in:
+			var out gateway.DataMessage
+			err := json.Unmarshal(data, &out)
+			if err != nil {
+				return err
+			}
+			if out.Flag == 2 {
+				v, ok := agentStore.Load(id)
+				if !ok {
+					return ErrAgentNotFound
+				}
+				agentMap := v.(*agentData)
+				agentMap.parseData(&out, a.GetAgentGatherCycle(id))
+			}
+			// todo: handle other flag
 		}
 	}
 }
-func (a *clientMq) handelAgentMessagePush(in <-chan []byte, err error) error {
-	if err != nil {
-		return err
-	}
+func (a *clientMq) handelAgentMessagePush(in <-chan []byte, id string) error {
 	for {
 		select {
 		case <-a.ctrl.Done():
 			return nil
+		case <-in:
+			// todo:handle the agent's request
 		}
 	}
 }
