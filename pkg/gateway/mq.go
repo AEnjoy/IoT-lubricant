@@ -93,10 +93,7 @@ func (a *app) handelAgentDataPush(in <-chan []byte, id string) error {
 		}
 	}
 }
-func (a *clientMq) handelAgentMessagePush(in <-chan []byte, err error, id string) error {
-	if err != nil {
-		return err
-	}
+func (a *clientMq) handelAgentMessagePush(in <-chan []byte, id string) error {
 	for {
 		select {
 		case <-a.ctrl.Done():

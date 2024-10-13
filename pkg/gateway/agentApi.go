@@ -84,7 +84,11 @@ func (a *app) joinAgent(id string) (errs error) {
 	}()
 	go func() {
 		ch, err := a.mq.Subscribe(model.Topic_MessagePush + id)
-		err = a.handelAgentMessagePush(ch, err, id)
+		if err != nil {
+			errs = errors.Join(errs, err)
+			return
+		}
+		err = a.handelAgentMessagePush(ch, id)
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}
@@ -129,9 +133,7 @@ func (a *app) removeAgent(id ...string) bool {
 func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 	mq := a.mq
 	in.agentDevice, _ = mq.Subscribe(model.Topic_AgentDevice + id)
-	//in.regAck, _ = mq.Subscribe(model.Topic_AgentRegisterAck + id)
-	//in.messagePushAck, _ = mq.Subscribe(model.Topic_MessagePushAck + id)
-	//in.messagePull, _ = mq.Subscribe(model.Topic_MessagePull + id)
+
 	for {
 		select {
 		case <-a.ctrl.Done():
@@ -168,6 +170,7 @@ func (a *app) initClientMq() (errs error) {
 			errs = errors.Join(errs, err)
 		}
 	}()
+	// todo: handle message push
 	//go func() {
 	//	err := a.handelAgentMessagePush(mq.Subscribe(model.Topic_MessagePush))
 	//	if err != nil {

@@ -21,7 +21,6 @@ import (
 const TestTime = 8
 
 func TestGatewayAPP(t *testing.T) {
-	//t.Skip("not all implement yet")
 	assert := assert.New(t)
 	ctrl := gomock.NewController(t)
 

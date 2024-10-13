@@ -37,7 +37,6 @@ func newTestAgent(n int) *agentData {
 	agent.parseData(data, 1)
 	return agent
 }
-
 func TestParseData(t *testing.T) {
 	assert := assert.New(t)
 	randomTest := rand.Intn(71) + 30 // 30-100
