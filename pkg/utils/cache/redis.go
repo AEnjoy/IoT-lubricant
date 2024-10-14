@@ -3,15 +3,52 @@ package cache
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/redis/go-redis/v9"
 )
 
-var _ CacheCli[any] = (*RedisCli[any])(nil)
+var (
+	_ CacheCli[any] = (*RedisCli[any])(nil)
+	_ ioc.Object    = (*RedisCli)(nil)
+)
+
+var (
+	ErrNeedInit = errors.New("cache client need init")
+)
 
 type RedisCli[T any] struct {
 	rdb *redis.Client
+}
+
+func (i *RedisCli[T]) Init() error {
+	if i.rdb == nil {
+		return ErrNeedInit
+	}
+	return nil
+}
+
+func (i *RedisCli[T]) Weight() uint16 {
+	return ioc.CacheCli
+}
+
+func (i *RedisCli[T]) Version() string {
+	return "dev"
+}
+
+func (r *RedisCli[T]) HSet(ctx context.Context, key string, field string, value T) error {
+	return r.rdb.HSet(ctx, key, field, value).Err()
+}
+
+func (r *RedisCli[T]) HGet(ctx context.Context, key string, field string) (T, error) {
+	var zero T
+	val, err := r.rdb.HGet(ctx, key, field).Result()
+	if err != nil {
+		return zero, err
+	}
+	return any(val).(T), nil
 }
 
 // SetEx 实现设置带过期时间的缓存项
@@ -73,4 +110,14 @@ func NewRedisCli[T any](addr, password string, db int, tlsConfig *tls.Config) (*
 			TLSConfig: tlsConfig,
 		}),
 	}, nil
+}
+
+// NewRedisCliIoC 创建新的 Redis 客户端实例 给ioc托管
+func NewRedisCliIoC[T any](addr, password string, db int, tlsConfig *tls.Config) error {
+	cli, err := NewRedisCli[T](addr, password, db, tlsConfig)
+	if err != nil {
+		return err
+	}
+	ioc.Controller.Registry(APP_NAME, cli)
+	return nil
 }
