@@ -58,13 +58,6 @@ func (a *app) joinAgent(id string) (errs error) {
 	}()
 
 	go func() {
-		_ = a.handelSignal(id)
-	}()
-	go func() {
-		_ = a.pushDataToServer(ctx, id)
-	}()
-
-	go func() {
 		chData, e := a.mq.Subscribe(model.Topic_AgentRegister + id)
 		ch.reg = chData
 		err := a.handelAgentRegister(chData, e)
