@@ -2,9 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/core"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
@@ -17,27 +15,6 @@ const (
 	HTTP_LISTEN_PORT_STR   = "HTTP_LISTEN_PORT"
 	LUBRICANT_HOSTNAME_STR = "HOSTNAME"
 )
-
-var (
-	Version         string
-	BuildTime       string
-	GoVersion       string
-	GitTag          string
-	Features        string
-	Platform        string
-	PlatformVersion string
-)
-
-func printBuildInfo() {
-	fmt.Printf("IoT-lubricant-Version: %s\n", Version)
-	fmt.Printf("Build-Time: %s\n", BuildTime)
-	fmt.Printf("Go-Version: %s\n", GoVersion)
-	fmt.Printf("Git-Tag: %s\n", GitTag)
-	fmt.Printf("Features: %s\n", Features)
-	fmt.Printf("Platform: %s\n", Platform)
-	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
-}
 
 func main() {
 	var envFilePath string
