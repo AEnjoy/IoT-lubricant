@@ -3,13 +3,17 @@ package ioc
 import (
 	"fmt"
 	"sort"
+	"sync"
 )
 
 var _ Container = (*MapContainer)(nil)
 
 type MapContainer struct {
-	name   string
-	storge map[string]Object
+	name    string
+	storge  map[string]Object
+	l       sync.Mutex
+	inited  bool
+	showLog bool
 }
 
 func (c *MapContainer) Version(name string) string {
@@ -20,6 +24,8 @@ func (c *MapContainer) Version(name string) string {
 }
 
 func (c *MapContainer) Registry(name string, obj Object) {
+	c.l.Lock()
+	defer c.l.Unlock()
 	c.storge[name] = obj
 }
 
@@ -28,6 +34,9 @@ func (c *MapContainer) Get(name string) any {
 }
 
 func (c *MapContainer) Init() error {
+	if c.inited {
+		return fmt.Errorf("container %s all has already been initialized", c.name)
+	}
 	// Create a slice of object names and weights for sorting
 	type weightedObject struct {
 		name   string
@@ -50,8 +59,11 @@ func (c *MapContainer) Init() error {
 		if err := wObj.object.Init(); err != nil {
 			return fmt.Errorf("%s init error, %s", wObj.name, err)
 		}
-		fmt.Printf("[%s] %s init success with weight %d\n", c.name, wObj.name, wObj.object.Weight())
+		if c.showLog {
+			fmt.Printf("[%s] %s init success with weight %d\n", c.name, wObj.name, wObj.object.Weight())
+		}
 	}
 
+	c.inited = true
 	return nil
 }
