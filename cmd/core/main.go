@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/AEnjoy/IoT-lubricant/cmd/core/app"
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/init"
+	appinit "github.com/AEnjoy/IoT-lubricant/cmd/core/app/init"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/router"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -33,7 +33,7 @@ func main() {
 		}
 	}
 
-	err := init.AppInit()
+	err := appinit.AppInit()
 	if err != nil {
 		panic(err)
 	}
