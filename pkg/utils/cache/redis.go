@@ -12,7 +12,7 @@ import (
 
 var (
 	_ CacheCli[any] = (*RedisCli[any])(nil)
-	_ ioc.Object    = (*RedisCli)(nil)
+	_ ioc.Object    = (*RedisCli[any])(nil)
 )
 
 var (

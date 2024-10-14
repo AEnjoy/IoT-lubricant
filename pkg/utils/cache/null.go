@@ -10,7 +10,7 @@ import (
 
 var (
 	_ CacheCli[any] = (*NilCache[any])(nil)
-	_ ioc.Object    = (*NilCache)(nil)
+	_ ioc.Object    = (*NilCache[any])(nil)
 )
 
 var ErrNullCache = errors.New("cache client is nil")
