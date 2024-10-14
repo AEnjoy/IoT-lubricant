@@ -44,8 +44,8 @@ func (User) TableName() string {
 }
 
 type Data struct {
-	AgentID  string `json:"agent_id" gorm:"column:agent_id"`
-	DeviceID string `json:"device_id" gorm:"column:device_id"`
+	ID      int    `json:"id" gorm:"column:id"`
+	AgentID string `json:"agent_id" gorm:"column:agent_id"` // equal to  DeviceID
 
 	Content string `json:"data" gorm:"column:data;serializer:json"`
 

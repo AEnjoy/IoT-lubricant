@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/core"
+	"github.com/AEnjoy/IoT-lubricant/cmd/core/app"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/router"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -34,11 +34,11 @@ func main() {
 
 	listenPort := os.Getenv(HTTP_LISTEN_PORT_STR)
 	hostName := os.Getenv(LUBRICANT_HOSTNAME_STR)
-	app := core.NewApp(
-		core.SetHostName(hostName),
-		core.SetPort(listenPort),
-		core.UseGinEngine(router.CoreRouter()),
-		core.UseDB(model.DefaultCoreClient()),
+	app := app.NewApp(
+		app.SetHostName(hostName),
+		app.SetPort(listenPort),
+		app.UseGinEngine(router.CoreRouter()),
+		app.UseDB(model.DefaultCoreClient()),
 	)
 	panic(app.Run())
 }
