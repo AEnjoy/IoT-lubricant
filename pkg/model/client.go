@@ -39,7 +39,7 @@ func DefaultCoreClient() *CoreDb {
 	return Core(nil)
 }
 
-func Gateway(database *gorm.DB) *GatewayDb {
+func NewGatewayDb(database *gorm.DB) *GatewayDb {
 	if database != nil {
 		return &GatewayDb{db: database}
 	}

@@ -56,3 +56,21 @@ type Data struct {
 func (Data) TableName() string {
 	return "data"
 }
+
+type Gateway struct {
+	GatewayID   string `json:"id" gorm:"column:id"`
+	UserId      string `json:"user_id" gorm:"column:user_id"`
+	Description string `json:"description" gorm:"column:description"`
+
+	Address           string `json:"address" gorm:"column:address"`                         // SSH: ip:port or domain:port
+	UserNameAndPasswd string `json:"username_and_passwd" gorm:"column:username_and_passwd"` //
+
+	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"` // grpc tls config
+
+	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
+}
+
+func (Gateway) TableName() string {
+	return "gateway"
+}

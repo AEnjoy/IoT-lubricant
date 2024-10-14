@@ -1,6 +1,11 @@
 package model
 
 var _ GatewayDbCli = (*GatewayDb)(nil)
+var _ CoreDbCli = (*CoreDb)(nil)
+
+type CoreDbCli interface {
+	IsGatewayIdExists(string) bool
+}
 
 type GatewayDbCli interface {
 	GetServerInfo() ServerInfo

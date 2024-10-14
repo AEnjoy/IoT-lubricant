@@ -61,7 +61,7 @@ func main() {
 	app := gateway.NewApp(
 		gateway.SetGatewayId(id),
 		gateway.SetPort(port),
-		gateway.UseDB(model.Gateway(nil)),
+		gateway.UseDB(model.NewGatewayDb(nil)),
 	)
 	panic(app.Run())
 }
