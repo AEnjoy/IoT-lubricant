@@ -1,7 +1,8 @@
 package ioc
 
 const (
-	Config = iota
+	Env = iota
+	Config
 	CoreDB
 	CacheCli
 )

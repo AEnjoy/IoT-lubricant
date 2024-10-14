@@ -5,6 +5,7 @@ var _ CoreDbCli = (*CoreDb)(nil)
 
 type CoreDbCli interface {
 	IsGatewayIdExists(string) bool
+	StoreAgentGatherData(id, content string) error
 }
 
 type GatewayDbCli interface {
