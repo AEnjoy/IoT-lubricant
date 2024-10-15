@@ -82,7 +82,9 @@ func (g *Grpc) Init() error {
 	if err != nil {
 		return err
 	}
-	go server.Serve(lis)
+	go func() {
+		_ = server.Serve(lis)
+	}()
 	return nil
 }
 
