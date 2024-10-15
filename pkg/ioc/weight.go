@@ -6,6 +6,7 @@ const (
 	Config
 	CoreDB
 	CacheCli
+	DataStore
 	_
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer

@@ -29,10 +29,9 @@ func (d *DataStore) Init() error {
 }
 
 func (DataStore) Weight() uint16 {
-	return ioc.CacheCli
+	return ioc.DataStore
 }
 
 func (DataStore) Version() string {
-	//TODO implement me
-	panic("implement me")
+	return "dev"
 }

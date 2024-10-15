@@ -4,7 +4,7 @@ type Container interface {
 	Registry(name string, obj Object)
 	Get(name string) any
 	Version(name string) string
-	LoadObject(s map[string]Object)
+	LoadObject(map[string]Object)
 	Init() error
 }
 

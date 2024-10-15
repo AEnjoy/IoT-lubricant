@@ -6,14 +6,14 @@ var _ Object = (*NilObject)(nil)
 type NilObject struct {
 }
 
-func (n NilObject) Init() error {
+func (NilObject) Init() error {
 	return nil
 }
 
-func (n NilObject) Weight() uint16 {
+func (NilObject) Weight() uint16 {
 	return 1
 }
 
-func (n NilObject) Version() string {
+func (NilObject) Version() string {
 	return ""
 }

@@ -37,6 +37,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	listenPort := os.Getenv(HTTP_LISTEN_PORT_STR)
 	hostName := os.Getenv(LUBRICANT_HOSTNAME_STR)
 	app := app.NewApp(
