@@ -6,8 +6,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/cache"
 )
 
-const APP_NAME = "lubricant-core-datastore"
-
 var _ ioc.Object = (*DataStore)(nil)
 
 type DataStore struct {

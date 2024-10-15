@@ -9,7 +9,7 @@ import (
 )
 
 var dataCli = func() *datastore.DataStore {
-	return ioc.Controller.Get(datastore.APP_NAME).(*datastore.DataStore)
+	return ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
 }()
 
 func HandelRecvData(data *core.Data) {

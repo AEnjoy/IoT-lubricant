@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"google.golang.org/grpc"
@@ -44,7 +45,7 @@ func (PbCoreServiceImpl) PushData(d grpc.BidiStreamingServer[core.Data, core.Dat
 	}
 }
 func NewGrpcServer(port string, tls *model.Tls) (*grpc.Server, error) {
-	middlewares := auth.NewInterceptorImpl()
+	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AYTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 	if tls != nil {
 		serverOption, err := tls.GetServerTlsConfig()

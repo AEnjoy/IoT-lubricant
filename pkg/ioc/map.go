@@ -22,7 +22,11 @@ func (c *MapContainer) Version(name string) string {
 	}
 	return ""
 }
-
+func (c *MapContainer) LoadObject(s map[string]Object) {
+	c.l.Lock()
+	defer c.l.Unlock()
+	c.storge = s
+}
 func (c *MapContainer) Registry(name string, obj Object) {
 	c.l.Lock()
 	defer c.l.Unlock()

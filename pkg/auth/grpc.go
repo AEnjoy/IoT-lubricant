@@ -4,6 +4,7 @@ package auth
 import (
 	"fmt"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -14,6 +15,26 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 )
+
+var _ ioc.Object = (*InterceptorImpl)(nil)
+
+type InterceptorImpl struct {
+	db model.CoreDbCli
+}
+
+func (i *InterceptorImpl) Init() error {
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(model.CoreDbCli)
+	i.db = cli
+	return nil
+}
+
+func (i *InterceptorImpl) Weight() uint16 {
+	return ioc.CoreGrpcAuthInterceptor
+}
+
+func (i *InterceptorImpl) Version() string {
+	return "dev"
+}
 
 func NewClientPerRPCCredentials(gatewayId string) *ClientPerRPCCredentials {
 	return &ClientPerRPCCredentials{
@@ -52,13 +73,6 @@ func (c *ClientPerRPCCredentials) GetRequestMetadata(
 // transport security.
 func (c *ClientPerRPCCredentials) RequireTransportSecurity() bool {
 	return false
-}
-func NewInterceptorImpl() *InterceptorImpl {
-	return &InterceptorImpl{}
-}
-
-type InterceptorImpl struct {
-	db model.CoreDbCli
 }
 
 // Req/Resp 拦截器

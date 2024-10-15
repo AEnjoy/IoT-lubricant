@@ -5,8 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const CORE_DB_APP_NAME = "database-core"
-
 var _ ioc.Object = (*CoreDb)(nil)
 
 type CoreDb struct {

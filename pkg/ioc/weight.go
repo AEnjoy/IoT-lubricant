@@ -1,8 +1,12 @@
 package ioc
 
 const (
-	Env = iota
+	_ = iota // Root Object
+	Env
 	Config
 	CoreDB
 	CacheCli
+	_
+	CoreGrpcAuthInterceptor
+	CoreGrpcServer
 )
