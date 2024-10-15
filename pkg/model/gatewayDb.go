@@ -10,7 +10,7 @@ func (*GatewayDb) Name() string {
 	return "Gateway-database-client"
 }
 func (d *GatewayDb) Init() error {
-	d.db = Gateway(nil).db
+	d.db = NewGatewayDb(nil).db
 	return nil
 }
 func (d *GatewayDb) GetServerInfo() (s ServerInfo) {

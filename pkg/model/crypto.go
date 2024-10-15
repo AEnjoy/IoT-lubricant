@@ -11,12 +11,12 @@ import (
 )
 
 type Tls struct {
-	Enable     bool   `json:"enable" yaml:"enable"`
-	SkipVerify bool   `json:"skip_verify" yaml:"skip_verify"`
-	FromFile   bool   `json:"from_file" yaml:"from_file"`
-	Key        string `json:"key" yaml:"key"`   // server.key
-	Cert       string `json:"cert" yaml:"cert"` // client.crt
-	CA         string `json:"ca" yaml:"ca"`     // server.crt
+	Enable     bool   `json:"enable" yaml:"enable" env:"TLS_ENABLE" envDefault:"false"`
+	SkipVerify bool   `json:"skip_verify" yaml:"skip_verify" env:"TLS_SKIP_VERIFY"`
+	FromFile   bool   `json:"from_file" yaml:"from_file" env:"TLS_FROM_FILE"`
+	Key        string `json:"key" yaml:"key" env:"TLS_KEY" `   // server.key
+	Cert       string `json:"cert" yaml:"cert" env:"TLS_CERT"` // client.crt
+	CA         string `json:"ca" yaml:"ca" env:"TLS_CA"`       // server.crt
 }
 
 // GetTLSLinkConfig for client

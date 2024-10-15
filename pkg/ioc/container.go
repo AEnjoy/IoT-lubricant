@@ -1,6 +1,7 @@
 package ioc
 
-var _ Container = &MapContainer{
-	name:   "controller",
-	storge: make(map[string]Object),
+var Controller Container = &MapContainer{
+	name:    "controller",
+	storge:  make(map[string]Object),
+	showLog: true,
 }

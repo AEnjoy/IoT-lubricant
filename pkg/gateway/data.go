@@ -2,11 +2,13 @@ package gateway
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 	"github.com/google/uuid"
 )
@@ -81,7 +83,7 @@ func (a *app) handelSignal(id string) error {
 	}
 	return nil
 }
-func (a *app) pushDataToServer(ctx context.Context, id string) error {
+func (a *app) handelPushDataToServer(ctx context.Context, id string) error {
 	v, ok := agentStore.Load(id)
 	if !ok {
 		return ErrAgentNotFound
@@ -92,24 +94,39 @@ func (a *app) pushDataToServer(ctx context.Context, id string) error {
 		case <-ctx.Done():
 			return nil
 		case <-agentMap.sendSignal:
-			stream, err := a.grpcClient.PushData(ctx)
-			if err != nil {
-				return err
-			}
-			data := agentMap.coverToGrpcData()
-			if data == nil {
-				continue
-			}
-			agentMap.cleanData()
-
-			data.GatewayId = gatewayId
-			data.AgentID = id
-			data.MessageId = uuid.NewString()
-
-			err = stream.Send(data)
-			if err != nil {
-				return err
-			}
+			go func() {
+				_ = pushDataToServer(ctx, agentMap, a.grpcClient, id)
+				// todo: this error need to be handled
+			}()
 		}
 	}
+}
+func pushDataToServer(ctx context.Context, agentMap *agentData, grpcClient core.CoreServiceClient, id string) error {
+	stream, err := grpcClient.PushData(ctx)
+	if err != nil {
+		return err
+	}
+	data := agentMap.coverToGrpcData()
+	if data == nil {
+		return nil
+	}
+	agentMap.cleanData()
+
+	data.GatewayId = gatewayId
+	data.AgentID = id
+	data.MessageId = uuid.NewString()
+
+	err = stream.Send(data)
+	if err != nil {
+		return err
+	}
+
+	resp, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+	if resp.GetMessageId() != data.MessageId {
+		return errors.New("message id not match")
+	}
+	return nil
 }

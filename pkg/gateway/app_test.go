@@ -78,7 +78,9 @@ func TestGatewayAPP(t *testing.T) {
 	data, err = json.Marshal(command)
 	assert.NoError(err)
 	resp.Content = data
-	mockGrpcTaskStream.On("Recv").WaitUntil(time.Tick((TestTime+4)*time.Second)).Return(&resp, nil)
+
+	mockGrpcTaskStream.On("Recv").Return(&resp, nil)
+	mockGrpcDataStream.On("Recv").WaitUntil(time.Tick((TestTime+4)*time.Second)).Return(&resp, nil)
 	mockGrpcDataStream.On("Send", mock.Anything).Return(nil)
 
 	// mock mq Subscribe and publish

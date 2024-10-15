@@ -54,7 +54,7 @@ func (a *app) joinAgent(id string) (errs error) {
 		_ = a.handelSignal(id)
 	}()
 	go func() {
-		_ = a.pushDataToServer(ctx, id)
+		_ = a.handelPushDataToServer(ctx, id)
 	}()
 
 	go func() {
