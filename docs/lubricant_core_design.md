@@ -99,9 +99,17 @@ graph TD
 
 ## Core的模块
 
-| 模块名 | 编号 | 设计文档 | 所在包 |
-| :----: | ---- | -------- | ------ |
-|        |      |          |        |
-|        |      |          |        |
-|        |      |          |        |
+| 模块名 | 编号 |                     设计文档                     |         所在包         |            说明            |
+| :----: | :--: | :----------------------------------------------: | :--------------------: | :------------------------: |
+|  main  | 0.0  |         [This](lubricant_core_design.md)         |        cmd/core        |         Core入口点         |
+|  IoC   | 0.1  |                        -                         |        pkg/ioc         |      IoC托管全局对象       |
+| utils  | 0.2  |                        -                         |       pkg/utils        |           工具集           |
+| router | 1.0  | [Core_Backend](lubricant_core_backend_design.md) |       pkg/router       | Core的对外的WebRestful接口 |
+|  auth  | 1.1  |     [Auth_design](lubricant_auth_design.md)      |        pkg/auth        |    接口的授权验证中间件    |
+| config | 1.2  | [Core_Backend](lubricant_core_backend_design.md) |  cmd/core/app/config   |     初始化时的配置文件     |
+|  init  | 1.3  | [Core_Backend](lubricant_core_backend_design.md) |   cmd/core/app/init    |      初始化Core的代码      |
+|  data  | 2.0  | [Core_Backend](lubricant_core_backend_design.md) | cmd/core/app/datastore |       数据处理的逻辑       |
+|  grpc  | 2.1  | [Core_Backend](lubricant_core_backend_design.md) |      cmd/core/app      |        grpc处理逻辑        |
+|        |      |                                                  |                        |                            |
+|        |      |                                                  |                        |                            |
 
