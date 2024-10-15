@@ -2,14 +2,24 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"net"
 
+	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"google.golang.org/grpc"
 )
+
+var _ ioc.Object = (*Grpc)(nil)
+
+// Grpc grpc server object client
+type Grpc struct {
+	*grpc.Server
+	PbCoreServiceImpl
+}
 
 type PbCoreServiceImpl struct {
 	core.UnimplementedCoreServiceServer
@@ -44,13 +54,16 @@ func (PbCoreServiceImpl) PushData(d grpc.BidiStreamingServer[core.Data, core.Dat
 		}
 	}
 }
-func NewGrpcServer(port string, tls *model.Tls) (*grpc.Server, error) {
+
+func (g *Grpc) Init() error {
+	c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
 	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AYTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
-	if tls != nil {
-		serverOption, err := tls.GetServerTlsConfig()
+
+	if c.Tls.Enable {
+		serverOption, err := c.Tls.GetServerTlsConfig()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		server = grpc.NewServer(
 			serverOption,
@@ -63,6 +76,20 @@ func NewGrpcServer(port string, tls *model.Tls) (*grpc.Server, error) {
 			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)
 	}
-	core.RegisterCoreServiceServer(server, &PbCoreServiceImpl{})
-	return server, nil
+	core.RegisterCoreServiceServer(server, g)
+	g.Server = server
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", c.GrpcPort))
+	if err != nil {
+		return err
+	}
+	go server.Serve(lis)
+	return nil
+}
+
+func (Grpc) Weight() uint16 {
+	return ioc.CoreGrpcServer
+}
+
+func (Grpc) Version() string {
+	return "dev"
 }

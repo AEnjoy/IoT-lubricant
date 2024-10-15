@@ -1,8 +1,7 @@
 package init
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/config"
-	_ "github.com/AEnjoy/IoT-lubricant/cmd/core/app/config" // default app config
+	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/config" // default app config
 	data "github.com/AEnjoy/IoT-lubricant/cmd/core/app/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
@@ -15,6 +14,7 @@ import (
 func AppInit() error {
 	// AppObjects witch will be registered with default option
 	var objects = map[string]ioc.Object{
+		config.APP_NAME:            ioc.Controller.Get(config.APP_NAME).(*config.Config),
 		ioc.APP_NAME_CORE_DATABASE: &model.CoreDb{},
 		ioc.APP_NAME_CORE_DATABASE_STORE: func() ioc.Object {
 			c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
