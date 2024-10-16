@@ -185,6 +185,54 @@ Todo: Need to be designed
 
 ### Module Design:
 
+The gRPC Server is used to process requests from one or more gRPC clients
+
+When the gRPC client attempts to establish a connection with the server, it will be required to perform Tls connection authentication. After the TLS authentication is passed, the client ID will be verified, and remote calls will be allowed only after the all authentication is passed.
+
+The client will establish a service with the server, including 3 `bidirectional flow` remote call APIs and a one-way flow call API
+
+They are:
+
+bidirectional flow:
+ping:Used to realize connectivity detection
+getTask:It is used to enable the client to obtain the task from the server, and the server pushes the task to the client
+pushData:It is used to exchange data between client and server
+
+one-way flow:
+pushMessageId:It is used to push messages from the client to the server, and get the message content back
+
+When the client calls the `pushData` and `pushMessageId` API, the server will directly create an external thread for data processing according to the specific data/message content type, and immediately return the data processing receipt.
+After receiving the receipt, the client can call `getTask` or `pushMessageId` by carrying the receipt, and parse the running result of the task according to the specific fields in the return
+
+```mermaid
+graph TD;
+    A[gRPC Server] -->|Processes requests from| B[gRPC Clients]
+    B -->|Establishes connection| C[TLS Authentication]
+    C -->|Verifies client ID| D[Authentication Passed]
+    D -->|Allows remote calls| E[Service Established]
+    
+    E --> F[Bidirectional Flow APIs]
+    E --> G[One-Way Flow API]
+
+    F --> H[ping]
+    H -->|Connectivity detection| I[Realized]
+
+    F --> J[getTask]
+    J -->|Obtain task from server| K[Task pushed to client]
+
+    F --> L[pushData]
+    L -->|Exchange data| M[Between client and server]
+
+    G --> N[pushMessageId]
+    N -->|Push messages| O[Client to server]
+    N -->|Get message content back| P[Content received]
+
+    L -->|Creates external thread| Q[Data Processing]
+    Q -->|Returns receipt| R[Data Processing Receipt]
+    R -->|Client calls with receipt| S[getTask or pushMessageId]
+    S -->|Parse running result| T[Based on return fields]
+```
+
 ### Library Dependencies:
 - `protobuf` for message and service definition
     ```shell
