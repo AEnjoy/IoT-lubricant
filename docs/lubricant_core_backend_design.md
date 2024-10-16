@@ -7,6 +7,45 @@ Lubricant Core Backend Component Function Design
 
 [TOC]
 
+## General Design:
+
+### High Availability Requirements:
+
+1. Ensure that the `Core service` is guarded by `daemons` or `services`, or `container pools`, and restarted when it crashes to achieve high availability
+   1. It can be achieved by using `systemd`, `supervisor` or `Core-deamon-self` to restart the service when it crashes
+   2. Multiple pods created by `Kubernetes' deployment` `Docker-compose` or `Kubernetes' StatefulSet`, container crash automatic restart policy to achieve stable operation of multiple replicas
+2. After initialization, use `defer recover()` to ensure the stability of services panic
+3. Code quality:
+   1. All `non placeholder errors` should **be handled**
+   2. Unit tests should try their best to achieve **path coverage**
+   3. All `pointers` and `arrays` should be **judged whether they can be accessed**
+   4. All commits should pass UnitTest and E2ETest
+   5. By pass golang-lint to ensure the code quality
+4. `Logger` should be used to record all errors logs, and report to the `log collector` and developers
+
+### Performance Requirements:
+
+1. In addition to dynamic data type objects, other types of objects should be **initialized when the program starts**.
+2. In addition to the basic data type and configuration, other composite data types are **passed through pointers or references**
+3. In addition to the `any or interface{}` type parameter specified in the immutable function signature definition, we should minimize the use of `any` and **use the precompiled data `type-generic`**
+4. The `Core` should reduce the direct modification and access to data, and **reduce the `serialization/deserialization`** of data
+5. **Non-blocking** ,**Multi-threading** and **Asynchronous** processing of each task
+   1. When the task is obtained, the response ID(NextID) of the task is **returned directly**
+   2. Add tasks to the **task pool** for unified processing
+   3. Use `goroutine`, `select` and `context` to process tasks in parallel
+6. Use **high-performance libraries** such as [gin](https://github.com/gin-gonic/gin) and [sonic](https://github.com/bytedance/sonic)
+7. Reduce output to `stdout`, and only output **necessary information** and **error information**
+
+### High Scalability Requirements:
+
+1. Allow for **dynamic expansion** of `Core` and `Gateway` services through `scripts`
+2. The `Core` should be able to **load and unload** `scripts` dynamically
+
+### Safe and Robustness Requirements:
+
+1. All connection requests need to be authenticated
+2. Tls should be used to ensure data transmission security
+
 ## Web Server And APIs
 
 - Lubricant-Core will use `go-gin` as web server and `gin-swagger` for API documentation.
@@ -157,13 +196,12 @@ Todo: Need to be designed
     ```shell
       go get google.golang.org/grpc
     ```
-  
+
 Build the protobuf files:
 
 ```shell
 protoc -I=. --go_out=.   --go-grpc_out=. --go-grpc_opt=module= protobuf/core/data.proto
 ```
-
 
 ### IoC hosting:
 
@@ -244,18 +282,19 @@ message messageName{
 
 It is a bit difficult to test gRPC, but we should try our best to make the software robust
 
-In terms of unit testing, use mockery to generate mock objects for gRPC server
+In terms of unit testing, use `mockery` to generate mock objects for gRPC server
 
 In terms of end-to-end testing, we can use the `grpcurl` or other tool to send requests to the gRPC server and check the results.
-
-
-
-
-
 
 ## DataStore
 
 DataStore is a component that stores data in a persistent way. 
 
-As we all know, in the case of massive data, disk IO is an important factor restricting performance. Therefore, 
-we should not frequently access disks, but speed up our requests through `Caching technology`
+As we all know, in the case of massive data, Disk I/O is an important factor restricting performance. Therefore, we should not frequently access Disks, but speed up our requests through `Caching Technology`
+
+- The DataStore consists of two parts: a relational database for persistent storage(MySQL) and a cache for accelerating data access(Redis Optional)
+- **Data cleaning**: Since the data collected from the original sensor is only compressed and encoded, we need to decompress and decode the processed data
+  - Data compression is **optional** and depends on the configuration. Support alogs: `gzip`, `lz4`, `zstd` and `not compressed`
+  - **Manual script support**: allows secondary processing of uploaded data by manually writing **JavaScript**, **SQL** and **other scripts** by the user(Not Safe)
+- Support forwarding: You can customize the external data forwarding interface by configuring external APIs, cloud function APIs, etc(Safe); Or directly forward to other applications according to the specific protocol(Not Safe)
+- Data storage: store the cleaned(optional) data in the database and cache(optional)
