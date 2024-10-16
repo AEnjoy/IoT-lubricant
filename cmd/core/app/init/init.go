@@ -24,7 +24,7 @@ func AppInit() error {
 			}
 			return &data.DataStore{}
 		}(),
-		ioc.APP_NAME_CORE_GRPC_AYTH_INTERCEPTOR: &auth.InterceptorImpl{},
+		ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 		ioc.APP_NAME_CORE_GRPC_SERVER:           &app.Grpc{},
 	}
 
