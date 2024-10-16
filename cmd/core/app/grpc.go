@@ -57,7 +57,7 @@ func (PbCoreServiceImpl) PushData(d grpc.BidiStreamingServer[core.Data, core.Dat
 
 func (g *Grpc) Init() error {
 	c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
-	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AYTH_INTERCEPTOR).(*auth.InterceptorImpl)
+	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 
 	if c.Tls.Enable {
