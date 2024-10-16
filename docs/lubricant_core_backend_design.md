@@ -4,6 +4,7 @@ Lubricant Core Backend Component Function Design
 **Note**: 
 
 1. All codes in the design document are considered as **pseudocodes** or codes that **cannot be used directly**
+2. In the following, if there is no special reference, `Core` is considered as `Lubricant Core`
 
 [TOC]
 
@@ -40,11 +41,34 @@ Lubricant Core Backend Component Function Design
 
 1. Allow for **dynamic expansion** of `Core` and `Gateway` services through `scripts`
 2. The `Core` should be able to **load and unload** `scripts` dynamically
+3. Use `etcd` or `consul` as the `service discovery` and `service registration` center
+4. (Not safe)Use library `github.com/dop251/goja`to implement the `JavaScript` execution engine
+5. (Not safe)Allows the user to run `SQL` scripts on their own data
+6. (Not safe)Allows the user to manually configure the script executor to execute custom code
 
 ### Safe and Robustness Requirements:
 
 1. All connection requests need to be authenticated
 2. Tls should be used to ensure data transmission security
+
+### Containerization and Cloud Native Affinity Requirements:
+
+1. Use `Docker` to package the `Core` services
+2. Support use `Docker` or `Kubernetes` to manage the `Core` services
+
+### Highly automated Requirements:
+
+1. Use `Makefile` to automate the compilation and packaging process of the `Core` service
+2. Ensure that the unit test works properly
+3. Use `GitHub Actions` to automate the testing and deployment process of the `Core` service
+
+### API Design:
+
+1. All internally implemented apis should not be exposed to external callers
+2. The general api should be encapsulated and stored in `api/<version>/` for users to call
+3. Internal services and logics should not call public apis, which violates the circular dependency principle
+4. The path api/ should be used as a separate gomod
+5. In addition to the `struct` necessary for `data definition`, others should be encapsulated as `interfaces`
 
 ## Web Server And APIs
 
@@ -180,7 +204,7 @@ Todo: Need to be designed
 
 - gRPC server will be used to provide `remote procedure calls` between `Core` , `Gateway Client` and `User Client`.
 - The gRPC server Component named `ioc.GRPCServer` will be registered and managed by `IoC`.
-- The gRpc Server will provide `Gateway oriented` and `User oriented` services
+- The gRPC Server will provide `Gateway oriented` and `User oriented` services
 - TLS(Optional) will be used for encryption, and mutual authentication is required
 
 ### Module Design:
@@ -344,5 +368,30 @@ As we all know, in the case of massive data, Disk I/O is an important factor res
 - **Data cleaning**: Since the data collected from the original sensor is only compressed and encoded, we need to decompress and decode the processed data
   - Data compression is **optional** and depends on the configuration. Support alogs: `gzip`, `lz4`, `zstd` and `not compressed`
   - **Manual script support**: allows secondary processing of uploaded data by manually writing **JavaScript**, **SQL** and **other scripts** by the user(Not Safe)
-- Support forwarding: You can customize the external data forwarding interface by configuring external APIs, cloud function APIs, etc(Safe); Or directly forward to other applications according to the specific protocol(Not Safe)
+- Support forwarding: You can customize the external data forwarding interface by configuring external APIs, cloud function APIs, etc.(Safe); Or directly forward to other applications according to the specific protocol(Not Safe)
 - Data storage: store the cleaned(optional) data in the database and cache(optional)
+
+### Database:
+
+Now, we use MySQL as the default database, and will support more databases in the future:
+
+- Transaction support should be necessary
+- We should encapsulate all request SQL into a method in the `struct` and implement it as an instance of the `interface`
+  - It will be easier to maintain, extend and **mock for testing**
+- All model structs should be defined in the `pkg/model` package
+- Use `gorm` to implement the database operation
+
+Database model:
+
+```go
+var _ ioc.Object = (*CoreDb)(nil) // IoC
+var _ CoreDbCli = (*CoreDb)(nil) // CoreDbCli interface
+
+type CoreDbCli interface {
+ // apis
+}
+type CoreDb struct {
+	db *gorm.DB
+}
+// apis
+```
