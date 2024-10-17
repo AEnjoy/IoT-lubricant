@@ -26,7 +26,10 @@ func (d *CoreDb) StoreAgentGatherData(id, content string) error {
 	data := &Data{AgentID: id, Content: content}
 	return d.db.Model(data).Save(data).Error
 }
-
+func (d *CoreDb) GetDataCleaner(id string) (*Clean, error) {
+	var ret Clean
+	return &ret, d.db.Model(ret).Where("agent_id = ?", id).First(&ret).Error
+}
 func (*CoreDb) Name() string {
 	return "Core-database-client"
 }

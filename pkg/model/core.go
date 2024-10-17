@@ -1,5 +1,14 @@
 package model
 
+import (
+	"bytes"
+	"errors"
+	"os"
+	"os/exec"
+
+	"github.com/dop251/goja"
+)
+
 type Server struct {
 	Info map[string]string `json:"server_info" gorm:"column:server_info;serializer:json"`
 }
@@ -73,4 +82,76 @@ type Gateway struct {
 
 func (Gateway) TableName() string {
 	return "gateway"
+}
+
+type Clean struct {
+	ID          int    `json:"id" gorm:"column:id"`
+	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
+	Description string `json:"description" gorm:"column:description"`
+
+	Interpreter string   `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
+	Script      string   `json:"script" gorm:"column:script"`           // 脚本代码
+	Command     []string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
+
+	CreatedAt int64 `json:"-" gorm:"column:created_at"`
+	UpdatedAt int64 `json:"-" gorm:"column:updated_at"`
+}
+
+func (Clean) TableName() string {
+	return "clean"
+}
+
+var rt *goja.Runtime
+
+func (c *Clean) Run(data []byte) ([]byte, error) {
+	switch c.Interpreter {
+	case "":
+		return data, nil
+	case "goja":
+		if rt == nil {
+			rt = goja.New()
+		}
+
+		_, err := rt.RunString(c.Script)
+		if err != nil {
+			return data, err
+		}
+
+		processData, ok := goja.AssertFunction(rt.Get(c.Command[0]))
+		if !ok {
+			return data, errors.New("not a function")
+		}
+
+		result, err := processData(goja.Undefined(), rt.ToValue(data))
+		if err != nil {
+			return data, err
+		}
+
+		return []byte(result.String()), nil
+	default:
+		err := os.WriteFile("script", []byte(c.Script), 0666)
+		if err != nil {
+			return data, err
+		}
+		defer func() {
+			_ = os.Remove("script")
+		}()
+
+		var newCommand []string
+		newCommand = append(newCommand, "script")
+		newCommand = append(newCommand, c.Command...)
+		cmd := exec.Command(c.Interpreter, newCommand...)
+		cmd.Stdin = bytes.NewReader(data)
+
+		var out bytes.Buffer
+		cmd.Stdout = &out
+
+		err = cmd.Run()
+		if err != nil {
+			return data, err
+		}
+
+		result := out.Bytes()
+		return result, nil
+	}
 }

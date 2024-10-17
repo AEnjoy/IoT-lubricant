@@ -13,6 +13,15 @@ var dataCli = func() *datastore.DataStore {
 }()
 
 func HandelRecvData(data *core.Data) {
+	cleaner, err := dataCli.GetDataCleaner(data.GetAgentID())
+	if err == nil {
+		for i, in := range data.GetData() {
+			out, _ := cleaner.Run(in)
+			// todo: check error -> if error report to user
+			data.Data[i] = out
+		}
+	}
+
 	s := data.String()
 	_ = dataCli.HSet(context.Background(), data.GetAgentID(), "latest", s)
 	_ = dataCli.StoreAgentGatherData(data.GetAgentID(), s)
