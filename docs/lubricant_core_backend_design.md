@@ -206,6 +206,7 @@ Todo: Need to be designed
 - The gRPC server Component named `ioc.GRPCServer` will be registered and managed by `IoC`.
 - The gRPC Server will provide `Gateway oriented` and `User oriented` services
 - TLS(Optional) will be used for encryption, and mutual authentication is required
+- For detailed design, please refer to [gRPC_service_design](gRPC_service_design.md)
 
 ### Module Design:
 
@@ -395,3 +396,110 @@ type CoreDb struct {
 }
 // apis
 ```
+
+### Cache (Optional):
+
+- We will use Redis as the default cache, and will support more cache systems in the future
+- Cache client will be encapsulated as an interface to facilitate calling, component replacement and unit testing
+- The `cache client interface` will be **forced to be enabled as a component**, but whether to use `NilCache`, `Redis` or other memory databases is up to the user
+
+Cache client interface:
+
+All implementations need to meet the following interface, including the **empty cache type**
+
+```go
+type CacheCli[T any] interface {
+	SetEx(ctx context.Context, key string, value T, duration time.Duration) error
+	Set(ctx context.Context, key string, value T) error
+	HSet(ctx context.Context, key string, field string, value T) error
+	HGet(ctx context.Context, key string, field string) (T, error)
+	Get(ctx context.Context, key string) (T, error)
+	Incr(ctx context.Context, key string) (int64, error)
+	Decr(ctx context.Context, key string) (int64, error)
+	Delete(ctx context.Context, key string) error
+	Expire(ctx context.Context, key string, duration time.Duration) error
+	Close(ctx context.Context) error
+}
+```
+
+If its instantiation implementation is an empty cache type, you need to ensure that the error returned by each method is `cache.ErrNullCache`
+
+```go
+var ErrNullCache = errors.New("cache client is nil")
+```
+
+In addition, the `cache client instantiation` should also implement `ioc.Object` interface
+
+### IoC Hosting:
+
+The `DataStore` component will be registered and managed by `IoC`.
+
+- Name: `ioc.DataStore` 
+    ```go
+        const APP_NAME_CORE_DATABASE = "lubricant-core-database-core" // mysql
+        const APP_NAME_CORE_CACHE = "lubricant-core-cache-core" // redis(cache)
+  
+        const APP_NAME_CORE_DATABASE_STORE = "lubricant-core-datastore"
+    ```
+  
+- Weight: Any but less than `ioc.GRPCServer` and other services components
+  - APP_NAME_CORE_DATABASE_STORE: Any but higher than `APP_NAME_CORE_DATABASE` and `APP_NAME_CORE_CACHE`
+
+
+
+## Configuration:
+
+- As the first important component besides the command line parameters, the configuration component should be loaded at startup and be the earliest initialized component in IoC
+- It should be initialized by loading configuration files or environment variables
+```go
+var _ ioc.Object = (*Config)(nil)
+
+type Config struct {
+	// app
+	AppVersion string
+	TlsEnable  bool      `yaml:"tls" env:"TLS_ENABLE" envDefault:"false"`
+	HTTPTls    bool      `yaml:"tls_http" env:"HTTP_TLS_ENABLE" envDefault:"false"`
+	GRPCTls    bool      `yaml:"tls_grpc" env:"GRPC_TLS_ENABLE" envDefault:"false"`
+	Tls        model.Tls `yaml:"tls_config" env:"TLS_CONFIG" envPrefix:"TLS_"`
+
+	// grpc
+	GrpcPort int `yaml:"port" env:"GRPC_LISTEN_PORT" envDefault:"9090"`
+
+	// web
+	Host    string `yaml:"host" env:"HTTP_LISTEN_HOST" envDefault:"0.0.0.0"`
+	WebPort int    `yaml:"port" env:"HTTP_LISTEN_PORT" envDefault:"8080"`
+	Domain  string `yaml:"domain" env:"HOSTNAME" envDefault:"localhost"`
+
+	// mysql
+	MySQLHost     string `yaml:"host" env:"DATASOURCE_HOST,required"`
+	MySQLPort     int    `yaml:"port" env:"DATASOURCE_PORT,required"`
+	MySQLDB       string `yaml:"database" env:"DATASOURCE_DB,required"`
+	MySQLUsername string `yaml:"username" env:"DATASOURCE_USERNAME,required"`
+	MySQLPassword string `yaml:"password" env:"DATASOURCE_PASSWORD,required"`
+	MySQLDebug    bool   `yaml:"debug" env:"DATASOURCE_DEBUG" envDefault:"false"`
+
+	// redis
+	RedisEnable   bool   `yaml:"enable" env:"REDIS_ENABLE" envDefault:"false"`
+	RedisHost     string `yaml:"host" env:"REDIS_HOST"`
+	RedisPort     int    `yaml:"port" env:"REDIS_PORT"`
+	RedisPassword string `yaml:"password" env:"REDIS_PASSWORD"`
+	RedisDB       int    `yaml:"db" env:"REDIS_DB"`
+}
+```
+
+### IoC hosting:
+
+- Name: `ioc.Config`
+  ```go
+    const APP_NAME_CONFIG = "lubricant-core-config"
+  ```
+  
+- Weight: Any but less than other all services components
+
+## Initialization:
+
+The core has two modes of operation. 
+
+- One is as a daemon. At this time, it does not need to initialize other components except configuration
+- The other is the service mode. At this time, it needs to call `IoC.Init()` to initialize all components
+
