@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
@@ -12,8 +11,6 @@ var (
 	_ CacheCli[any] = (*NilCache[any])(nil)
 	_ ioc.Object    = (*NilCache[any])(nil)
 )
-
-var ErrNullCache = errors.New("cache client is nil")
 
 type NilCache[T any] struct {
 }
