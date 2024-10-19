@@ -8,6 +8,8 @@ type Agent struct {
 	Description string `json:"description" gorm:"column:description"`
 	Cycle       int    `json:"cycle" gorm:"column:cycle"`               //上报周期 默认30 单位：秒
 	GatherCycle int    `json:"gather_cycle" gorm:"column:gather_cycle"` //采集周期 默认1 单位：秒
+
+	Algorithm string `json:"algorithm" gorm:"column:algorithm"`
 	//APIList     []DeviceAPI `json:"api_list" gorm:"column:api_list;serializer:json"`
 
 	CreatedAt time.Time `json:"created_at" gorm:"column:created_at"`
