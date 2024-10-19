@@ -36,11 +36,11 @@ func TestGatewayAPP(t *testing.T) {
 	defer cf()
 
 	app := &app{
-		mq:           mockMqClient,
-		ctrl:         ctx,
-		deviceList:   deviceList,
-		GatewayDbCli: mockDbClient,
-		grpcClient:   mockGrpcClient,
+		mq:                mockMqClient,
+		ctrl:              ctx,
+		deviceList:        deviceList,
+		GatewayDbOperator: mockDbClient,
+		grpcClient:        mockGrpcClient,
 	}
 
 	// mock link an agent to gateway

@@ -41,6 +41,12 @@ func HandelRecvData(data *core.Data) {
 	}
 
 	s := data.String()
-	_ = dataCli.HSet(context.Background(), data.GetAgentID(), "latest", s)
-	_ = dataCli.StoreAgentGatherData(data.GetAgentID(), s)
+	ctx := context.Background()
+	_ = dataCli.HSet(ctx, data.GetAgentID(), "latest", s)
+	// handel cache error is not need
+	err = dataCli.StoreAgentGatherData(ctx, nil, data.GetAgentID(), s)
+	if err != nil {
+		info, _ := dataCli.GetAgentInfo(data.GetAgentID())
+		errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+	}
 }

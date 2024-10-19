@@ -116,7 +116,7 @@ func (a *app) stopAgent(id string) (errs error) {
 
 	a.deviceList.Delete(id)
 	agentStore.Delete(id)
-	a.GatewayDbCli.RemoveAgent(id)
+	a.GatewayDbOperator.RemoveAgent(id)
 	return
 }
 func (a *app) removeAgent(id ...string) bool {
@@ -146,7 +146,7 @@ func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 
 func (a *app) initClientMq() (errs error) {
 	mq := a.mq
-	for _, id := range a.GatewayDbCli.GetAllAgentId() {
+	for _, id := range a.GatewayDbOperator.GetAllAgentId() {
 		if err := a.joinAgent(id); err != nil {
 			errs = errors.Join(errs, err)
 		}

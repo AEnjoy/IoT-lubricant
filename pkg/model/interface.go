@@ -1,16 +1,26 @@
 package model
 
-var _ GatewayDbCli = (*GatewayDb)(nil)
-var _ CoreDbCli = (*CoreDb)(nil)
+import (
+	"context"
 
-type CoreDbCli interface {
+	"gorm.io/gorm"
+)
+
+var _ GatewayDbOperator = (*GatewayDb)(nil)
+var _ CoreDbOperator = (*CoreDb)(nil)
+
+type CoreDbOperator interface {
+	Begin() *gorm.DB
+	Commit(txn *gorm.DB)
+	Rollback(txn *gorm.DB)
+
 	IsGatewayIdExists(string) bool
-	StoreAgentGatherData(id, content string) error
+	StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error
 	GetDataCleaner(id string) (*Clean, error)
 	GetAgentInfo(id string) (*Agent, error)
 }
 
-type GatewayDbCli interface {
+type GatewayDbOperator interface {
 	GetServerInfo() ServerInfo
 	IsAgentIdExists(string) bool
 	GetAllAgentId() []string
