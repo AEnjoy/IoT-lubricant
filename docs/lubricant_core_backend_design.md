@@ -402,6 +402,7 @@ type CoreDb struct {
 We will use the **Object-Oriented Design** to design the functional interface of the database client
 
 The `CoreDbCli` will support the following features:
+- 
 - Transaction support: `BeginTx`, `Commit`, `Rollback`
   - In function signatures, the txn parameter is optional. If the txn parameter is not passed, the database client will not use transaction.
 - Context support: 
@@ -409,18 +410,20 @@ The `CoreDbCli` will support the following features:
 - Mock for testing: Support mocking the database client through `mockery`
 
 We will support the following methods:
-
+- 
 - Transaction: `BeginTx`, `Commit`, `Rollback`
 - For Gateway:
-    - `IsGatewayIdExists` id -> bool
-    - `GetGatewayInfo` GatewayID-> Gateway and error
-    - `AddGateway` userID,gateway -> error
-    - `UpdateGateway` gateway -> error // Set
-    - `DeleteGateway` GatewayID -> error
-    - `GetGatewayList` -> []Gateway and error
-    - `GetGatewayTask` GatewayID -> []Task and error
-    - `AddGatewayTask` GatewayID,task -> error 
+  - 
+  - `IsGatewayIdExists` id -> bool
+  - `GetGatewayInfo` GatewayID-> Gateway and error
+  - `AddGateway` userID,gateway -> error
+  - `UpdateGateway` gateway -> error // Set
+  - `DeleteGateway` GatewayID -> error
+  - `GetGatewayList` -> []Gateway and error
+  - `GetGatewayTask` GatewayID -> []Task and error
+  - `AddGatewayTask` GatewayID,task -> error 
 - For Agent:
+  - 
   - `IsAgentIdExists` id -> bool
   - `AddAgent` GatewayID,agent -> error
   - `UpdateAgent` AgentID,agent -> error  // Set
@@ -430,16 +433,16 @@ We will support the following methods:
   - `GetAgentInfo` AgentID -> Agent and error
   - `SetAgentGather` AgentID,config -> error // API Path, Algorithm
 - For Data:
+  - 
   - `GetDataCleaner` AgentID -> Cleaner and error
   - `StoreAgentGatherData` AgentID,data -> error
   - `DeleteAgentGatherData` AgentID -> error
 - For User:
+  - 
   - `AddUser` user -> error
   - `UpdateUser` user -> error
   - `DeleteUser` userID -> error
   - `VerifyUser` userID,password -> bool
-
-
 
 ### Cache (Optional):
 
