@@ -1,4 +1,4 @@
-package app
+package core
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"google.golang.org/grpc"

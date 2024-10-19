@@ -1,9 +1,9 @@
-package app
+package core
 
 import (
 	"context"
 
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/datastore"
+	"github.com/AEnjoy/IoT-lubricant/pkg/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"

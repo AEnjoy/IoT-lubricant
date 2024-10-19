@@ -1,10 +1,10 @@
 package init
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app"
-	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/config" // default app config
-	data "github.com/AEnjoy/IoT-lubricant/cmd/core/app/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/pkg/core"
+	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
+	data "github.com/AEnjoy/IoT-lubricant/pkg/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 )
@@ -25,7 +25,7 @@ func AppInit() error {
 			return &data.DataStore{}
 		}(),
 		ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
-		ioc.APP_NAME_CORE_GRPC_SERVER:           &app.Grpc{},
+		ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},
 	}
 
 	ioc.Controller.LoadObject(objects)
