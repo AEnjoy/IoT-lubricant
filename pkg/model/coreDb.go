@@ -11,6 +11,11 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetAgentInfo(id string) (*Agent, error) {
+	var agent Agent
+	return &agent, d.db.Where("id = ?", id).First(&agent).Error
+}
+
 func (d *CoreDb) Weight() uint16 {
 	return ioc.CoreDB
 }

@@ -56,7 +56,7 @@ type Data struct {
 	ID      int    `json:"id" gorm:"column:id"`
 	AgentID string `json:"agent_id" gorm:"column:agent_id"` // equal to  DeviceID
 
-	Content string `json:"data" gorm:"column:data;serializer:json"`
+	Content string `json:"data" gorm:"column:data;serializer:json"` // core.Data 序列化的json
 
 	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`

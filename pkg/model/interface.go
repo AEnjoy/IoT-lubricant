@@ -7,6 +7,7 @@ type CoreDbCli interface {
 	IsGatewayIdExists(string) bool
 	StoreAgentGatherData(id, content string) error
 	GetDataCleaner(id string) (*Clean, error)
+	GetAgentInfo(id string) (*Agent, error)
 }
 
 type GatewayDbCli interface {

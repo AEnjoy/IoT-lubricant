@@ -5,6 +5,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/cmd/core/app/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 )
 
@@ -15,9 +16,26 @@ var dataCli = func() *datastore.DataStore {
 func HandelRecvData(data *core.Data) {
 	cleaner, err := dataCli.GetDataCleaner(data.GetAgentID())
 	if err == nil {
+		info, _ := dataCli.GetAgentInfo(data.GetAgentID())
+		compressor, err := compress.NewCompressor(info.Algorithm)
+		if err != nil {
+			errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+			return
+		}
 		for i, in := range data.GetData() {
-			out, _ := cleaner.Run(in)
-			// todo: check error -> if error report to user
+			decompress, err := compressor.Decompress(in)
+			if err != nil {
+				errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+				return
+			}
+
+			out, err := cleaner.Run(decompress)
+			if err != nil {
+				errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+				return
+			}
+
+			out, _ = compressor.Compress(out)
 			data.Data[i] = out
 		}
 	}
