@@ -20,11 +20,12 @@ func (Agent) TableName() string {
 	return "agent"
 }
 
-type ServerInfo struct {
-	UserId string `json:"user_id" gorm:"column:user_id"` // uuid and token
-	Host   string `json:"host" gorm:"column:host"`
-	Port   int    `json:"port" gorm:"column:port"`
-	Tls    bool   `json:"tls" gorm:"column:tls"`
+type ServerInfo struct { // Gateway system config
+	GatewayId string `json:"id" gorm:"column:id"` // uuid and token
+	Host      string `json:"host" gorm:"column:host"`
+	Port      int    `json:"port" gorm:"column:port"`
+	Tls       bool   `json:"tls" gorm:"column:tls"`
+	TlsConfig Tls    `json:"tls_config" gorm:"column:tls_config;type:json"`
 
 	CreatedAt time.Time `json:"-" gorm:"column:created_at"`
 	UpdatedAt time.Time `json:"-" gorm:"column:updated_at"`
