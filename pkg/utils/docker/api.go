@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -18,7 +19,22 @@ type Api struct {
 	ctx context.Context
 	cli *client.Client
 }
+type BinaryImageInfo struct {
+	Reader    io.Reader // Tarball reader []byte
+	ImageName string
+}
 
+func (a *Api) InstallFromImageBinary(imageData BinaryImageInfo, name string, exposePort int, env []string) error {
+	if a.cli == nil {
+		return ErrNotInit
+	}
+
+	_, err := a.cli.ImageLoad(a.ctx, imageData.Reader, false)
+	if err != nil {
+		return err
+	}
+	return a.Install(imageData.ImageName, name, exposePort, env)
+}
 func (a *Api) Install(imageLink, name string, exposePort int, env []string) error {
 	if a.cli == nil {
 		return ErrNotInit
