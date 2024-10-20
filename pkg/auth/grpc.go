@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -19,11 +19,11 @@ import (
 var _ ioc.Object = (*InterceptorImpl)(nil)
 
 type InterceptorImpl struct {
-	db model.CoreDbOperator
+	db types.CoreDbOperator
 }
 
 func (i *InterceptorImpl) Init() error {
-	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(model.CoreDbOperator)
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(types.CoreDbOperator)
 	i.db = cli
 	return nil
 }

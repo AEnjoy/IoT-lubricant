@@ -8,7 +8,7 @@ import (
 	"time"
 
 	grpcmock "github.com/AEnjoy/IoT-lubricant/pkg/mock/grpc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/golang/mock/gomock"
@@ -52,31 +52,31 @@ func TestAPP_JoinAgent(t *testing.T) {
 			regCh := make(chan []byte)
 			nilCh := make(chan []byte) // agentDevice dataPush messagePush
 
-			ping, err := json.Marshal(model.Ping{Status: 1})
+			ping, err := json.Marshal(types.Ping{Status: 1})
 			assert.NoError(err)
 
 			// Subscribe Topic_AgentRegister
-			mockMqClient.EXPECT().Subscribe(model.Topic_AgentRegister+id).Return(regCh, nil)
+			mockMqClient.EXPECT().Subscribe(types.Topic_AgentRegister+id).Return(regCh, nil)
 
 			// handelAgentRegister
 			// send register success to channel
 			go func() {
 				t.Logf("Test: Join %s to Gateway", id)
-				data, err := json.Marshal(model.Register{ID: id})
+				data, err := json.Marshal(types.Register{ID: id})
 				assert.NoError(err)
 				regCh <- data
 			}()
-			mockMqClient.EXPECT().Publish(model.Topic_AgentRegisterAck+id, ping).Return(nil)
+			mockMqClient.EXPECT().Publish(types.Topic_AgentRegisterAck+id, ping).Return(nil)
 
 			// subscribeDeviceMQ
-			mockMqClient.EXPECT().Subscribe(model.Topic_AgentDevice+id).Return(nilCh, nil)
+			mockMqClient.EXPECT().Subscribe(types.Topic_AgentDevice+id).Return(nilCh, nil)
 
 			// handelAgentDataPush
 			// Subscribe Topic_AgentDataPush
-			mockMqClient.EXPECT().Subscribe(model.Topic_AgentDataPush+id).Return(nilCh, nil)
+			mockMqClient.EXPECT().Subscribe(types.Topic_AgentDataPush+id).Return(nilCh, nil)
 
 			// Subscribe Topic_MessagePush
-			mockMqClient.EXPECT().Subscribe(model.Topic_MessagePush+id).Return(nilCh, nil)
+			mockMqClient.EXPECT().Subscribe(types.Topic_MessagePush+id).Return(nilCh, nil)
 
 			assert.NoError(app.joinAgent(id))
 			success = true

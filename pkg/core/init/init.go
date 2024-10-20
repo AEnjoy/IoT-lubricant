@@ -6,7 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/pkg/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 )
 
 // AppInit 初始化App:
@@ -16,7 +16,7 @@ func AppInit() error {
 	// AppObjects witch will be registered with default option
 	var objects = map[string]ioc.Object{
 		config.APP_NAME:            ioc.Controller.Get(config.APP_NAME).(*config.Config),
-		ioc.APP_NAME_CORE_DATABASE: &model.CoreDb{},
+		ioc.APP_NAME_CORE_DATABASE: &types.CoreDb{},
 		ioc.APP_NAME_CORE_DATABASE_STORE: func() ioc.Object {
 			c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
 			if c.RedisEnable {

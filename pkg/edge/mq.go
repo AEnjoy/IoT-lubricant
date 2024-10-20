@@ -3,7 +3,7 @@ package edge
 import (
 	"context"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
@@ -32,9 +32,9 @@ func (c *clientMqRecv) handelCh() {
 		case <-c.ctrl.Done():
 			return
 		case v := <-c.agentDevice: //客户端命令
-			command := model.Command{}
+			command := types.Command{}
 			_ = json.Unmarshal(v, &command)
-			if command.ID == model.Command_RemoveAgent {
+			if command.ID == types.Command_RemoveAgent {
 				removeAgent()
 			}
 		}
@@ -72,7 +72,7 @@ func (c *clientMqSend) send() error {
 				return err
 			}
 
-			err = c.mq.Publish(model.Topic_AgentDataPush+c.agentID, dataSend)
+			err = c.mq.Publish(types.Topic_AgentDataPush+c.agentID, dataSend)
 			if err != nil {
 				return err
 			}

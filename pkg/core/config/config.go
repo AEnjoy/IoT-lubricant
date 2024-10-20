@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/caarlos0/env/v11"
 )
 
@@ -16,7 +16,7 @@ type Config struct {
 	TlsEnable  bool      `yaml:"tls" env:"TLS_ENABLE" envDefault:"false"`
 	HTTPTls    bool      `yaml:"tls_http" env:"HTTP_TLS_ENABLE" envDefault:"false"`
 	GRPCTls    bool      `yaml:"tls_grpc" env:"GRPC_TLS_ENABLE" envDefault:"false"`
-	Tls        model.Tls `yaml:"tls_config" env:"TLS_CONFIG" envPrefix:"TLS_"`
+	Tls        types.Tls `yaml:"tls_config" env:"TLS_CONFIG" envPrefix:"TLS_"`
 
 	// grpc
 	GrpcPort int `yaml:"port" env:"GRPC_LISTEN_PORT" envDefault:"9090"`

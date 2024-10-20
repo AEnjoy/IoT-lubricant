@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/gateway"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/joho/godotenv"
 )
@@ -61,7 +61,7 @@ func main() {
 	app := gateway.NewApp(
 		gateway.SetGatewayId(id),
 		gateway.SetPort(port),
-		gateway.UseDB(model.NewGatewayDb(nil)),
+		gateway.UseDB(types.NewGatewayDb(nil)),
 	)
 	panic(app.Run())
 }

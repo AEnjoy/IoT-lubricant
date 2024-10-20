@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
@@ -29,7 +29,7 @@ type app struct {
 	errPanic chan error
 	l        sync.Mutex
 	// for init
-	config      *model.EdgeSystem
+	config      *types.EdgeSystem
 	grpcConn    *grpc.ClientConn
 	hostAddress string // 这是容器宿主机的ip:port
 }
@@ -90,7 +90,7 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 
-func UseConfig(config *model.EdgeSystem) func(*app) error {
+func UseConfig(config *types.EdgeSystem) func(*app) error {
 	return func(s *app) error {
 		if config == nil {
 			logger.Errorln("config is nil")

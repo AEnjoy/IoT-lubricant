@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
@@ -97,7 +97,7 @@ var openAPIConfig = &openapi.ApiInfo{
 	},
 }
 
-var config = &model.EdgeSystem{
+var config = &types.EdgeSystem{
 	ID:          mockID,
 	Cycle:       1,
 	ReportCycle: 4,
@@ -143,23 +143,23 @@ func TestEdgeApp(t *testing.T) {
 	}()
 
 	// test register
-	regCh, err := app.mq.Subscribe(model.Topic_AgentRegister + mockID)
+	regCh, err := app.mq.Subscribe(types.Topic_AgentRegister + mockID)
 	assert.NoError(err)
 
-	var reg model.Register
+	var reg types.Register
 	assert.NoError(json.Unmarshal(<-regCh, &reg))
 	assert.Equal(mockID, reg.ID)
 
-	ping := model.Ping{
+	ping := types.Ping{
 		Status: 1,
 	}
 	data, _ := json.Marshal(ping)
-	_ = app.mq.Publish(model.Topic_AgentRegisterAck+mockID, data)
+	_ = app.mq.Publish(types.Topic_AgentRegisterAck+mockID, data)
 
 	// mq test (mock-gateway)
 	var success bool
 	t.Log("Test send message to topic")
-	ch, err := app.mq.Subscribe(model.Topic_AgentDataPush + mockID)
+	ch, err := app.mq.Subscribe(types.Topic_AgentDataPush + mockID)
 	assert.NoError(err)
 	for {
 		select {

@@ -8,7 +8,7 @@ import (
 	"runtime"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
@@ -66,7 +66,7 @@ func main() {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
-	var config model.EdgeSystem
+	var config types.EdgeSystem
 	_ = yaml.Unmarshal(f, &config)
 
 	if file.IsFileExists(config.FileName + ".enable") {

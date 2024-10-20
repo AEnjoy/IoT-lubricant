@@ -3,7 +3,7 @@ package gateway
 import (
 	"encoding/json"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 )
 
@@ -22,15 +22,15 @@ func (a *app) grpcApp() error {
 		if err != nil {
 			return err
 		}
-		var t model.Command
+		var t types.Command
 		err = json.Unmarshal(resp.GetContent(), &t)
 		if err != nil {
 			return err
 		}
 		switch t.ID {
-		case model.Command_RemoveAgent:
+		case types.Command_RemoveAgent:
 			a.removeAgent(t.Data)
-		case model.Command_nil:
+		case types.Command_nil:
 
 		default:
 			panic("unhandled default case")

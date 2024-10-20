@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
@@ -16,8 +16,8 @@ import (
 const maxBuffer = 50
 
 var (
-	dataRev      = make(chan *model.EdgeData, maxBuffer)
-	errMessages  = make(chan *model.EdgeData, maxBuffer)
+	dataRev      = make(chan *types.EdgeData, maxBuffer)
+	errMessages  = make(chan *types.EdgeData, maxBuffer)
 	messageQueue = make(chan *gateway.AgentMessageIdInfo, maxBuffer)
 
 	finish = sync.Map{}
@@ -60,7 +60,7 @@ func (d *data) HandleData(ctx context.Context) {
 		}
 	}
 }
-func (d *data) handleData(in *model.EdgeData) {
+func (d *data) handleData(in *types.EdgeData) {
 
 }
 func (d *data) handleMessage(in *gateway.AgentMessageIdInfo) {
