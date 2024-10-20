@@ -1,4 +1,4 @@
-package types
+package user
 
 type Role uint8
 

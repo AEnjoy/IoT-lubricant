@@ -1,4 +1,4 @@
-package types
+package crypto
 
 import (
 	"crypto/tls"
@@ -8,6 +8,10 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+)
+
+var (
+	InvalidRootCrt = errors.New("failed to parse root certificate")
 )
 
 type Tls struct {
@@ -46,7 +50,7 @@ func (t Tls) GetTLSLinkConfig() (credentials.TransportCredentials, error) {
 
 	caCertPool := x509.NewCertPool()
 	if !caCertPool.AppendCertsFromPEM(caCert) {
-		return nil, errors.New("failed to parse root certificate")
+		return nil, InvalidRootCrt
 	}
 	cred := credentials.NewTLS(&tls.Config{
 		Certificates:       []tls.Certificate{cert},
