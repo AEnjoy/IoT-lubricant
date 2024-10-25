@@ -17,21 +17,22 @@ func HandelRecvData(data *core.Data) {
 	cleaner, err := dataCli.GetDataCleaner(data.GetAgentID())
 	if err == nil {
 		info, _ := dataCli.GetAgentInfo(data.GetAgentID())
+		userID, _ := dataCli.GatewayIDGetUserID(context.Background(), info.GatewayId)
 		compressor, err := compress.NewCompressor(info.Algorithm)
 		if err != nil {
-			errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+			errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 			return
 		}
 		for i, in := range data.GetData() {
 			decompress, err := compressor.Decompress(in)
 			if err != nil {
-				errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+				errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 				return
 			}
 
 			out, err := cleaner.Run(decompress)
 			if err != nil {
-				errCh <- &ErrLogInfo{User: info.UserId, Agent: data.GetAgentID(), Message: err}
+				errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 				return
 			}
 
@@ -41,6 +42,13 @@ func HandelRecvData(data *core.Data) {
 	}
 
 	s := data.String()
-	_ = dataCli.HSet(context.Background(), data.GetAgentID(), "latest", s)
-	_ = dataCli.StoreAgentGatherData(data.GetAgentID(), s)
+	ctx := context.Background()
+	_ = dataCli.HSet(ctx, data.GetAgentID(), "latest", s)
+	// handel cache error is not need
+	err = dataCli.StoreAgentGatherData(ctx, nil, data.GetAgentID(), s)
+	if err != nil {
+		info, _ := dataCli.GetAgentInfo(data.GetAgentID())
+		userID, _ := dataCli.GatewayIDGetUserID(context.Background(), info.GatewayId)
+		errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
+	}
 }

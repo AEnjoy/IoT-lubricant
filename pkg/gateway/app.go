@@ -27,7 +27,7 @@ type app struct {
 
 	*clientMq
 
-	model.GatewayDbCli
+	model.GatewayDbOperator
 
 	port       string
 	grpcClient core.CoreServiceClient //grpc
@@ -91,7 +91,7 @@ func SetGatewayId(id string) func(*app) error {
 
 func UseDB(db *model.GatewayDb) func(*app) error {
 	return func(a *app) error {
-		a.GatewayDbCli = db
+		a.GatewayDbOperator = db
 		return nil
 	}
 }

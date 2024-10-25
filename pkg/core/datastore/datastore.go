@@ -11,7 +11,7 @@ var _ ioc.Object = (*DataStore)(nil)
 type DataStore struct {
 	CacheEnable bool
 	cache.CacheCli[string]
-	model.CoreDbCli
+	model.CoreDbOperator
 }
 
 func (d *DataStore) Init() error {

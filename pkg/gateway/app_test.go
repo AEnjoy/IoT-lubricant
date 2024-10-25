@@ -25,7 +25,7 @@ func TestGatewayAPP(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	mockMqClient := mq.NewMockMq[[]byte](ctrl)
-	mockDbClient := db.NewMockGatewayDbCli(ctrl)
+	mockDbClient := db.NewMockGatewayDbOperator(ctrl)
 	mockGrpcClient := grpcmock.NewCoreServiceClient(t)
 	mockGrpcTaskStream := grpcmock.NewBidiStreamingServer[core.Task, core.Task](t)
 	mockGrpcDataStream := grpcmock.NewBidiStreamingServer[core.Data, core.Data](t)
@@ -36,11 +36,11 @@ func TestGatewayAPP(t *testing.T) {
 	defer cf()
 
 	app := &app{
-		mq:           mockMqClient,
-		ctrl:         ctx,
-		deviceList:   deviceList,
-		GatewayDbCli: mockDbClient,
-		grpcClient:   mockGrpcClient,
+		mq:                mockMqClient,
+		ctrl:              ctx,
+		deviceList:        deviceList,
+		GatewayDbOperator: mockDbClient,
+		grpcClient:        mockGrpcClient,
 	}
 
 	// mock link an agent to gateway

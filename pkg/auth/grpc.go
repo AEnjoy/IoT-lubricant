@@ -19,11 +19,11 @@ import (
 var _ ioc.Object = (*InterceptorImpl)(nil)
 
 type InterceptorImpl struct {
-	db model.CoreDbCli
+	db model.CoreDbOperator
 }
 
 func (i *InterceptorImpl) Init() error {
-	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(model.CoreDbCli)
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(model.CoreDbOperator)
 	i.db = cli
 	return nil
 }
