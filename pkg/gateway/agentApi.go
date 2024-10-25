@@ -6,7 +6,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
 
@@ -23,15 +23,15 @@ func (a *app) handelAgentRegister(in <-chan []byte, err error) error {
 		case <-a.ctrl.Done():
 			return nil
 		case v := <-in:
-			reg := &model.Register{}
+			reg := &types.Register{}
 			if err = json.Unmarshal(v, reg); err != nil {
 				return err
 			}
-			ping, err := json.Marshal(model.Ping{Status: 1})
+			ping, err := json.Marshal(types.Ping{Status: 1})
 			if err != nil {
 				return err
 			}
-			return a.mq.Publish(model.Topic_AgentRegisterAck+reg.ID, ping)
+			return a.mq.Publish(types.Topic_AgentRegisterAck+reg.ID, ping)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func (a *app) joinAgent(id string) (errs error) {
 	}()
 
 	go func() {
-		chData, e := a.mq.Subscribe(model.Topic_AgentRegister + id)
+		chData, e := a.mq.Subscribe(types.Topic_AgentRegister + id)
 		ch.reg = chData
 		err := a.handelAgentRegister(chData, e)
 		if err != nil {
@@ -72,7 +72,7 @@ func (a *app) joinAgent(id string) (errs error) {
 		}
 	}()
 	go func() {
-		ch, err := a.mq.Subscribe(model.Topic_AgentDataPush + id)
+		ch, err := a.mq.Subscribe(types.Topic_AgentDataPush + id)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			return
@@ -83,7 +83,7 @@ func (a *app) joinAgent(id string) (errs error) {
 		}
 	}()
 	go func() {
-		ch, err := a.mq.Subscribe(model.Topic_MessagePush + id)
+		ch, err := a.mq.Subscribe(types.Topic_MessagePush + id)
 		if err != nil {
 			errs = errors.Join(errs, err)
 			return
@@ -104,12 +104,12 @@ func (a *app) stopAgent(id string) (errs error) {
 	ch := v.(*agentCtrl)
 	ch.ctrl() // stop
 
-	e1 := a.mq.Unsubscribe(model.Topic_AgentRegister+id, ch.reg)
-	e2 := a.mq.Unsubscribe(model.Topic_AgentDevice+id, ch.agentDevice)
+	e1 := a.mq.Unsubscribe(types.Topic_AgentRegister+id, ch.reg)
+	e2 := a.mq.Unsubscribe(types.Topic_AgentDevice+id, ch.agentDevice)
 
-	commend, _ := json.Marshal(model.Command{ID: model.Command_RemoveAgent})
+	commend, _ := json.Marshal(types.Command{ID: types.Command_RemoveAgent})
 	data, _ := json.Marshal(gateway.DataMessage{Flag: 5, AgentId: id, Data: commend})
-	e3 := a.mq.Publish(model.Topic_AgentDevice+id, data)
+	e3 := a.mq.Publish(types.Topic_AgentDevice+id, data)
 
 	//e5 := a.mq.Unsubscribe(model.Topic_AgentRegisterAck+id, ch.regAck)
 	errs = errors.Join(errs, e1, e2, e3)
@@ -132,7 +132,7 @@ func (a *app) removeAgent(id ...string) bool {
 
 func (a *app) subscribeDeviceMQ(in *agentCtrl, id string) error {
 	mq := a.mq
-	in.agentDevice, _ = mq.Subscribe(model.Topic_AgentDevice + id)
+	in.agentDevice, _ = mq.Subscribe(types.Topic_AgentDevice + id)
 
 	for {
 		select {
@@ -153,19 +153,19 @@ func (a *app) initClientMq() (errs error) {
 	}
 
 	go func() {
-		err := a.handelGatewayInfo(mq.Subscribe(model.Topic_GatewayInfo))
+		err := a.handelGatewayInfo(mq.Subscribe(types.Topic_GatewayInfo))
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}
 	}()
 	go func() {
-		err := a.handelGatewayData(mq.Subscribe(model.Topic_GatewayData))
+		err := a.handelGatewayData(mq.Subscribe(types.Topic_GatewayData))
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}
 	}()
 	go func() {
-		err := a.handelPing(mq.Subscribe(model.Topic_Ping))
+		err := a.handelPing(mq.Subscribe(types.Topic_Ping))
 		if err != nil {
 			errs = errors.Join(errs, err)
 		}

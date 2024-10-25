@@ -8,7 +8,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/mock/db"
 	grpcmock "github.com/AEnjoy/IoT-lubricant/pkg/mock/grpc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/goccy/go-json"
@@ -52,20 +52,20 @@ func TestGatewayAPP(t *testing.T) {
 	mockDbClient.EXPECT().GetAllAgentId().Return([]string{agentId})
 	mockDbClient.EXPECT().GetAgentGatherCycle(agentId).Return(1)
 
-	mockMqClient.EXPECT().Subscribe(model.Topic_AgentRegister+agentId).Return(regCh, nil)
+	mockMqClient.EXPECT().Subscribe(types.Topic_AgentRegister+agentId).Return(regCh, nil)
 
 	// send register ack to agent
-	ping, err := json.Marshal(model.Ping{Status: 1})
+	ping, err := json.Marshal(types.Ping{Status: 1})
 	assert.NoError(err)
-	mockMqClient.EXPECT().Publish(model.Topic_AgentRegisterAck+agentId, ping).Return(nil)
+	mockMqClient.EXPECT().Publish(types.Topic_AgentRegisterAck+agentId, ping).Return(nil)
 
 	// mock-agent register
-	data, err := json.Marshal(model.Register{ID: agentId})
+	data, err := json.Marshal(types.Register{ID: agentId})
 	assert.NoError(err)
 	regCh <- data
 
 	// mock agent register and data send
-	mockMqClient.EXPECT().Subscribe(model.Topic_AgentDataPush+agentId).Return(dataPushCh, nil)
+	mockMqClient.EXPECT().Subscribe(types.Topic_AgentDataPush+agentId).Return(dataPushCh, nil)
 	messageData, err := json.Marshal(newRandomDataMessage(45))
 	assert.NoError(err)
 	dataPushCh <- messageData
@@ -74,7 +74,7 @@ func TestGatewayAPP(t *testing.T) {
 	mockGrpcClient.On("GetTask", mock.Anything).Return(mockGrpcTaskStream, nil)
 	mockGrpcClient.On("PushData", mock.Anything).Return(mockGrpcDataStream, nil)
 	var resp core.Task
-	var command model.Command
+	var command types.Command
 	data, err = json.Marshal(command)
 	assert.NoError(err)
 	resp.Content = data
@@ -86,19 +86,19 @@ func TestGatewayAPP(t *testing.T) {
 	// mock mq Subscribe and publish
 	{
 		// handelGatewayInfo
-		mockMqClient.EXPECT().Subscribe(model.Topic_GatewayInfo).Return(nilCh, nil)
+		mockMqClient.EXPECT().Subscribe(types.Topic_GatewayInfo).Return(nilCh, nil)
 
 		// handelGatewayData
-		mockMqClient.EXPECT().Subscribe(model.Topic_GatewayData).Return(nilCh, nil)
+		mockMqClient.EXPECT().Subscribe(types.Topic_GatewayData).Return(nilCh, nil)
 
 		// handelPing
-		mockMqClient.EXPECT().Subscribe(model.Topic_Ping).Return(nilCh, nil)
+		mockMqClient.EXPECT().Subscribe(types.Topic_Ping).Return(nilCh, nil)
 
 		// subscribeDeviceMQ
-		mockMqClient.EXPECT().Subscribe(model.Topic_AgentDevice+agentId).Return(nilCh, nil)
+		mockMqClient.EXPECT().Subscribe(types.Topic_AgentDevice+agentId).Return(nilCh, nil)
 
 		// Subscribe Topic_MessagePush
-		mockMqClient.EXPECT().Subscribe(model.Topic_MessagePush+agentId).Return(nilCh, nil)
+		mockMqClient.EXPECT().Subscribe(types.Topic_MessagePush+agentId).Return(nilCh, nil)
 	}
 	go func() {
 		assert.NoError(app.Run())
