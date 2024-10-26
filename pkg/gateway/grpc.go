@@ -22,25 +22,26 @@ func (a *app) grpcApp() error {
 		if err != nil {
 			return err
 		}
-		var t types.Command
-		task := resp.GetTask()
-		switch t := task.(type) {
+
+		var c types.Command
+		switch task := resp.GetTask().(type) {
 		case *core.Task_GatewayGetTaskResponse:
-			content := t.GatewayGetTaskResponse.GetMessage().GetContent()
-			err = json.Unmarshal(content, &t)
+			content := task.GatewayGetTaskResponse.GetMessage().GetContent()
+			err = json.Unmarshal(content, &c)
 			if err != nil {
 				return err
 			}
 		case *core.Task_CorePushDataRequest:
-			content := t.CorePushDataRequest.GetMessage().GetContent()
-			err = json.Unmarshal(content, &t)
+			content := task.CorePushDataRequest.GetMessage().GetContent()
+			err = json.Unmarshal(content, &c)
 			if err != nil {
 				return err
 			}
 		}
-		switch t.ID {
+
+		switch c.ID {
 		case types.Command_RemoveAgent:
-			a.removeAgent(t.Data)
+			a.removeAgent(c.Data)
 		case types.Command_nil:
 
 		default:
