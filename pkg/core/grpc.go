@@ -28,8 +28,11 @@ type PbCoreServiceImpl struct {
 func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[core.Ping, core.Ping]) error {
 	return nil
 }
-func (PbCoreServiceImpl) GetTask(grpc.BidiStreamingServer[core.Task, core.Task]) error {
-	return nil
+func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
+	for {
+		_, _ = s.Recv()
+
+	}
 }
 func (PbCoreServiceImpl) PushMessageId(context.Context, *core.MessageIdInfo) (*core.MessageIdInfo, error) {
 	return nil, nil

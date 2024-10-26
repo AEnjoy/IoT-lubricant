@@ -23,9 +23,20 @@ func (a *app) grpcApp() error {
 			return err
 		}
 		var t types.Command
-		err = json.Unmarshal(resp.GetContent(), &t)
-		if err != nil {
-			return err
+		task := resp.GetTask()
+		switch t := task.(type) {
+		case *core.Task_GatewayGetTaskResponse:
+			content := t.GatewayGetTaskResponse.GetMessage().GetContent()
+			err = json.Unmarshal(content, &t)
+			if err != nil {
+				return err
+			}
+		case *core.Task_CorePushDataRequest:
+			content := t.CorePushDataRequest.GetMessage().GetContent()
+			err = json.Unmarshal(content, &t)
+			if err != nil {
+				return err
+			}
 		}
 		switch t.ID {
 		case types.Command_RemoveAgent:

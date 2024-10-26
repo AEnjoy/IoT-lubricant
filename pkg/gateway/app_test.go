@@ -73,11 +73,20 @@ func TestGatewayAPP(t *testing.T) {
 	// mock grpc server
 	mockGrpcClient.On("GetTask", mock.Anything).Return(mockGrpcTaskStream, nil)
 	mockGrpcClient.On("PushData", mock.Anything).Return(mockGrpcDataStream, nil)
-	var resp core.Task
-	var command types.Command
+
+	var (
+		resp                   core.Task
+		respDetail             core.TaskDetail
+		respGetTask            core.Task_GatewayGetTaskResponse
+		GatewayGetTaskResponse core.GatewayGetTaskResponse
+		command                types.Command
+	)
 	data, err = json.Marshal(command)
 	assert.NoError(err)
-	resp.Content = data
+	respDetail.Content = data
+	GatewayGetTaskResponse.Message = &respDetail
+	respGetTask.GatewayGetTaskResponse = &GatewayGetTaskResponse
+	resp.Task = &respGetTask
 
 	mockGrpcTaskStream.On("Recv").Return(&resp, nil)
 	mockGrpcDataStream.On("Recv").WaitUntil(time.Tick((TestTime+4)*time.Second)).Return(&resp, nil)
