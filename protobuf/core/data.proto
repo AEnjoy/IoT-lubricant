@@ -15,9 +15,10 @@ message Ping {
   int32 flag = 1; // 0:Ping 1:Pong 3: Error
 }
 message Task { // Resp
-  string taskId = 1;
-  string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
-  bytes content = 3; // json格式 []byte
+  string ID = 1; // GatewayID or AgentID
+  string taskId = 2;
+  string messageId = 3; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
+  bytes content = 4; // json格式 []byte
 }
 
 message MessageIdInfo {
