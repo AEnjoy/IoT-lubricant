@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"encoding/json"
+	"io"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
@@ -20,6 +21,9 @@ func (a *app) grpcApp() error {
 	}
 	for {
 		resp, err := task.Recv()
+		if err == io.EOF {
+			return nil
+		}
 		if err != nil {
 			return err
 		}

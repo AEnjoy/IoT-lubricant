@@ -41,11 +41,14 @@ func CreateTask(taskID string, targetType task.Target, targetDeviceID string, ta
 	}
 	t.ExecutorID = targetDeviceID
 	t.OperationCommend = string(taskBin)
+
 	txn := dataCli.Begin()
 	err := dataCli.CreateTask(context.Background(), txn, taskID, t)
 	if err != nil {
 		return fmt.Errorf("create task log error: %w", err)
 	}
+	dataCli.Commit(txn)
+
 	return nil
 }
 func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, error) {

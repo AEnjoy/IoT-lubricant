@@ -97,7 +97,6 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 					} else {
 						taskSendErrorMessage(s, 500, err.Error())
 					}
-					continue
 				} else {
 					var resp core.GatewayGetTaskResponse
 					var message core.TaskDetail
@@ -109,7 +108,6 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 			} else {
 				// 超时意味着没有创建过任务ch (任务不存在)
 				taskSendErrorMessage(s, 500, ErrTimeout.Error())
-				continue
 			}
 		}
 	}
