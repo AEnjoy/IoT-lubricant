@@ -12,8 +12,8 @@ import (
 )
 
 type ApiInfo struct {
-	filename   string
-	OpenAPICli `json:"open_api_cli"`
+	filename string
+	OpenAPICli
 }
 
 var (
