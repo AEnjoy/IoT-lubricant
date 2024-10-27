@@ -1,7 +1,9 @@
 package task
 
+type Target string
+
 const (
-	TargetCore    = "lubricant"
-	TargetGateway = "gateway"
-	TargetAgent   = "agent"
+	TargetCore    Target = "lubricant"
+	TargetGateway Target = "gateway"
+	TargetAgent   Target = "agent"
 )
