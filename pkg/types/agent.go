@@ -1,6 +1,12 @@
 package types
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+)
 
 type Device struct {
 	Id     string `json:"id" gorm:"column:id;primary_key"`
@@ -38,4 +44,29 @@ type DeviceAPI struct {
 
 func (DeviceAPI) TableName() string {
 	return "device_api"
+}
+
+type CreateAgentRequest struct { // CreateDriverAgentRequest
+	AgentInfo           Agent              `json:"agent_info"`
+	AgentContainerInfo  Container          `json:"agent_container_info"`
+	DriverContainerInfo Container          `json:"driver_container_info"`
+	OpenApiDoc          openapi.OpenAPICli `json:"open_api_doc"`
+}
+
+func (CreateAgentRequest) TaskOperation() task.Operation {
+	return task.OperationAddAgent
+}
+func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(this)
+}
+
+var AgentContainer = Container{
+	Source: Image{
+		PullWay:      2,
+		FromRegistry: "hub.iotroom.top",
+		RegistryPath: "AEnjoy/lubricant-agent",
+		Tag:          "latest",
+	},
+	ImageName: "lubricant-agent",
+	Network:   "bridge",
 }

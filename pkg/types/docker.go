@@ -1,12 +1,5 @@
 package types
 
-import (
-	"encoding/json"
-
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-)
-
 type Container struct {
 	Source     Image             `json:"source"`
 	ImageName  string            `json:"image_name"`
@@ -24,29 +17,4 @@ type Image struct {
 	RegistryPath string `json:"registry_path"` // such as `library/mysql`
 	Tag          string `json:"tag"`           // such as `latest`
 	// FromFile   string `json:"from_file"` // at `Core` side path of the image
-}
-
-type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo           Agent              `json:"agent_info"`
-	AgentContainerInfo  Container          `json:"agent_container_info"`
-	DriverContainerInfo Container          `json:"driver_container_info"`
-	OpenApiDoc          openapi.OpenAPICli `json:"open_api_doc"`
-}
-
-func (CreateAgentRequest) TaskOperation() task.Operation {
-	return task.OperationAddAgent
-}
-func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(this)
-}
-
-var AgentContainer = Container{
-	Source: Image{
-		PullWay:      2,
-		FromRegistry: "hub.iotroom.top",
-		RegistryPath: "AEnjoy/lubricant-agent",
-		Tag:          "latest",
-	},
-	ImageName: "lubricant-agent",
-	Network:   "bridge",
 }
