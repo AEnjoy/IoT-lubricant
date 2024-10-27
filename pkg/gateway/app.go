@@ -86,6 +86,7 @@ func SetPort(port string) func(*app) error {
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
+		s.ctrl = context.WithValue(context.Background(), types.NameGatewayID, id)
 		return nil
 	}
 }

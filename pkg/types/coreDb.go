@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )
 
@@ -123,6 +124,16 @@ func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, con
 func (d *CoreDb) GetDataCleaner(id string) (*Clean, error) {
 	var ret Clean
 	return &ret, d.db.Where("agent_id = ?", id).First(&ret).Error
+}
+func (d *CoreDb) CreateTask(ctx context.Context, txn *gorm.DB, id string, task task.Task) error {
+	task.TaskID = id
+	return txn.WithContext(ctx).Create(&task).Error
+}
+func (d *CoreDb) TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, operationType task.Operation) error {
+	return txn.WithContext(ctx).Model(&task.Task{}).Where("id = ?", id).Update("operation", operationType).Error
+}
+func (d *CoreDb) TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, operationCommend string) error {
+	return txn.WithContext(ctx).Model(&task.Task{}).Where("id = ?", id).Update("operation_commend", operationCommend).Error
 }
 func (*CoreDb) Name() string {
 	return "Core-database-client"
