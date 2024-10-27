@@ -16,9 +16,13 @@ type Mq[T any] interface {
 }
 
 func NewMq[T any]() Mq[T] {
-	return &MessageQueue[T]{
+	mq := &MessageQueue[T]{
 		closeCh: make(chan struct{}),
 	}
+	mq.loadFromDisk()
+
+	go mq.startAutoSave() // auto save to disk
+	return mq
 }
 
 // NewNatsMq creates a new instance of NatsMq
