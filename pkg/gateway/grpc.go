@@ -31,8 +31,8 @@ func (a *app) grpcApp() error {
 			if err != nil {
 				return err
 			}
-		case *core.Task_CorePushDataRequest:
-			content := task.CorePushDataRequest.GetMessage().GetContent()
+		case *core.Task_CorePushTaskRequest:
+			content := task.CorePushTaskRequest.GetMessage().GetContent()
 			err = json.Unmarshal(content, &c)
 			if err != nil {
 				return err

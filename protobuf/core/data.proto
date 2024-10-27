@@ -27,8 +27,8 @@ message Task { // Resp
   oneof task {
     GatewayTryGetTaskRequest gatewayTryGetTaskRequest = 2;
     GatewayGetTaskResponse gatewayGetTaskResponse = 3;
-    CorePushDataRequest corePushDataRequest = 4;
-    CorePushDataResponse corePushDataResponse = 5;
+    CorePushTaskRequest corePushTaskRequest = 4;
+    CorePushTaskResponse corePushTaskResponse = 5;
     NoTaskResponse noTaskResponse = 6;
     ErrorMessage errorMessage = 7;
   }
@@ -43,10 +43,10 @@ message GatewayTryGetTaskRequest { // gateway -> core
 message GatewayGetTaskResponse { // core -> gateway
     TaskDetail message = 1;
 }
-message CorePushDataRequest { // core -> gateway
+message CorePushTaskRequest { // core -> gateway
   TaskDetail message = 1;
 }
-message CorePushDataResponse { // gateway -> core
+message CorePushTaskResponse { // gateway -> core
   TaskDetail message = 1;
 }
 message MessageIdInfo {

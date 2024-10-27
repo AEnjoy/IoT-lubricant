@@ -40,6 +40,29 @@ func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[core.Ping, core.Ping]) er
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string) // 获取网关ID
+	// send core->gateway
+	go func() {
+		taskIDCh, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", taskTypes.TargetGateway, gatewayID))
+		if err != nil {
+			taskSendErrorMessage(s, 500, err.Error())
+			return
+		}
+		for idData := range taskIDCh {
+			taskID := string(idData)
+			if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
+				taskSendErrorMessage(s, 500, err.Error())
+			} else {
+				var resp core.CorePushTaskRequest
+				var message core.TaskDetail
+				message.Content = taskData
+				message.TaskId = taskID
+				resp.Message = &message
+				_ = s.Send(&core.Task{ID: taskID, Task: &core.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
+			}
+		}
+	}()
+
+	// recv gateway->core
 	for {
 		taskReq, err := s.Recv()
 		if err == io.EOF {
