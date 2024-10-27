@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
 
@@ -107,7 +108,7 @@ func (a *app) stopAgent(id string) (errs error) {
 	e1 := a.mq.Unsubscribe(types.Topic_AgentRegister+id, ch.reg)
 	e2 := a.mq.Unsubscribe(types.Topic_AgentDevice+id, ch.agentDevice)
 
-	commend, _ := json.Marshal(types.Command{ID: types.Command_RemoveAgent})
+	commend, _ := json.Marshal(types.TaskCommand{ID: task.OperationRemoveAgent})
 	data, _ := json.Marshal(gateway.DataMessage{Flag: 5, AgentId: id, Data: commend})
 	e3 := a.mq.Publish(types.Topic_AgentDevice+id, data)
 

@@ -7,7 +7,8 @@ import (
 type Operation uint8
 
 const (
-	_                              Operation = 0
+	_ Operation = 0
+	OperationNil
 	OperationUserLogin             Operation = 10
 	OperationUserLogout            Operation = 11
 	OperationUserChangePassword    Operation = 12

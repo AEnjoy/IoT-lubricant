@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 )
 
@@ -23,7 +24,7 @@ func (a *app) grpcApp() error {
 			return err
 		}
 
-		var c types.Command
+		var c types.TaskCommand
 		switch task := resp.GetTask().(type) {
 		case *core.Task_GatewayGetTaskResponse:
 			content := task.GatewayGetTaskResponse.GetMessage().GetContent()
@@ -40,9 +41,9 @@ func (a *app) grpcApp() error {
 		}
 
 		switch c.ID {
-		case types.Command_RemoveAgent:
-			a.removeAgent(c.Data)
-		case types.Command_nil:
+		case taskTypes.OperationRemoveAgent:
+			//a.removeAgent(c.Data)
+		case taskTypes.OperationNil:
 
 		default:
 			panic("unhandled default case")

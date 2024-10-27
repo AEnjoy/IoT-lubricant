@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
@@ -32,9 +33,9 @@ func (c *clientMqRecv) handelCh() {
 		case <-c.ctrl.Done():
 			return
 		case v := <-c.agentDevice: //客户端命令
-			command := types.Command{}
+			command := types.TaskCommand{}
 			_ = json.Unmarshal(v, &command)
-			if command.ID == types.Command_RemoveAgent {
+			if command.ID == task.OperationRemoveAgent {
 				removeAgent()
 			}
 		}

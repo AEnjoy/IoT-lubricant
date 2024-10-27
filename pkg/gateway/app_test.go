@@ -81,7 +81,7 @@ func TestGatewayAPP(t *testing.T) {
 		respDetail             core.TaskDetail
 		respGetTask            core.Task_GatewayGetTaskResponse
 		GatewayGetTaskResponse core.GatewayGetTaskResponse
-		command                types.Command
+		command                types.TaskCommand
 	)
 	data, err = json.Marshal(command)
 	assert.NoError(err)

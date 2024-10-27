@@ -1,5 +1,7 @@
 package types
 
+import "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+
 // messageQueue topic list
 
 // Common
@@ -28,14 +30,7 @@ type Ping struct {
 type Register struct {
 	ID string `json:"id"`
 }
-type Command struct {
-	ID   int    `json:"id"`
-	Data string `json:"data"`
+type TaskCommand struct {
+	ID   task.Operation `json:"id"`
+	Data []byte         `json:"data"` // json
 }
-
-const (
-	Command_nil = 0
-	Command_Add = iota
-
-	Command_RemoveAgent = 18
-)
