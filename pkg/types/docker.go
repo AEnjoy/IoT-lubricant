@@ -1,6 +1,9 @@
 package types
 
 import (
+	"encoding/json"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 )
 
@@ -28,6 +31,13 @@ type CreateAgentRequest struct { // CreateDriverAgentRequest
 	AgentContainerInfo  Container          `json:"agent_container_info"`
 	DriverContainerInfo Container          `json:"driver_container_info"`
 	OpenApiDoc          openapi.OpenAPICli `json:"open_api_doc"`
+}
+
+func (CreateAgentRequest) TaskOperation() task.Operation {
+	return task.OperationAddAgent
+}
+func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(this)
 }
 
 var AgentContainer = Container{
