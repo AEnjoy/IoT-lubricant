@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "protobuf/meta/meta.proto";
+
 package lubricant;
 
 option go_package = "protobuf/core";
@@ -27,7 +29,12 @@ message Task { // Resp
     GatewayGetTaskResponse gatewayGetTaskResponse = 3;
     CorePushDataRequest corePushDataRequest = 4;
     CorePushDataResponse corePushDataResponse = 5;
+    NoTaskResponse noTaskResponse = 6;
+    ErrorMessage errorMessage = 7;
   }
+}
+message NoTaskResponse {
+  TaskDetail message = 1; // 仍然要判断 TaskDetail.messageId
 }
 message GatewayTryGetTaskRequest { // gateway -> core
   string gatewayID = 1;

@@ -43,3 +43,7 @@ type Task struct {
 	OperationTime int64 `json:"operation_time" gorm:"column:created_at"`
 	UpdatedAt     int64 `json:"-" gorm:"column:updated_at"`
 }
+
+func (Task) TableName() string {
+	return "task_log"
+}

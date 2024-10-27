@@ -28,7 +28,7 @@ func createTask(targetType, targetDeviceID string, task []byte) error {
 	e2 := taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID), task) // 发送任务
 	return errors.Join(e1, e2)
 }
-func getTaskIDCh(ctx context.Context, targetType, targetDeviceID string) (chan<- string, error) {
+func getTaskIDCh(ctx context.Context, targetType, targetDeviceID string) (chan string, error) {
 	ch := make(chan string)
 	subscribe, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID))
 	if err != nil {
@@ -36,14 +36,13 @@ func getTaskIDCh(ctx context.Context, targetType, targetDeviceID string) (chan<-
 	}
 
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case taskID := <-subscribe:
-				ch <- string(taskID)
-			}
+		select {
+		case <-ctx.Done():
+			break
+		case taskID := <-subscribe:
+			ch <- string(taskID)
 		}
+		close(ch)
 	}()
 	return ch, nil
 }
