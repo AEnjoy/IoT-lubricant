@@ -60,6 +60,9 @@ func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(this)
 }
 
+type CreateAgentResponse struct {
+}
+
 var AgentContainer = Container{
 	Source: Image{
 		PullWay:      2,
