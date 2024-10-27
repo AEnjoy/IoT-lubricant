@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )
 
@@ -38,6 +39,11 @@ type CoreDbOperator interface {
 	StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error
 	GetDataCleaner(id string) (*Clean, error)
 	DeleteAgentGatherData(ctx context.Context, txn *gorm.DB, id string, timeStart int64, timeEnd int64) error
+
+	// TaskLog:
+	CreateTask(ctx context.Context, txn *gorm.DB, id string, task task.Task) error
+	TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, Type task.Operation) error
+	TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, commend string) error
 
 	// User:
 }
