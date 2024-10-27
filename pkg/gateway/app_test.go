@@ -32,7 +32,9 @@ func TestGatewayAPP(t *testing.T) {
 
 	deviceList := &sync.Map{}
 
-	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(TestTime*time.Second))
+	ctx, cf := context.WithDeadline(
+		context.WithValue(context.Background(), types.NameGatewayID, uuid.NewString()),
+		time.Now().Add(TestTime*time.Second))
 	defer cf()
 
 	app := &app{
