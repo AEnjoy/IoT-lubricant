@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/docker/docker/api/types/container"
@@ -41,6 +42,10 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 		}
 	case types.ImagePullFromRegistry:
 		path := func() string {
+			c.Source.FromRegistry = strings.Trim(c.Source.FromRegistry, "/")
+			c.Source.FromRegistry = strings.TrimLeft(c.Source.FromRegistry, "/")
+			c.Source.RegistryPath = strings.Trim(c.Source.RegistryPath, "/")
+			c.Source.RegistryPath = strings.TrimLeft(c.Source.RegistryPath, "/")
 			if len(c.Source.FromRegistry) == 0 {
 				c.Source.FromRegistry = "docker.io"
 			}
