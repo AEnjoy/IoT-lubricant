@@ -18,6 +18,8 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 	}
 	defer cli.Close()
 
+	createNetwork(cli)
+
 	// Pull image if necessary
 	switch c.Source.PullWay {
 	case types.ImagePullFromBinary:
@@ -38,7 +40,13 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 			return nil, err
 		}
 	case types.ImagePullFromRegistry:
-		if _, err := cli.ImagePull(ctx, c.Source.FromRegistry, image.PullOptions{RegistryAuth: c.Source.RegistryAuth}); err != nil {
+		path := func() string {
+			if len(c.Source.FromRegistry) == 0 {
+				c.Source.FromRegistry = "docker.io"
+			}
+			return c.Source.FromRegistry + "/" + c.Source.RegistryPath
+		}()
+		if _, err := cli.ImagePull(ctx, path, image.PullOptions{RegistryAuth: c.Source.RegistryAuth}); err != nil {
 			return nil, err
 		}
 	default:
@@ -59,7 +67,8 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 	}
 	netConfig := &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
-			c.Network: {},
+			c.Network:   {},
+			NetWorkName: {NetworkID: NetWorkName},
 		},
 	}
 
@@ -69,4 +78,13 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 	}
 
 	return &resp, cli.ContainerStart(ctx, resp.ID, container.StartOptions{})
+}
+
+// DeployAgent 部署agent容器 返回 agent-container id
+func DeployAgent() (string, error) {
+	resp, err := Create(context.Background(), types.AgentContainer)
+	if err != nil {
+		return "", err
+	}
+	return resp.ID, nil
 }

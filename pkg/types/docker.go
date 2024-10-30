@@ -25,7 +25,7 @@ type Image struct {
 
 	FromBinary   []byte `json:"from_binary"`   // a `tar` ball file
 	FromUrl      string `json:"from_url"`      // such as https://example.com/mysql.tar
-	FromRegistry string `json:"from_registry"` // such as `docker.io`
+	FromRegistry string `json:"from_registry"` // such as `docker.io`(default)
 	RegistryPath string `json:"registry_path"` // such as `library/mysql`
 	Tag          string `json:"tag"`           // such as `latest`
 	// FromFile   string `json:"from_file"` // at `Core` side path of the image

@@ -70,6 +70,6 @@ var AgentContainer = Container{
 		RegistryPath: "AEnjoy/lubricant-agent",
 		Tag:          "latest",
 	},
-	ImageName: "lubricant-agent",
-	Network:   "bridge",
+	Name:    "lubricant-agent",
+	Network: "bridge",
 }
