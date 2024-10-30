@@ -1,8 +1,8 @@
 package docker
 
 import (
+	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
@@ -11,14 +11,13 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-var (
-	ErrNotInit = errors.New("docker api not init")
-)
-
+// Deprecated: 该接口应该直接调用，不应该通过该接口来调用
 type Api struct {
 	ctx context.Context
 	cli *client.Client
 }
+
+// Deprecated: 该接口应该直接调用，不应该通过该接口来调用
 type BinaryImageInfo struct {
 	Reader    io.Reader // Tarball reader []byte
 	ImageName string
@@ -71,6 +70,7 @@ func (a *Api) Remove(name string) error {
 	return a.cli.ContainerRemove(a.ctx, name, container.RemoveOptions{})
 }
 
+// Deprecated: use New Docker Api
 func NewDockerApi(ctx context.Context) (*Api, error) {
 	var dcli Api
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -80,4 +80,42 @@ func NewDockerApi(ctx context.Context) (*Api, error) {
 	dcli.ctx = ctx
 	dcli.cli = cli
 	return &dcli, nil
+}
+
+func convertEnvMap(env map[string]string) []string {
+	var envList []string
+	for key, value := range env {
+		envList = append(envList, fmt.Sprintf("%s=%s", key, value))
+	}
+	return envList
+}
+func convertPortBindings(port map[string]int) nat.PortMap {
+	portBindings := make(nat.PortMap)
+	for containerPort, hostPort := range port {
+		portBindings[nat.Port(containerPort)] = []nat.PortBinding{
+			{
+				HostPort: fmt.Sprintf("%d", hostPort),
+			},
+		}
+	}
+	return portBindings
+}
+
+func convertExposePort(exposePort map[string]int) nat.PortSet {
+	portSet := make(nat.PortSet)
+	for containerPort, _ := range exposePort {
+		portSet[nat.Port(containerPort)] = struct{}{}
+	}
+	return portSet
+}
+
+func pullFromImageBinaryReader(ctx context.Context, cli *client.Client, data io.Reader) error {
+	_, err := cli.ImageLoad(ctx, data, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func pullFromImageBinaryData(ctx context.Context, cli *client.Client, data []byte) error {
+	return pullFromImageBinaryReader(ctx, cli, bytes.NewReader(data))
 }
