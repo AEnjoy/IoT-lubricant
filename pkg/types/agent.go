@@ -6,6 +6,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	"github.com/docker/docker/api/types/network"
 )
 
 type Device struct {
@@ -70,6 +71,6 @@ var AgentContainer = Container{
 		RegistryPath: "AEnjoy/lubricant-agent",
 		Tag:          "latest",
 	},
-	ImageName: "lubricant-agent",
-	Network:   "bridge",
+	Name:    "lubricant-agent",
+	Network: network.NetworkBridge,
 }
