@@ -13,6 +13,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -125,7 +126,7 @@ func LinkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		if err != nil {
 			return err
 		}
-		if err := stream.Send(&core.Ping{Flag: 0}); err != nil {
+		if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
 			return err
 		}
 		resp, err := stream.Recv()

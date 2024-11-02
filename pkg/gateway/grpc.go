@@ -7,9 +7,10 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 )
 
-var _ = &core.Ping{
+var _ = &meta.Ping{
 	Flag: 0,
 }
 

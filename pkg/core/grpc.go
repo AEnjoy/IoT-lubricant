@@ -35,7 +35,7 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 	return context.WithTimeout(root, timeOut*time.Second)
 }
 
-func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[core.Ping, core.Ping]) error {
+func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
 	return nil
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
