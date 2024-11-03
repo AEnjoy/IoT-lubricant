@@ -59,6 +59,7 @@ message GetOpenapiDocRequest{
 enum OpenapiDocType {
     originalFile= 0;
     enableFile= 1;
+    All = 2;
 }
 
 message DataMessage{

@@ -115,6 +115,14 @@ type Parameter struct {
 	Schema      Schema `json:"schema"`
 }
 
+func (p *Parameter) Set(k, v string) {
+	p.Name = k
+	p.Schema = Schema{
+		Type:       "string",
+		Properties: map[string]Property{"key": {Type: v}},
+	}
+}
+
 // Schema 定义了JSON请求body的schema
 type Schema struct {
 	Type       string              `json:"type"`
@@ -222,6 +230,47 @@ func (api *ApiInfo) SendPOSTMethod(path string, body RequestBody) ([]byte, error
 		return nil, err
 	}
 
+	request.Header.Set("Content-Type", ct)
+
+	respHttp, err := cli.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+	defer respHttp.Body.Close()
+
+	all, err := io.ReadAll(respHttp.Body)
+	if err != nil {
+		return nil, err
+	}
+	//
+	//resp := make(map[string]Response)
+	//content := make(map[string]MediaType)
+	//
+	//for k, _ := range api.Paths[path].Get.Responses["200"].Content {
+	//	content[k] = MediaType{all}
+	//}
+	//resp[respHttp.Status] = Response{
+	//	Description: api.Paths[path].Get.Responses[respHttp.Status].Description,
+	//	Content:     content,
+	//}
+	return all, nil
+}
+func (api *ApiInfo) SendPOSTMethodEx(path, ct string, body []byte) ([]byte, error) {
+	if _, ok := api.Paths[path]; !ok {
+		return nil, ErrNotFound
+	}
+	if api.Paths[path].Post == nil {
+		return nil, ErrInvalidMethod
+	}
+
+	bytesReader := bytes.NewReader(body)
+	request, err := http.NewRequest(http.MethodPost, path, bytesReader)
+	if err != nil {
+		return nil, err
+	}
+
+	cli := http.Client{}
 	request.Header.Set("Content-Type", ct)
 
 	respHttp, err := cli.Do(request)
