@@ -17,16 +17,13 @@ import (
 
 type app struct {
 	mq mq.Mq[[]byte]
-	*clientMqRecv
-	*clientMqSend
 
 	openapi.OpenApi
 
 	ctrl   context.Context
 	cancel context.CancelFunc
 
-	errPanic chan error
-	l        sync.Mutex
+	l sync.Mutex
 	// for init
 	config *types.EdgeSystem
 
