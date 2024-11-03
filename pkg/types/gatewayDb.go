@@ -28,6 +28,11 @@ func (d *GatewayDb) GetAllAgentId() (retVal []string) {
 	}
 	return
 }
+func (d *GatewayDb) GetAllAgents() (agents []Agent, err error) {
+	err = d.db.Find(&agents).Error
+	return
+
+}
 func (d *GatewayDb) RemoveAgent(id ...string) bool {
 	return d.db.Where("id in (?)", id).Delete(&Agent{}).Error == nil
 }

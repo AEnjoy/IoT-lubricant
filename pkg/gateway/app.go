@@ -56,8 +56,9 @@ func (a *app) Run() error {
 	if err != nil {
 		panic(err)
 	}
-
+	_ = a.initAgentPool() //todo:handel error
 	a.Start()
+
 	return a.grpcApp()
 }
 func SetPort(port string) func(*app) error {

@@ -52,6 +52,7 @@ type GatewayDbOperator interface {
 	GetServerInfo() ServerInfo
 	IsAgentIdExists(string) bool
 	GetAllAgentId() []string
+	GetAllAgents() ([]Agent, error)
 	RemoveAgent(...string) bool
 	GetAgentReportCycle(string) int
 	GetAgentGatherCycle(string) int

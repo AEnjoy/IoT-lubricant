@@ -5,10 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -180,4 +184,68 @@ func (a *app) initClientMq() (errs error) {
 	//}()
 
 	return
+}
+func (a *app) initAgentPool() error {
+	as, err := a.GetAllAgents()
+	if err != nil {
+		return err
+	}
+	var errs error
+
+	for _, agent := range as {
+		control := new(agentControl)
+		control.agentInfo = &agent
+		go func() {
+			err := control.joinAgentPool(a.ctrl)
+			if err != nil {
+				errs = errors.Join(errs, err)
+			}
+		}()
+	}
+	return errs
+}
+
+var agentPool = make(map[string]*agentControl)
+var agentPoolMutex sync.Mutex
+
+type agentControl struct {
+	id        string
+	agentInfo *types.Agent
+	agentCli  agent.EdgeServiceClient
+	ctx       context.Context
+	cancel    context.CancelFunc
+	gather    bool
+}
+
+func (a *agentControl) joinAgentPool(ctx context.Context) error {
+	a.ctx, a.cancel = context.WithCancel(ctx)
+	conn, err := grpc.NewClient(a.agentInfo.Address)
+	if err != nil {
+		return err
+	}
+	a.id = a.agentInfo.Id
+	a.agentCli = agent.NewEdgeServiceClient(conn)
+
+	agentPoolMutex.Lock()
+	defer agentPoolMutex.Unlock()
+
+	agentPool[a.id] = a
+	return nil
+}
+
+func (a *agentControl) gatherData() {
+	a.gather = true
+	for {
+		select {
+		case <-a.ctx.Done():
+			return
+		case <-time.Tick(time.Second * time.Duration(a.agentInfo.Cycle)):
+			gatherDataResp, err := a.agentCli.Data(a.ctx, &agent.GetDataRequest{AgentID: a.id})
+			if err != nil {
+				logger.Errorf("Get Agent data failed: due to `%s`, agentID is `%s`", err.Error(), a.id)
+				continue
+			}
+			gatherDataResp.GetData()
+		}
+	}
 }
