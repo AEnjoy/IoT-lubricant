@@ -146,7 +146,7 @@ func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoR
 }
 
 func (a agentServer) Data(ctx context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
-	var resp pb.DataMessage
+	//var resp pb.DataMessage
 
 	//TODO implement me
 	panic("implement me")

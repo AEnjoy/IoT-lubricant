@@ -26,4 +26,4 @@ __pycache__
 .pytest_cache
 
 # test cache
-pkg/edge/test
+internal/edge/test

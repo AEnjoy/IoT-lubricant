@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
+	"github.com/AEnjoy/IoT-lubricant/internal/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
