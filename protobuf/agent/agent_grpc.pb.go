@@ -20,14 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EdgeService_Ping_FullMethodName            = "/lubricant.edgeService/ping"
-	EdgeService_RegisterGateway_FullMethodName = "/lubricant.edgeService/registerGateway"
-	EdgeService_SetAgent_FullMethodName        = "/lubricant.edgeService/setAgent"
-	EdgeService_GetOpenapiDoc_FullMethodName   = "/lubricant.edgeService/getOpenapiDoc"
-	EdgeService_GetAgentInfo_FullMethodName    = "/lubricant.edgeService/getAgentInfo"
-	EdgeService_Data_FullMethodName            = "/lubricant.edgeService/data"
-	EdgeService_GetDataStream_FullMethodName   = "/lubricant.edgeService/GetDataStream"
-	EdgeService_SendHttpMethod_FullMethodName  = "/lubricant.edgeService/sendHttpMethod"
+	EdgeService_Ping_FullMethodName            = "/lubricant.agent.edgeService/ping"
+	EdgeService_RegisterGateway_FullMethodName = "/lubricant.agent.edgeService/registerGateway"
+	EdgeService_SetAgent_FullMethodName        = "/lubricant.agent.edgeService/setAgent"
+	EdgeService_GetOpenapiDoc_FullMethodName   = "/lubricant.agent.edgeService/getOpenapiDoc"
+	EdgeService_GetAgentInfo_FullMethodName    = "/lubricant.agent.edgeService/getAgentInfo"
+	EdgeService_Data_FullMethodName            = "/lubricant.agent.edgeService/data"
+	EdgeService_GetDataStream_FullMethodName   = "/lubricant.agent.edgeService/GetDataStream"
+	EdgeService_SendHttpMethod_FullMethodName  = "/lubricant.agent.edgeService/sendHttpMethod"
 )
 
 // EdgeServiceClient is the client API for EdgeService service.
@@ -349,7 +349,7 @@ func _EdgeService_SendHttpMethod_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var EdgeService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lubricant.edgeService",
+	ServiceName: "lubricant.agent.edgeService",
 	HandlerType: (*EdgeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

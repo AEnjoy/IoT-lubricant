@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/edge"
-	edgePkg "github.com/AEnjoy/IoT-lubricant/pkg/edge"
+	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
@@ -148,17 +148,17 @@ func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoR
 
 func (a agentServer) Data(ctx context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
 	var resp pb.DataMessage
-	edge.DCL.Lock()
-	defer edge.DCL.Unlock()
-	if len(edge.DataCollect) != 0 {
-		resp.DataLen = int32(len(edge.DataCollect))
-		resp.DataGatherStartTime = edge.DataCollect[0].Timestamp.Format("2006-01-02 15:04:05")
+	data.DCL.Lock()
+	defer data.DCL.Unlock()
+	if len(data.DataCollect) != 0 {
+		resp.DataLen = int32(len(data.DataCollect))
+		resp.DataGatherStartTime = data.DataCollect[0].Timestamp.Format("2006-01-02 15:04:05")
 		resp.SplitTime = int32(config.Config.Cycle)
-		for _, packet := range edge.DataCollect {
+		for _, packet := range data.DataCollect {
 			resp.Data = append(resp.Data, packet.Data)
 		}
 		resp.Info = &meta.CommonResponse{Code: http.StatusOK, Message: "success"}
-		edge.DataCollect = make([]*edgePkg.DataPacket, 0)
+		data.DataCollect = make([]*edge.DataPacket, 0)
 		return &resp, nil
 	} else {
 		resp.Info = &meta.CommonResponse{Code: http.StatusTooEarly, Message: "data is not ready"}

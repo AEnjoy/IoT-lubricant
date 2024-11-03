@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "protobuf/meta/meta.proto";
 
-package lubricant;
+package lubricant.agent;
 
 option go_package = "protobuf/agent";
 

@@ -20,10 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CoreService_Ping_FullMethodName          = "/lubricant.coreService/ping"
-	CoreService_GetTask_FullMethodName       = "/lubricant.coreService/getTask"
-	CoreService_PushMessageId_FullMethodName = "/lubricant.coreService/pushMessageId"
-	CoreService_PushData_FullMethodName      = "/lubricant.coreService/pushData"
+	CoreService_Ping_FullMethodName          = "/lubricant.core.coreService/ping"
+	CoreService_GetTask_FullMethodName       = "/lubricant.core.coreService/getTask"
+	CoreService_PushMessageId_FullMethodName = "/lubricant.core.coreService/pushMessageId"
+	CoreService_PushData_FullMethodName      = "/lubricant.core.coreService/pushData"
 )
 
 // CoreServiceClient is the client API for CoreService service.
@@ -187,7 +187,7 @@ type CoreService_PushDataServer = grpc.BidiStreamingServer[Data, Data]
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var CoreService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lubricant.coreService",
+	ServiceName: "lubricant.core.coreService",
 	HandlerType: (*CoreServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
