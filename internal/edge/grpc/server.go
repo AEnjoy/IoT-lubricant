@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/edge"
+	edgePkg "github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
@@ -126,8 +128,7 @@ func (a agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocR
 }
 
 func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoRequest) (*pb.GetAgentInfoResponse, error) {
-	var c int32
-	c = int32(config.Config.Cycle)
+	c := int32(config.Config.Cycle)
 	ds, err := a.GetOpenapiDoc(ctx, &pb.GetOpenapiDocRequest{AgentID: request.GetAgentID(), DocType: pb.OpenapiDocType_All})
 	if err != nil {
 		return nil, err
@@ -146,10 +147,23 @@ func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoR
 }
 
 func (a agentServer) Data(ctx context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
-	//var resp pb.DataMessage
-
-	//TODO implement me
-	panic("implement me")
+	var resp pb.DataMessage
+	edge.DCL.Lock()
+	defer edge.DCL.Unlock()
+	if len(edge.DataCollect) != 0 {
+		resp.DataLen = int32(len(edge.DataCollect))
+		resp.DataGatherStartTime = edge.DataCollect[0].Timestamp.Format("2006-01-02 15:04:05")
+		resp.SplitTime = int32(config.Config.Cycle)
+		for _, packet := range edge.DataCollect {
+			resp.Data = append(resp.Data, packet.Data)
+		}
+		resp.Info = &meta.CommonResponse{Code: http.StatusOK, Message: "success"}
+		edge.DataCollect = make([]*edgePkg.DataPacket, 0)
+		return &resp, nil
+	} else {
+		resp.Info = &meta.CommonResponse{Code: http.StatusTooEarly, Message: "data is not ready"}
+		return &resp, nil
+	}
 }
 
 //func (a agentServer) GetDataStream(request *pb.GetDataRequest, g grpc.ServerStreamingServer[pb.DataChunk]) error {
