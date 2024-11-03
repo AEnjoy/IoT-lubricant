@@ -1,7 +1,6 @@
 package edge
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,13 +10,8 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 	"github.com/google/uuid"
-	"github.com/nats-io/nats-server/v2/server"
-	"github.com/nats-io/nats.go"
-	"github.com/stretchr/testify/assert"
 )
 
 func WriteConfig() {
@@ -105,75 +99,76 @@ var config = &types.EdgeSystem{
 }
 
 func TestEdgeApp(t *testing.T) {
-	t.Log("This test will take about 10s to complete")
-	t.Log("Start Time:", time.Now())
-	WriteConfig()
-	assert := assert.New(t)
-	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
-	// start nats server
-	{
-		opts := &server.Options{
-			Port:  4222,
-			Debug: true,
-		}
-
-		natsServer, err := server.NewServer(opts)
-		assert.NoError(err)
-
-		t.Log("starting nats server")
-		go natsServer.Start()
-		if !natsServer.ReadyForConnections(5 * time.Second) {
-			t.Fatal("nats server did not start")
-		}
-		defer natsServer.Shutdown()
-	}
-
-	natsMq, err := mq.NewNatsMq[[]byte](nats.DefaultURL)
-	assert.NoError(err)
-	app := &app{
-		config:  config,
-		ctrl:    ctx,
-		cancel:  cf,
-		OpenApi: openAPIConfig,
-		mq:      natsMq,
-	}
-
-	go func() {
-		assert.NoError(app.Run())
-	}()
-
-	// test register
-	regCh, err := app.mq.Subscribe(types.Topic_AgentRegister + mockID)
-	assert.NoError(err)
-
-	var reg types.Register
-	assert.NoError(json.Unmarshal(<-regCh, &reg))
-	assert.Equal(mockID, reg.ID)
-
-	ping := types.Ping{
-		Status: 1,
-	}
-	data, _ := json.Marshal(ping)
-	_ = app.mq.Publish(types.Topic_AgentRegisterAck+mockID, data)
-
-	// mq test (mock-gateway)
-	var success bool
-	t.Log("Test send message to topic")
-	ch, err := app.mq.Subscribe(types.Topic_AgentDataPush + mockID)
-	assert.NoError(err)
-	for {
-		select {
-		case <-ctx.Done():
-			assert.True(success, "test failed because no data send success")
-			return
-		case d := <-ch:
-			var data gateway.DataMessage
-			t.Log("receive data from topic:", time.Now())
-			assert.NoError(json.Unmarshal(d, &data))
-			assert.Equal(int32(2), data.Flag)
-			assert.Equal(mockID, data.AgentId)
-			success = true
-		}
-	}
+	t.Skip("Deprecated")
+	//t.Log("This test will take about 10s to complete")
+	//t.Log("Start Time:", time.Now())
+	//WriteConfig()
+	//assert := assert.New(t)
+	//ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
+	//// start nats server
+	//{
+	//	opts := &server.Options{
+	//		Port:  4222,
+	//		Debug: true,
+	//	}
+	//
+	//	natsServer, err := server.NewServer(opts)
+	//	assert.NoError(err)
+	//
+	//	t.Log("starting nats server")
+	//	go natsServer.Start()
+	//	if !natsServer.ReadyForConnections(5 * time.Second) {
+	//		t.Fatal("nats server did not start")
+	//	}
+	//	defer natsServer.Shutdown()
+	//}
+	//
+	//natsMq, err := mq.NewNatsMq[[]byte](nats.DefaultURL)
+	//assert.NoError(err)
+	//app := &app{
+	//	config:  config,
+	//	ctrl:    ctx,
+	//	cancel:  cf,
+	//	OpenApi: openAPIConfig,
+	//	mq:      natsMq,
+	//}
+	//
+	//go func() {
+	//	assert.NoError(app.Run())
+	//}()
+	//
+	//// test register
+	//regCh, err := app.mq.Subscribe(types.Topic_AgentRegister + mockID)
+	//assert.NoError(err)
+	//
+	//var reg types.Register
+	//assert.NoError(json.Unmarshal(<-regCh, &reg))
+	//assert.Equal(mockID, reg.ID)
+	//
+	//ping := types.Ping{
+	//	Status: 1,
+	//}
+	//data, _ := json.Marshal(ping)
+	//_ = app.mq.Publish(types.Topic_AgentRegisterAck+mockID, data)
+	//
+	//// mq test (mock-gateway)
+	//var success bool
+	//t.Log("Test send message to topic")
+	//ch, err := app.mq.Subscribe(types.Topic_AgentDataPush + mockID)
+	//assert.NoError(err)
+	//for {
+	//	select {
+	//	case <-ctx.Done():
+	//		assert.True(success, "test failed because no data send success")
+	//		return
+	//	case d := <-ch:
+	//		var data gateway.DataMessage
+	//		t.Log("receive data from topic:", time.Now())
+	//		assert.NoError(json.Unmarshal(d, &data))
+	//		assert.Equal(int32(2), data.Flag)
+	//		assert.Equal(mockID, data.AgentId)
+	//		success = true
+	//	}
+	//}
 
 }

@@ -2,9 +2,9 @@ package edge
 
 import (
 	"bytes"
-	"sync"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 )
@@ -15,8 +15,6 @@ var (
 	dataSetCh      = make(chan []byte, 3)        //采集到的原始数据
 	dataChan2      = make(chan *edge.DataPacket) // send to gateway
 
-	DataCollect = make([]*edge.DataPacket, 0)
-	DCL         = sync.Mutex{}
 )
 
 func compressor(method string, dataChan <-chan []byte, compressedChan chan<- *edge.DataPacket) {
@@ -36,7 +34,7 @@ func transmitter(cycle int, compressedChan <-chan *edge.DataPacket, triggerChan 
 	for {
 		select {
 		case compressedData := <-compressedChan:
-			DCL.Lock()
+			data.DCL.Lock()
 			if firstPacketTime == nil {
 				firstPacketTime = &compressedData.Timestamp
 			}
@@ -47,11 +45,11 @@ func transmitter(cycle int, compressedChan <-chan *edge.DataPacket, triggerChan 
 					Timestamp: *firstPacketTime,
 				}
 				dataChan <- d
-				DataCollect = append(DataCollect, d)
+				data.DataCollect = append(data.DataCollect, d)
 				buffer = nil
 				firstPacketTime = nil
 			}
-			DCL.Unlock()
+			data.DCL.Unlock()
 		case <-triggerChan:
 			if len(buffer) > 0 {
 				dataChan <- &edge.DataPacket{

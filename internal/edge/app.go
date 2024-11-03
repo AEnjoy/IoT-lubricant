@@ -2,18 +2,17 @@ package edge
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
+	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/nats-io/nats.go"
-	"google.golang.org/grpc"
 )
 
 type app struct {
@@ -29,55 +28,16 @@ type app struct {
 	errPanic chan error
 	l        sync.Mutex
 	// for init
-	config      *types.EdgeSystem
-	grpcConn    *grpc.ClientConn
+	config *types.EdgeSystem
+
 	hostAddress string // 这是容器宿主机的ip:port
 }
 
 func (a *app) Run() error {
-	a.errPanic = make(chan error)
-	a.clientMqRecv = new(clientMqRecv)
-	a.clientMqSend = new(clientMqSend)
-	a.agentID = a.config.ID
-	a.clientMqSend.mq = a.mq
-	a.clientMqSend.SetContext(a.ctrl)
-	a.clientMqRecv.SetContext(a.ctrl)
-
-	go func() {
-		err := a.send()
-		if err != nil {
-			exception.ErrCh <- err
-		}
-	}()
-
-	//if a.grpcClient != nil {
-	//	a.grpcClient = gateway.NewGatewayServiceClient(a.grpcConn)
-	//}
-
-	go func() {
-		err := a.StartGather(a.ctrl)
-		if err != nil {
-			a.errPanic <- err
-		}
-	}()
-
-	err := a.joinGateway()
-	if err != nil {
-		return err
-	}
-	err = a.initClientMq()
-	if err != nil {
-		return err
-	}
-
-	go a.clientMqRecv.handelCh()
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
-	//go a.clientGrpc() //grpc
-	for err := range a.errPanic {
-		return err
-	}
-	return nil
+
+	return a.StartGather(a.ctrl)
 }
 
 func NewApp(opts ...func(*app) error) *app {
@@ -90,13 +50,12 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 
-func UseConfig(config *types.EdgeSystem) func(*app) error {
+func UseConfig(c *types.EdgeSystem) func(*app) error {
 	return func(s *app) error {
-		if config == nil {
-			logger.Errorln("config is nil")
-			return fmt.Errorf("config is nil")
+		if c == nil {
+			logger.Warnln("config is nil")
 		}
-		s.config = config
+		s.config = c
 		return nil
 	}
 }
@@ -114,13 +73,14 @@ func UseHostAddress(address string) func(*app) error {
 		return nil
 	}
 }
-func UseGRPC(grpcServer *grpc.ClientConn, err error) func(*app) error {
+func UseGRPC(bind string) func(*app) error {
 	return func(a *app) error {
-		if grpcServer != nil {
-			return errors.New("grpcServer is nil")
+		if bind == "" {
+			logger.Warnln("grpc bind is empty, use default")
+			bind = _default.AgentDefaultBind
 		}
-		a.grpcConn = grpcServer
-		return err
+		go dataService.NewServer(bind)
+		return nil
 	}
 }
 func UseOpenApi(api openapi.OpenApi, err error) func(*app) error {

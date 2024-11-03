@@ -20,6 +20,7 @@ import (
 const (
 	CONF_FILE_ENV = "CONFIG"
 	HOST_ENV      = "HOST"
+	BIND_GRPC_ENV = "BIND_GRPC"
 )
 
 var (
@@ -60,6 +61,7 @@ func main() {
 
 	configFile := os.Getenv(CONF_FILE_ENV)
 	hostname := os.Getenv(HOST_ENV) //ip:port
+	bindGrpc := os.Getenv(BIND_GRPC_ENV)
 
 	f, err := os.ReadFile(configFile)
 	if err != nil {
@@ -77,7 +79,7 @@ func main() {
 		edge.UseCtrl(context.Background()),
 		edge.UseConfig(&config),
 		edge.UseMq(mq.NewNatsMq[[]byte](fmt.Sprintf("nats://%s", hostname))),
-		//edge.UseGRPC(edge.NewGrpcClient(hostname, config.ID)),
+		edge.UseGRPC(bindGrpc),
 		edge.UseHostAddress(hostname),
 		edge.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
 	)
