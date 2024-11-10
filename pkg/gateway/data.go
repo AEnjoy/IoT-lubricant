@@ -12,7 +12,11 @@ import (
 const maxBuffer = 50
 
 func (a *app) agentHandelSignal(id string) {
+	//send
+	go a.agentPushDataToServer(a.ctrl, id)
 	go a.handelSendSignal(id)
+
+	//todo:recv
 }
 func (a *app) handelSendSignal(id string) error {
 	// todo: not all implemented yet
@@ -22,7 +26,6 @@ func (a *app) handelSendSignal(id string) error {
 	if !ok {
 		return ErrAgentNotFound
 	}
-	go a.agentPushDataToServer(a.ctrl, id)
 
 	agentMap := v.(*agentData)
 	reportCycle := agentPool[id].agentInfo.Cycle
