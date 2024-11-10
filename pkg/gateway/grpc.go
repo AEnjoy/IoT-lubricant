@@ -76,7 +76,7 @@ func (a *app) grpcApp() error {
 			}
 			_ = task.Send(resp)
 		case taskTypes.OperationRemoveAgent:
-			a.removeAgent("reserve a seat")
+			a.agentRemove("reserve a seat")
 			panic("not implemented")
 		case taskTypes.OperationNil:
 

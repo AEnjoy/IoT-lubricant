@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
@@ -24,11 +23,6 @@ type app struct {
 	ctrl context.Context
 	mq   mq.Mq[[]byte]
 
-	dataCli    *data
-	deviceList *sync.Map
-
-	*clientMq
-
 	types.GatewayDbOperator
 
 	port       string
@@ -45,21 +39,11 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 func (a *app) Run() error {
-	a.deviceList = new(sync.Map)
-	a.clientMq = new(clientMq)
-	a.dataCli = new(data)
-	a.dataCli.Start()
-	a.clientMq.ctrl = a.ctrl
-	a.clientMq.deviceList = a.deviceList
-
-	err := a.initClientMq()
-	if err != nil {
-		panic(err)
-	}
-	_ = a.initAgentPool() //todo:handel error
-	a.Start()
-
-	return a.grpcApp()
+	_ = a.agentPoolInit() //todo:handel error
+	go a.agentPoolAgentRegis()
+	go a.agentPoolChStartService()
+	//go a.agentHandelSignal()
+	return a.grpcApp() // gateway <--> core
 }
 func SetPort(port string) func(*app) error {
 	return func(s *app) error {

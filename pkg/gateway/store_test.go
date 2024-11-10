@@ -1,40 +1,35 @@
 package gateway
 
 import (
-	"bytes"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 var timer = time.Now().Format("2006-01-02 15:04:05")
 
-func newRandomDataMessage(n int) *gateway.DataMessage {
-	data := &gateway.DataMessage{
-		Flag:      2,
-		MessageId: uuid.NewString(),
-		AgentId:   uuid.NewString(),
-		Time:      timer,
-	}
+func newRandomDataMessage(n int) *agent.DataMessage {
+	data := &agent.DataMessage{DataGatherStartTime: timer}
 
 	var s [][]byte
 	for i := 0; i < n; i++ {
 		s = append(s, []byte(uuid.NewString()))
 	}
 
-	data.Data = bytes.Join(s, compress.Sepa)
+	data.Data = s
 	return data
 }
 func newTestAgent(n int) *agentData {
-	agent := &agentData{data: make([]*gateway.DataMessage, 0)}
+	agent := &agentData{data: make([]*agent.DataMessage, 0)}
 
-	data := newRandomDataMessage(n)
-	agent.parseData(data, 1)
+	for i := 0; i < n; i++ {
+		data := newRandomDataMessage(n)
+		agent.parseData(data)
+	}
 	return agent
 }
 func TestParseData(t *testing.T) {
@@ -49,6 +44,6 @@ func TestCoverToGrpcData(t *testing.T) {
 	randomTest := rand.Intn(71) + 30 // 30-100
 	data := newTestAgent(randomTest).coverToGrpcData()
 
-	assert.Equal(randomTest, int(data.DataLen))
+	assert.Equal(randomTest*randomTest, int(data.DataLen))
 	assert.Equal(timer, data.Time)
 }
