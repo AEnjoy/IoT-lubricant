@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 )
@@ -33,9 +34,6 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 	paths := a.OpenApi.GetPaths()
 	cycle := time.Duration(int64(a.config.Cycle) * int64(time.Second))
 
-	ctx, cancel := context.WithCancel(ctx)
-	a.cancel = cancel
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -57,9 +55,23 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 		}
 	}
 }
-
+func (a *app) handelGatherCh() error {
+	for {
+		select {
+		case <-a.ctrl.Done():
+			return nil
+		case ctx := <-config.GatherSignal:
+			if err := a.StartGather(ctx); err != nil {
+				return err
+			}
+		case ctx := <-config.StopSignal:
+			if err := a.StopGather(ctx); err != nil {
+				return err
+			}
+		}
+	}
+}
 func (a *app) StopGather(context.Context) error {
-	a.cancel()
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorln(r)
