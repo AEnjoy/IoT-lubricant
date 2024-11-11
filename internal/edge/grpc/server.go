@@ -147,7 +147,7 @@ func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoR
 	}, nil
 }
 
-func (a agentServer) Data(_ context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
+func (a agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
 	if request.GetAgentID() != config.Config.ID {
 		return nil, errors.New("target agentID error")
 	}

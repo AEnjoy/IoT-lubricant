@@ -140,7 +140,7 @@ func (a *agentControl) gatherData() {
 		case <-a.ctx.Done():
 			return
 		case <-time.Tick(time.Second * time.Duration(a.agentInfo.Cycle)):
-			gatherDataResp, err := a.agentCli.Data(a.ctx, &agent.GetDataRequest{AgentID: a.id})
+			gatherDataResp, err := a.agentCli.GetGatherData(a.ctx, &agent.GetDataRequest{AgentID: a.id})
 			if err != nil {
 				logger.Errorf("Get Agent data failed: due to `%s`, agentID is `%s`", err.Error(), a.id)
 				continue

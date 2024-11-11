@@ -12,7 +12,7 @@ service edgeService {
   rpc setAgent(SetAgentRequest) returns (SetAgentResponse) {}
   rpc getOpenapiDoc(GetOpenapiDocRequest) returns (openapiDoc) {}
   rpc getAgentInfo(GetAgentInfoRequest) returns (GetAgentInfoResponse) {}
-  rpc data(GetDataRequest) returns (DataMessage) {}
+  rpc getGatherData(GetDataRequest) returns (DataMessage) {}
   rpc GetDataStream(GetDataRequest) returns (stream dataChunk) {} // 数据流
   rpc sendHttpMethod(sendHttpMethodRequest) returns (sendHttpMethodResponse) {}
 }
