@@ -7,6 +7,7 @@ import (
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -32,7 +33,7 @@ func (a *app) Run() error {
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 
-	if a.checkConfigInvalidGet() {
+	if edge.CheckConfigInvalidGet(a) {
 		config.GatherSignal <- a.ctrl
 	}
 	return a.handelGatherSignalCh()
