@@ -35,7 +35,7 @@ func (a *app) Run() error {
 	if a.checkConfigInvalidGet() {
 		config.GatherSignal <- a.ctrl
 	}
-	return a.handelGatherCh()
+	return a.handelGatherSignalCh()
 }
 
 func NewApp(opts ...func(*app) error) *app {

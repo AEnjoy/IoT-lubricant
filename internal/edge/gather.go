@@ -55,7 +55,7 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 		}
 	}
 }
-func (a *app) handelGatherCh() error {
+func (a *app) handelGatherSignalCh() error {
 	for {
 		select {
 		case <-a.ctrl.Done():

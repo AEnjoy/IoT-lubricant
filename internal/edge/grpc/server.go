@@ -11,6 +11,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
@@ -224,5 +225,6 @@ func NewServer(bind string) {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterEdgeServiceServer(grpcServer, &agentServer{})
+	logger.Infoln("agent grpc-server start at: 0.0.0.0:", bind)
 	panic(grpcServer.Serve(lis))
 }

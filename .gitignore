@@ -27,3 +27,6 @@ __pycache__
 
 # test cache
 internal/edge/test
+
+# local test data
+cmd/agent/agent.yaml
