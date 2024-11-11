@@ -11,6 +11,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
@@ -217,7 +218,26 @@ func (a agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMetho
 	}
 	return nil, errors.New("method not support")
 }
-
+func (a agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
+	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
+	defer cancel()
+	select {
+	case <-ctx.Done():
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StartGather timeout"}, errors.New("timeout")
+	case config.GatherSignal <- context.Background():
+		return &meta.CommonResponse{Code: http.StatusOK, Message: "success"}, nil
+	}
+}
+func (a agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*meta.CommonResponse, error) {
+	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
+	defer cancel()
+	select {
+	case <-ctx.Done():
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StopGather timeout"}, errors.New("timeout")
+	case config.StopSignal <- context.Background():
+		return &meta.CommonResponse{Code: http.StatusOK, Message: "success"}, nil
+	}
+}
 func NewServer(bind string) {
 	lis, err := net.Listen("tcp", bind)
 	if err != nil {

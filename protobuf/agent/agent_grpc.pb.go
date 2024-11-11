@@ -25,9 +25,11 @@ const (
 	EdgeService_SetAgent_FullMethodName        = "/lubricant.agent.edgeService/setAgent"
 	EdgeService_GetOpenapiDoc_FullMethodName   = "/lubricant.agent.edgeService/getOpenapiDoc"
 	EdgeService_GetAgentInfo_FullMethodName    = "/lubricant.agent.edgeService/getAgentInfo"
-	EdgeService_Data_FullMethodName            = "/lubricant.agent.edgeService/data"
+	EdgeService_GetGatherData_FullMethodName   = "/lubricant.agent.edgeService/getGatherData"
 	EdgeService_GetDataStream_FullMethodName   = "/lubricant.agent.edgeService/GetDataStream"
 	EdgeService_SendHttpMethod_FullMethodName  = "/lubricant.agent.edgeService/sendHttpMethod"
+	EdgeService_StartGather_FullMethodName     = "/lubricant.agent.edgeService/startGather"
+	EdgeService_StopGather_FullMethodName      = "/lubricant.agent.edgeService/stopGather"
 )
 
 // EdgeServiceClient is the client API for EdgeService service.
@@ -39,9 +41,11 @@ type EdgeServiceClient interface {
 	SetAgent(ctx context.Context, in *SetAgentRequest, opts ...grpc.CallOption) (*SetAgentResponse, error)
 	GetOpenapiDoc(ctx context.Context, in *GetOpenapiDocRequest, opts ...grpc.CallOption) (*OpenapiDoc, error)
 	GetAgentInfo(ctx context.Context, in *GetAgentInfoRequest, opts ...grpc.CallOption) (*GetAgentInfoResponse, error)
-	Data(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*DataMessage, error)
+	GetGatherData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*DataMessage, error)
 	GetDataStream(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DataChunk], error)
 	SendHttpMethod(ctx context.Context, in *SendHttpMethodRequest, opts ...grpc.CallOption) (*SendHttpMethodResponse, error)
+	StartGather(ctx context.Context, in *StartGatherRequest, opts ...grpc.CallOption) (*meta.CommonResponse, error)
+	StopGather(ctx context.Context, in *StopGatherRequest, opts ...grpc.CallOption) (*meta.CommonResponse, error)
 }
 
 type edgeServiceClient struct {
@@ -102,10 +106,10 @@ func (c *edgeServiceClient) GetAgentInfo(ctx context.Context, in *GetAgentInfoRe
 	return out, nil
 }
 
-func (c *edgeServiceClient) Data(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*DataMessage, error) {
+func (c *edgeServiceClient) GetGatherData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*DataMessage, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DataMessage)
-	err := c.cc.Invoke(ctx, EdgeService_Data_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, EdgeService_GetGatherData_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +145,26 @@ func (c *edgeServiceClient) SendHttpMethod(ctx context.Context, in *SendHttpMeth
 	return out, nil
 }
 
+func (c *edgeServiceClient) StartGather(ctx context.Context, in *StartGatherRequest, opts ...grpc.CallOption) (*meta.CommonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(meta.CommonResponse)
+	err := c.cc.Invoke(ctx, EdgeService_StartGather_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *edgeServiceClient) StopGather(ctx context.Context, in *StopGatherRequest, opts ...grpc.CallOption) (*meta.CommonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(meta.CommonResponse)
+	err := c.cc.Invoke(ctx, EdgeService_StopGather_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EdgeServiceServer is the server API for EdgeService service.
 // All implementations must embed UnimplementedEdgeServiceServer
 // for forward compatibility.
@@ -150,9 +174,11 @@ type EdgeServiceServer interface {
 	SetAgent(context.Context, *SetAgentRequest) (*SetAgentResponse, error)
 	GetOpenapiDoc(context.Context, *GetOpenapiDocRequest) (*OpenapiDoc, error)
 	GetAgentInfo(context.Context, *GetAgentInfoRequest) (*GetAgentInfoResponse, error)
-	Data(context.Context, *GetDataRequest) (*DataMessage, error)
+	GetGatherData(context.Context, *GetDataRequest) (*DataMessage, error)
 	GetDataStream(*GetDataRequest, grpc.ServerStreamingServer[DataChunk]) error
 	SendHttpMethod(context.Context, *SendHttpMethodRequest) (*SendHttpMethodResponse, error)
+	StartGather(context.Context, *StartGatherRequest) (*meta.CommonResponse, error)
+	StopGather(context.Context, *StopGatherRequest) (*meta.CommonResponse, error)
 	mustEmbedUnimplementedEdgeServiceServer()
 }
 
@@ -178,14 +204,20 @@ func (UnimplementedEdgeServiceServer) GetOpenapiDoc(context.Context, *GetOpenapi
 func (UnimplementedEdgeServiceServer) GetAgentInfo(context.Context, *GetAgentInfoRequest) (*GetAgentInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAgentInfo not implemented")
 }
-func (UnimplementedEdgeServiceServer) Data(context.Context, *GetDataRequest) (*DataMessage, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Data not implemented")
+func (UnimplementedEdgeServiceServer) GetGatherData(context.Context, *GetDataRequest) (*DataMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGatherData not implemented")
 }
 func (UnimplementedEdgeServiceServer) GetDataStream(*GetDataRequest, grpc.ServerStreamingServer[DataChunk]) error {
 	return status.Errorf(codes.Unimplemented, "method GetDataStream not implemented")
 }
 func (UnimplementedEdgeServiceServer) SendHttpMethod(context.Context, *SendHttpMethodRequest) (*SendHttpMethodResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendHttpMethod not implemented")
+}
+func (UnimplementedEdgeServiceServer) StartGather(context.Context, *StartGatherRequest) (*meta.CommonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartGather not implemented")
+}
+func (UnimplementedEdgeServiceServer) StopGather(context.Context, *StopGatherRequest) (*meta.CommonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StopGather not implemented")
 }
 func (UnimplementedEdgeServiceServer) mustEmbedUnimplementedEdgeServiceServer() {}
 func (UnimplementedEdgeServiceServer) testEmbeddedByValue()                     {}
@@ -298,20 +330,20 @@ func _EdgeService_GetAgentInfo_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EdgeService_Data_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EdgeService_GetGatherData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EdgeServiceServer).Data(ctx, in)
+		return srv.(EdgeServiceServer).GetGatherData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EdgeService_Data_FullMethodName,
+		FullMethod: EdgeService_GetGatherData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EdgeServiceServer).Data(ctx, req.(*GetDataRequest))
+		return srv.(EdgeServiceServer).GetGatherData(ctx, req.(*GetDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -345,6 +377,42 @@ func _EdgeService_SendHttpMethod_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EdgeService_StartGather_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartGatherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EdgeServiceServer).StartGather(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EdgeService_StartGather_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EdgeServiceServer).StartGather(ctx, req.(*StartGatherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EdgeService_StopGather_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StopGatherRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EdgeServiceServer).StopGather(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EdgeService_StopGather_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EdgeServiceServer).StopGather(ctx, req.(*StopGatherRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EdgeService_ServiceDesc is the grpc.ServiceDesc for EdgeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -373,12 +441,20 @@ var EdgeService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EdgeService_GetAgentInfo_Handler,
 		},
 		{
-			MethodName: "data",
-			Handler:    _EdgeService_Data_Handler,
+			MethodName: "getGatherData",
+			Handler:    _EdgeService_GetGatherData_Handler,
 		},
 		{
 			MethodName: "sendHttpMethod",
 			Handler:    _EdgeService_SendHttpMethod_Handler,
+		},
+		{
+			MethodName: "startGather",
+			Handler:    _EdgeService_StartGather_Handler,
+		},
+		{
+			MethodName: "stopGather",
+			Handler:    _EdgeService_StopGather_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
