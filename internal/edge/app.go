@@ -7,17 +7,15 @@ import (
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/nats-io/nats.go"
 )
 
 type app struct {
-	mq mq.Mq[[]byte]
-
 	openapi.OpenApi
 
 	ctrl   context.Context
@@ -34,7 +32,10 @@ func (a *app) Run() error {
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 
-	return a.StartGather(a.ctrl)
+	if a.checkConfigInvalidGet() {
+		config.GatherSignal <- a.ctrl
+	}
+	return a.handelGatherCh()
 }
 
 func NewApp(opts ...func(*app) error) *app {
@@ -51,8 +52,10 @@ func UseConfig(c *types.EdgeSystem) func(*app) error {
 	return func(s *app) error {
 		if c == nil {
 			logger.Warnln("config is nil")
+			c = config.NullConfig()
 		}
 		s.config = c
+		config.Config = c
 		return nil
 	}
 }
@@ -90,11 +93,5 @@ func UseCtrl(ctx context.Context) func(*app) error {
 	return func(a *app) error {
 		a.ctrl = ctx
 		return nil
-	}
-}
-func UseMq(mq mq.Mq[[]byte], err error) func(*app) error {
-	return func(a *app) error {
-		a.mq = mq
-		return err
 	}
 }
