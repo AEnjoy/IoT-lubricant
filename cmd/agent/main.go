@@ -11,7 +11,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
@@ -78,7 +77,6 @@ func main() {
 	app := edge.NewApp(
 		edge.UseCtrl(context.Background()),
 		edge.UseConfig(&config),
-		edge.UseMq(mq.NewNatsMq[[]byte](fmt.Sprintf("nats://%s", hostname))),
 		edge.UseGRPC(bindGrpc),
 		edge.UseHostAddress(hostname),
 		edge.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
