@@ -14,7 +14,7 @@ func TestApp_StartGather(t *testing.T) {
 	assert := assert.New(t)
 	ctx, cf := context.WithDeadline(context.Background(), time.Now().Add(8*time.Second))
 	app := &app{
-		config:  config,
+		config:  testConfig,
 		ctrl:    ctx,
 		cancel:  cf,
 		OpenApi: openAPIConfig,

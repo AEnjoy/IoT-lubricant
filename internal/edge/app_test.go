@@ -91,7 +91,7 @@ var openAPIConfig = &openapi.ApiInfo{
 	},
 }
 
-var config = &types.EdgeSystem{
+var testConfig = &types.EdgeSystem{
 	ID:          mockID,
 	Cycle:       1,
 	ReportCycle: 4,
