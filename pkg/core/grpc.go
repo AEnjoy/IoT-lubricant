@@ -10,6 +10,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
+	"github.com/AEnjoy/IoT-lubricant/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
@@ -142,14 +143,18 @@ func (g *Grpc) Init() error {
 	var server *grpc.Server
 
 	if c.Tls.Enable {
-		serverOption, err := c.Tls.GetServerTlsConfig()
+		grpcTlsOption, err := c.Tls.GetServerTlsConfig()
 		if err != nil {
 			return err
 		}
 		server = grpc.NewServer(
-			serverOption,
+			grpcTlsOption,
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
-			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
+			grpc.ChainUnaryInterceptor(
+				middlewares.UnaryServerInterceptor,
+				middleware.GetLoggerInterceptor(),
+				middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
+			),
 		)
 	} else {
 		server = grpc.NewServer(
