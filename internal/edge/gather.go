@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	ErrInvalidConfig = errors.New("invalid config. Please check if all necessary settings have been set")
+	ErrInvalidConfig      = errors.New("invalid config. Please check if all necessary settings have been set")
+	ErrMultGatherInstance = errors.New("only one instance of the gather module can be started")
 )
 
 var _ gather = (*app)(nil)
@@ -26,8 +27,11 @@ type gather interface {
 }
 
 func (a *app) StartGather(ctx context.Context) error { // Get
-	a.l.Lock()
-	defer a.l.Unlock()
+	if !config.GatherLock.TryLock() {
+		return ErrMultGatherInstance
+	}
+	defer config.GatherLock.Unlock()
+
 	if !edge.CheckConfigInvalidGet(a) {
 		return ErrInvalidConfig
 	}

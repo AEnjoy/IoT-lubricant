@@ -40,7 +40,7 @@ func (a agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGate
 	return &resp, nil
 }
 
-func (a agentServer) SetAgent(_ context.Context, request *pb.SetAgentRequest) (*pb.SetAgentResponse, error) {
+func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) (*pb.SetAgentResponse, error) {
 	var resp pb.SetAgentResponse
 	if request.GetAgentID() != config.Config.ID {
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
@@ -89,6 +89,19 @@ func (a agentServer) SetAgent(_ context.Context, request *pb.SetAgentRequest) (*
 			config.GatewayID = *gw
 		}
 		// todo stream
+	}
+
+	if request.GetStop() != nil {
+		_, err := a.StopGather(ctx, nil)
+		if err != nil {
+			return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: 500, Message: err.Error()}}, err
+		}
+	}
+	if request.GetStart() != nil {
+		_, err := a.StartGather(ctx, nil)
+		if err != nil {
+			return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: 500, Message: err.Error()}}, err
+		}
 	}
 	return &resp, nil
 }
@@ -221,6 +234,10 @@ func (a agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMetho
 func (a agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
+	if config.IsGathering() {
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, errors.New("gather is working now")
+	}
+
 	select {
 	case <-ctx.Done():
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StartGather timeout"}, errors.New("timeout")
@@ -231,6 +248,10 @@ func (a agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) 
 func (a agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*meta.CommonResponse, error) {
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
+
+	if !config.IsGathering() {
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is not working"}, errors.New("gather is not working")
+	}
 	select {
 	case <-ctx.Done():
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StopGather timeout"}, errors.New("timeout")

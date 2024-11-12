@@ -3,7 +3,6 @@ package edge
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
@@ -22,7 +21,6 @@ type app struct {
 	ctrl   context.Context
 	cancel context.CancelFunc
 
-	l sync.Mutex
 	// for init
 	config *types.EdgeSystem
 
