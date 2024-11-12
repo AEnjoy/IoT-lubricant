@@ -9,3 +9,7 @@ import (
 var (
 	AgentDefaultBind = fmt.Sprintf(":%d", types.AgentGrpcPort)
 )
+
+const (
+	AgentDefaultConfigFileName = "agent.yaml"
+)

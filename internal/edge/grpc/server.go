@@ -91,6 +91,12 @@ func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) 
 		// todo stream
 	}
 
+	e1 := config.SaveConfig(true)
+	e2 := config.SaveConfig(false)
+	if e1 != nil || e2 != nil {
+		return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: 500, Message: "Can't save config"}}, errors.Join(e1, e2)
+	}
+
 	if request.GetStop() != nil {
 		_, err := a.StopGather(ctx, nil)
 		if err != nil {
@@ -114,25 +120,33 @@ func (a agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocR
 	switch expression := request.DocType; expression {
 	case pb.OpenapiDocType_originalFile:
 		var err error
-		o, err = json.Marshal(config.Config.Config.(*openapi.ApiInfo))
-		if err != nil {
-			return nil, err
+		if config.Config.Config != nil {
+			o, err = json.Marshal(config.Config.Config.(*openapi.ApiInfo))
+			if err != nil {
+				return nil, err
+			}
 		}
 	case pb.OpenapiDocType_enableFile:
 		var err error
-		e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
-		if err != nil {
-			return nil, err
+		if config.Config.EnableConfig != nil {
+			e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
+			if err != nil {
+				return nil, err
+			}
 		}
 	case pb.OpenapiDocType_All:
 		var err error
-		o, err = json.Marshal(config.Config.Config.(*openapi.ApiInfo))
-		if err != nil {
-			return nil, err
+		if config.Config.Config != nil {
+			o, err = json.Marshal(config.Config.Config.(*openapi.ApiInfo))
+			if err != nil {
+				return nil, err
+			}
 		}
-		e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
-		if err != nil {
-			return nil, err
+		if config.Config.EnableConfig != nil {
+			e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -266,6 +280,6 @@ func NewServer(bind string) {
 	}
 	grpcServer := grpc.NewServer()
 	pb.RegisterEdgeServiceServer(grpcServer, &agentServer{})
-	logger.Infoln("agent grpc-server start at: 0.0.0.0:", bind)
+	logger.Infoln("agent grpc-server start at: ", bind)
 	panic(grpcServer.Serve(lis))
 }
