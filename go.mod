@@ -13,10 +13,13 @@ require (
 	github.com/goccy/go-json v0.10.3
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
+	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats-server/v2 v2.10.22
 	github.com/nats-io/nats.go v1.37.0
 	github.com/pierrec/lz4 v2.6.1+incompatible
+	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -30,6 +33,7 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.12.3 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -69,6 +73,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
+	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nats-io/jwt/v2 v2.7.0 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
@@ -78,6 +83,9 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/prometheus/client_model v0.6.1 // indirect
+	github.com/prometheus/common v0.55.0 // indirect
+	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
@@ -98,7 +106,6 @@ require (
 	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241007155032-5fefd90f89a9 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 	modernc.org/libc v1.61.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect

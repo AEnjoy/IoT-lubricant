@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	gLogger "gorm.io/gorm/logger"
@@ -197,4 +198,18 @@ func (l *Log) Trace(ctx context.Context, begin time.Time, fc func() (string, int
 	case err != nil && l.LogLevel >= gLogger.Error:
 		Errorf(logMessage)
 	}
+}
+func InterceptorLogger() logging.Logger {
+	return logging.LoggerFunc(func(ctx context.Context, level logging.Level, msg string, fields ...any) {
+		switch level {
+		case logging.LevelDebug:
+			Debugf(msg, fields...)
+		case logging.LevelInfo:
+			Infof(msg, fields...)
+		case logging.LevelWarn:
+			Warnf(msg, fields...)
+		case logging.LevelError:
+			Errorf(msg, fields...)
+		}
+	})
 }
