@@ -11,6 +11,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
+	"github.com/AEnjoy/IoT-lubricant/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
@@ -23,7 +24,7 @@ type agentServer struct {
 	pb.UnimplementedEdgeServiceServer
 }
 
-func (a agentServer) Ping(_ context.Context, ping *meta.Ping) (*meta.Ping, error) {
+func (a agentServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
 	return &meta.Ping{Flag: 2}, nil
 }
 
@@ -278,7 +279,9 @@ func NewServer(bind string) {
 	if err != nil {
 		panic(err)
 	}
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(middleware.GetLoggerInterceptor(),
+			middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics()))))
 	pb.RegisterEdgeServiceServer(grpcServer, &agentServer{})
 	logger.Infoln("agent grpc-server start at: ", bind)
 	panic(grpcServer.Serve(lis))
