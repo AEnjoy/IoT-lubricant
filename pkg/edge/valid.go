@@ -3,6 +3,9 @@ package edge
 import "github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 
 func CheckConfigInvalidGet(a openapi.OpenApi) bool {
+	if a == nil {
+		return false
+	}
 	// 检查至少一个选项启用且配置有效
 	for _, item := range a.GetPaths() {
 		opera := item.GetGet()

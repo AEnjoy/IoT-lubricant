@@ -24,11 +24,11 @@ type agentServer struct {
 	pb.UnimplementedEdgeServiceServer
 }
 
-func (a agentServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
+func (*agentServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
 	return &meta.Ping{Flag: 2}, nil
 }
 
-func (a agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGatewayRequest) (*pb.RegisterGatewayResponse, error) {
+func (*agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGatewayRequest) (*pb.RegisterGatewayResponse, error) {
 	var resp pb.RegisterGatewayResponse
 	if request.GetAgentID() != config.Config.ID {
 		resp.AgentID = config.Config.ID
@@ -41,7 +41,7 @@ func (a agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGate
 	return &resp, nil
 }
 
-func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) (*pb.SetAgentResponse, error) {
+func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) (*pb.SetAgentResponse, error) {
 	var resp pb.SetAgentResponse
 	if request.GetAgentID() != config.Config.ID {
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
@@ -66,6 +66,11 @@ func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) 
 				config.Config.Config = &openapi.ApiInfo{
 					OpenAPICli: o,
 				}
+				if !edge.CheckConfigInvalidGet(config.Config.Config) {
+					return &pb.SetAgentResponse{Info: &meta.CommonResponse{
+						Code:    http.StatusBadRequest,
+						Message: "config invalid"}}, nil
+				}
 			}
 			if len(ds.EnableFile) != 0 {
 				var o openapi.OpenAPICli
@@ -77,6 +82,11 @@ func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) 
 				}
 				config.Config.EnableConfig = &openapi.ApiInfo{
 					OpenAPICli: o,
+				}
+				if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+					return &pb.SetAgentResponse{Info: &meta.CommonResponse{
+						Code:    http.StatusBadRequest,
+						Message: "config invalid"}}, nil
 				}
 			}
 		}
@@ -113,7 +123,7 @@ func (a agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) 
 	return &resp, nil
 }
 
-func (a agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRequest) (*pb.OpenapiDoc, error) {
+func (*agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRequest) (*pb.OpenapiDoc, error) {
 	var o, e []byte
 	if request.GetAgentID() != config.Config.ID {
 		return nil, errors.New("target agentID error")
@@ -157,7 +167,7 @@ func (a agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocR
 	}, nil
 }
 
-func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoRequest) (*pb.GetAgentInfoResponse, error) {
+func (a *agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoRequest) (*pb.GetAgentInfoResponse, error) {
 	c := int32(config.Config.Cycle)
 	ds, err := a.GetOpenapiDoc(ctx, &pb.GetOpenapiDocRequest{AgentID: request.GetAgentID(), DocType: pb.OpenapiDocType_All})
 	if err != nil {
@@ -176,7 +186,7 @@ func (a agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoR
 	}, nil
 }
 
-func (a agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
+func (*agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
 	if request.GetAgentID() != config.Config.ID {
 		return nil, errors.New("target agentID error")
 	}
@@ -204,12 +214,16 @@ func (a agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest
 //	panic("implement me")
 //}
 
-func (a agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethodRequest) (*pb.SendHttpMethodResponse, error) {
+func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethodRequest) (*pb.SendHttpMethodResponse, error) {
 	var resp pb.SendHttpMethodResponse
 	resp.Data = &pb.DataMessage{}
 	if request.GetAgentID() != config.Config.ID {
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
-		return &resp, errors.New("target agentID error")
+		return &resp, nil
+	}
+	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+		resp.Info = &meta.CommonResponse{Code: 500, Message: "Invalid internal configuration"}
+		return &resp, nil
 	}
 	switch request.Method {
 	case http.MethodGet:
@@ -246,13 +260,15 @@ func (a agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMetho
 	}
 	return nil, errors.New("method not support")
 }
-func (a agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
+func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 	if config.IsGathering() {
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, errors.New("gather is working now")
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, nil
 	}
-
+	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Invalid internal configuration"}, nil
+	}
 	select {
 	case <-ctx.Done():
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StartGather timeout"}, errors.New("timeout")
@@ -260,12 +276,12 @@ func (a agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) 
 		return &meta.CommonResponse{Code: http.StatusOK, Message: "success"}, nil
 	}
 }
-func (a agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*meta.CommonResponse, error) {
+func (*agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*meta.CommonResponse, error) {
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 
 	if !config.IsGathering() {
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is not working"}, errors.New("gather is not working")
+		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is not working"}, nil
 	}
 	select {
 	case <-ctx.Done():
