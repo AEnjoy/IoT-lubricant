@@ -100,6 +100,8 @@ func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest)
 			config.GatewayID = *gw
 		}
 		// todo stream
+	} else {
+		return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: http.StatusBadRequest, Message: "request body is empty"}}, nil
 	}
 
 	e1 := config.SaveConfig(true)

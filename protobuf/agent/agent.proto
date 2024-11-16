@@ -41,7 +41,7 @@ message AgentInfo{
 
 message SetAgentRequest {
   string agentID = 1;
-  AgentInfo agentInfo = 2;
+  optional AgentInfo agentInfo = 2;
   optional startGatherRequest start = 3;
   optional stopGatherRequest stop = 4;
 }

@@ -87,6 +87,15 @@ type RequestBody struct {
 	Content     map[string]MediaType `json:"content"`
 }
 
+func (api *RequestBody) SetBodyWithJson(kv map[string]string) {
+	if kv == nil {
+		return
+	}
+	api.Content["application/json"] = MediaType{
+		Schema: kv,
+	}
+}
+
 func (api *RequestBody) GetDescription() string {
 	return api.Description
 }
