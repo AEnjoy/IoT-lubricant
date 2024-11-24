@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -87,12 +87,14 @@ type agentControl struct {
 
 func (a *agentControl) agentJoinToPool(ctx context.Context) error {
 	a.ctx, a.cancel = context.WithCancel(ctx)
-	conn, err := grpc.NewClient(a.agentInfo.Address)
+
+	cli, err := edge.NewAgentCli(a.agentInfo.Address)
 	if err != nil {
 		return err
 	}
+
 	a.id = a.agentInfo.Id
-	a.agentCli = agent.NewEdgeServiceClient(conn)
+	a.agentCli = cli
 
 	agentPoolMutex.Lock()
 	defer agentPoolMutex.Unlock()
