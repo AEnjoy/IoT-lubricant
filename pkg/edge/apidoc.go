@@ -13,11 +13,13 @@ var (
 
 type Params struct {
 	// 不需要考虑同时设置get和post参数的情况
-	GetParams  *map[string]string   `json:"get_params"`
+	GetParams  map[string]string    `json:"get_params"` // key is request param-name and value is param-value
 	PostParams *openapi.RequestBody `json:"post_params"`
 }
 
 // EnableApi 启用api中指定的方法,并设置参数,返回处理后的api
+//
+// 如果不需要添加参数，params 仍然应该不为 nil，但里面的参数全为空即可
 func EnableApi(doc openapi.ApiInfo, params *Params, path string) (openapi.ApiInfo, error) {
 	if params == nil {
 		return openapi.ApiInfo{}, ErrInvalidInput
@@ -28,7 +30,7 @@ func EnableApi(doc openapi.ApiInfo, params *Params, path string) (openapi.ApiInf
 	}
 	if params.GetParams != nil {
 		var parameters []openapi.Parameter
-		for k, v := range *params.GetParams {
+		for k, v := range params.GetParams {
 			var p openapi.Parameter
 			p.Set(k, v)
 			parameters = append(parameters, p)

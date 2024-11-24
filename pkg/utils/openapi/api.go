@@ -33,6 +33,9 @@ func (api *OpenAPICli) GetApiInfo() Info {
 	return api.Info
 }
 func (api *OpenAPICli) GetPaths() map[string]PathItem {
+	if api.Paths == nil {
+		api.Paths = make(map[string]PathItem)
+	}
 	return api.Paths
 }
 

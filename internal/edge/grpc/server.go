@@ -223,8 +223,13 @@ func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethod
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
 		return &resp, nil
 	}
-	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) && config.Config.Config == nil {
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "Invalid internal configuration"}
+		return &resp, nil
+	}
+	_, ok := config.Config.Config.GetPaths()[request.Path]
+	if !ok {
+		resp.Info = &meta.CommonResponse{Code: 500, Message: "Invalid path"}
 		return &resp, nil
 	}
 	switch request.Method {
