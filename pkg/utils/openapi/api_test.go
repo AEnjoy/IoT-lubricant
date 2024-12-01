@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,4 +46,51 @@ func TestApiCli(t *testing.T) {
 		}
 	}
 
+}
+
+func TestEnableApi(t *testing.T) {
+	// Get
+	api := ApiInfo{
+		l: new(sync.Mutex),
+		OpenAPICli: OpenAPICli{
+			Info: Info{
+				Title:   "test",
+				Version: "1.0.0",
+			},
+			Paths: map[string]PathItem{
+				"/test": {
+					Get: &Operation{
+						Summary: "test",
+					},
+				},
+			},
+		},
+		Enable: Enable{
+			Get:  make(map[string][]Parameter),
+			Post: make(map[string]*RequestBody),
+		},
+	}
+
+	result, err := EnableApi(&api, &EnableParams{GetParams: map[string]string{}}, "/test")
+	assert.NoError(t, err)
+	parameters, ok := result.GetEnable().Get["/test"]
+	assert.True(t, ok)
+	assert.Equal(t, 0, len(parameters))
+	assert.Equal(t, 1, len(result.GetEnable().Slot))
+
+	result, err = EnableApi(&api, &EnableParams{GetParams: map[string]string{"key": "value"}, Slot: 0}, "/test")
+	assert.EqualError(t, err, "slot 0 is already used")
+
+	result, err = UpdateApi(&api, &EnableParams{GetParams: map[string]string{"key": "value"}, Slot: 0}, "/test")
+	assert.NoError(t, err)
+	parameters, ok = result.GetEnable().Get["/test"]
+	assert.True(t, ok)
+	assert.Equal(t, 1, len(parameters))
+	assert.Equal(t, 1, len(result.GetEnable().Slot))
+
+	result, err = DisableApi(&api, 0)
+	assert.NoError(t, err)
+
+	_, ok = result.GetEnable().Get["/test"]
+	assert.False(t, ok)
 }
