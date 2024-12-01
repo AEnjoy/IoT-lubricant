@@ -287,6 +287,61 @@ func (x *KvMap) GetKv() map[string]string {
 	return nil
 }
 
+type KvInt struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value int32  `protobuf:"varint,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *KvInt) Reset() {
+	*x = KvInt{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_meta_meta_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KvInt) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KvInt) ProtoMessage() {}
+
+func (x *KvInt) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_meta_meta_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KvInt.ProtoReflect.Descriptor instead.
+func (*KvInt) Descriptor() ([]byte, []int) {
+	return file_protobuf_meta_meta_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *KvInt) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *KvInt) GetValue() int32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
 var File_protobuf_meta_meta_proto protoreflect.FileDescriptor
 
 var file_protobuf_meta_meta_proto_rawDesc = []byte{
@@ -313,11 +368,14 @@ var file_protobuf_meta_meta_proto_rawDesc = []byte{
 	0x79, 0x52, 0x02, 0x6b, 0x76, 0x1a, 0x35, 0x0a, 0x07, 0x4b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79,
 	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b,
 	0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x2f, 0x5a, 0x2d,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x41, 0x45, 0x6e, 0x6a, 0x6f,
-	0x79, 0x2f, 0x49, 0x6f, 0x54, 0x2d, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2f,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x6d, 0x65, 0x74, 0x61, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x2f, 0x0a, 0x05,
+	0x4b, 0x76, 0x49, 0x6e, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x2f, 0x5a,
+	0x2d, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x41, 0x45, 0x6e, 0x6a,
+	0x6f, 0x79, 0x2f, 0x49, 0x6f, 0x54, 0x2d, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x6d, 0x65, 0x74, 0x61, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -332,17 +390,18 @@ func file_protobuf_meta_meta_proto_rawDescGZIP() []byte {
 	return file_protobuf_meta_meta_proto_rawDescData
 }
 
-var file_protobuf_meta_meta_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_protobuf_meta_meta_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_protobuf_meta_meta_proto_goTypes = []any{
 	(*ErrorMessage)(nil),   // 0: lubricant.ErrorMessage
 	(*Ping)(nil),           // 1: lubricant.Ping
 	(*CommonResponse)(nil), // 2: lubricant.CommonResponse
 	(*Kv)(nil),             // 3: lubricant.Kv
 	(*KvMap)(nil),          // 4: lubricant.KvMap
-	nil,                    // 5: lubricant.KvMap.KvEntry
+	(*KvInt)(nil),          // 5: lubricant.KvInt
+	nil,                    // 6: lubricant.KvMap.KvEntry
 }
 var file_protobuf_meta_meta_proto_depIdxs = []int32{
-	5, // 0: lubricant.KvMap.kv:type_name -> lubricant.KvMap.KvEntry
+	6, // 0: lubricant.KvMap.kv:type_name -> lubricant.KvMap.KvEntry
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -416,6 +475,18 @@ func file_protobuf_meta_meta_proto_init() {
 				return nil
 			}
 		}
+		file_protobuf_meta_meta_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*KvInt); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_protobuf_meta_meta_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
@@ -424,7 +495,7 @@ func file_protobuf_meta_meta_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protobuf_meta_meta_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

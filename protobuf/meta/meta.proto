@@ -25,3 +25,7 @@ message Kv {
 message KvMap{
   map<string, string> kv = 1;
 }
+message KvInt {
+  string key = 1;
+  int32 value = 2;
+}

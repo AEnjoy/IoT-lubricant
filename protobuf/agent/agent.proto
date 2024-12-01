@@ -53,6 +53,7 @@ message SetAgentResponse {
 message openapiDoc{
   optional bytes originalFile = 1;
   optional bytes enableFile = 2;
+  repeated  KvInt enableSlot = 3; // 如果 enableFile 中启用了多个采集项目，则KvInt：key=path，value=slot
 }
 
 message GetOpenapiDocRequest{
@@ -86,6 +87,7 @@ message GetAgentInfoResponse{
 
 message GetDataRequest{
   string agentID = 1;
+  int32 slot = 2; // 一个agent可能会调用多个api获取不同的数据，对应不同的数据临时存储槽位
 }
 
 message sendHttpMethodRequest{
