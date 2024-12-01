@@ -94,3 +94,9 @@ func UseCtrl(ctx context.Context) func(*app) error {
 		return nil
 	}
 }
+func UseSignalHandler(handler func()) func(*app) error {
+	return func(a *app) error {
+		go handler()
+		return nil
+	}
+}

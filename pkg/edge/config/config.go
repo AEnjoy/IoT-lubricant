@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"strings"
 	"sync"
 
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
@@ -17,6 +16,14 @@ var (
 	Config     *types.EdgeSystem
 	GatewayID  string
 	GatherLock sync.Mutex
+)
+
+type SaveType uint8
+
+const (
+	SaveType_ALL SaveType = iota
+	SaveType_EnableConfig
+	SaveType_Config
 )
 
 func IsGathering() bool {
@@ -32,41 +39,38 @@ func NullConfig() *types.EdgeSystem {
 		EnableConfig: &openapi.ApiInfo{},
 	}
 }
-func SaveConfig(isEnable bool) error {
+func SaveConfig(t SaveType) error {
 	var errs error
-	fileName := os.Getenv("CONFIG")
-	if fileName == "" {
-		fileName = def.AgentDefaultConfigFileName
-	}
-
-	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	err1 := yaml.NewEncoder(f).Encode(Config)
-	errs = errors.Join(err1, err)
-	if isEnable && Config.EnableConfig != nil {
-		if !strings.HasSuffix(Config.FileName, ".enable") {
-			Config.FileName = Config.FileName + ".enable"
+	if t == SaveType_ALL || t == SaveType_Config {
+		fileName := os.Getenv("CONFIG")
+		if fileName == "" {
+			fileName = def.AgentDefaultConfigFileName
 		}
-		enConfFile, err := os.OpenFile(Config.FileName, os.O_CREATE|os.O_WRONLY, 0644)
+
+		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			errs = errors.Join(errs, err)
-		} else {
-			errs = errors.Join(errs, json.NewEncoder(enConfFile).Encode(Config.EnableConfig.(*openapi.ApiInfo)))
+			return err
 		}
-	}
-	if !isEnable && Config.Config != nil {
-		if strings.HasSuffix(Config.FileName, ".enable") {
-			Config.FileName = strings.TrimSuffix(Config.FileName, ".enable")
-		}
+		defer f.Close()
+
+		err1 := yaml.NewEncoder(f).Encode(Config)
+		errs = errors.Join(err1, err)
+
 		confFile, err := os.OpenFile(Config.FileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			errs = errors.Join(errs, err)
 		} else {
 			errs = errors.Join(errs, json.NewEncoder(confFile).Encode(Config.Config.(*openapi.ApiInfo)))
+		}
+	}
+
+	if t == SaveType_EnableConfig && Config.Config.GetEnable() != nil {
+		fileName := Config.FileName + ".enable"
+		enConfFile, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			errs = errors.Join(errs, err)
+		} else {
+			errs = errors.Join(errs, json.NewEncoder(enConfFile).Encode(Config.Config.GetEnable()))
 		}
 	}
 	return errs

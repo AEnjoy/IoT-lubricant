@@ -1,5 +1,11 @@
 package openapi
 
+import (
+	"sync"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
+)
+
 var _ OpenApi = (*ApiInfo)(nil)
 
 type OpenApi interface {
@@ -9,11 +15,19 @@ type OpenApi interface {
 
 	GetApiInfo() Info
 	GetPaths() map[string]PathItem
+	GetEnable() *Enable
 }
 
 func NewOpenApiCli(fileName string) (*ApiInfo, error) {
-	retVal := &ApiInfo{}
+	retVal := &ApiInfo{l: &sync.Mutex{}}
 	err := retVal.InitApis(fileName)
+	if err != nil {
+		return nil, err
+	}
+	if file.IsFileExists(fileName + ".enable") {
+		fileName = fileName + ".enable"
+	}
+	err = retVal.InitEnable(fileName)
 	if err != nil {
 		return nil, err
 	}

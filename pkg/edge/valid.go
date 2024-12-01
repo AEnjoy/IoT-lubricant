@@ -1,28 +1,41 @@
 package edge
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+import (
+	"encoding/json"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	"github.com/getkin/kin-openapi/openapi3"
+)
 
 func CheckConfigInvalidGet(a openapi.OpenApi) bool {
 	if a == nil {
 		return false
 	}
 	// 检查至少一个选项启用且配置有效
-	for _, item := range a.GetPaths() {
-		opera := item.GetGet()
-		if item.GetPost() != nil && opera == nil { // POST
-			continue
-		}
-
-		if opera == nil {
-			return false
-		}
-		parameters := opera.GetParameters()
-		for _, param := range parameters {
-			t := param.Schema.GetProperties()[param.Name].Type
-			if t == "" && param.Required {
-				return false
-			}
-		}
+	apiInfo := a.(*openapi.ApiInfo)
+	marshal, err := json.Marshal(apiInfo.OpenAPICli)
+	if err != nil {
+		return false
+	}
+	if !IsOpenAPIDoc(marshal) {
+		return false
+	}
+	enable := a.GetEnable()
+	if enable.Get == nil || len(enable.Get) == 0 {
+		return false
+	}
+	if enable.Post == nil || len(enable.Post) == 0 {
+		return false
 	}
 	return true
+}
+
+func IsOpenAPIDoc(data []byte) bool {
+	loader := openapi3.NewLoader()
+	doc, err := loader.LoadFromData(data)
+	if err != nil {
+		return false
+	}
+	err = doc.Validate(loader.Context, openapi3.DisableExamplesValidation())
+	return err == nil
 }

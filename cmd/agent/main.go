@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/joho/godotenv"
@@ -70,16 +71,13 @@ func main() {
 	var config types.EdgeSystem
 	_ = yaml.Unmarshal(f, &config)
 
-	if file.IsFileExists(config.FileName + ".enable") {
-		config.FileName = config.FileName + ".enable"
-	}
-
 	app := edge.NewApp(
 		edge.UseCtrl(context.Background()),
 		edge.UseConfig(&config),
 		edge.UseGRPC(bindGrpc),
 		edge.UseHostAddress(hostname),
 		edge.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
+		edge.UseSignalHandler(utils.HandelExitSignal(nil, edge.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }

@@ -7,13 +7,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 )
 
 type ApiInfo struct {
-	filename   string
+	filename string
+	l        *sync.Mutex
+
 	OpenAPICli `json:"open_api_cli"`
+	Enable     `json:"enable"`
 }
 
 var (
@@ -131,7 +136,7 @@ func (p *Parameter) Set(k, v string) {
 	p.Name = k
 	p.Schema = Schema{
 		Type:       "string",
-		Properties: map[string]Property{"key": {Type: v}},
+		Properties: map[string]Property{p.Name: {Type: v}},
 	}
 }
 
@@ -308,4 +313,15 @@ func (api *ApiInfo) SendPOSTMethodEx(path, ct string, body []byte) ([]byte, erro
 	//	Content:     content,
 	//}
 	return all, nil
+}
+func (api *ApiInfo) GetEnable() *Enable {
+	return &api.Enable
+}
+func (api *ApiInfo) InitEnable(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return json.NewDecoder(file).Decode(&api.Enable)
 }
