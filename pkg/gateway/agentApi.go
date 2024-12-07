@@ -70,13 +70,17 @@ func (a *app) agentPoolInit() error {
 	return errs
 }
 
-var agentPool = make(map[string]*agentControl)
-var agentPoolMutex sync.Mutex
-var agentPoolCh = make(chan *agentControl)
-var joinSignal = make(chan struct{})
+var (
+	agentPool      = make(map[string]*agentControl)
+	agentPoolMutex sync.Mutex
+	agentPoolCh    = make(chan *agentControl)
+	joinSignal     = make(chan struct{})
+)
 
 type agentControl struct {
-	id        string
+	id   string
+	slot []int // for api paths
+
 	agentInfo *types.Agent
 	agentCli  agent.EdgeServiceClient
 	ctx       context.Context
