@@ -5,6 +5,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 )
@@ -20,19 +21,19 @@ func HandelRecvData(data *core.Data) {
 		userID, _ := dataCli.GatewayIDGetUserID(context.Background(), info.GatewayId)
 		compressor, err := compress.NewCompressor(info.Algorithm)
 		if err != nil {
-			errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
+			errCh <- &exception.ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 			return
 		}
 		for i, in := range data.GetData() {
 			decompress, err := compressor.Decompress(in)
 			if err != nil {
-				errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
+				errCh <- &exception.ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 				return
 			}
 
 			out, err := cleaner.Run(decompress)
 			if err != nil {
-				errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
+				errCh <- &exception.ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 				return
 			}
 
@@ -49,6 +50,6 @@ func HandelRecvData(data *core.Data) {
 	if err != nil {
 		info, _ := dataCli.GetAgentInfo(data.GetAgentID())
 		userID, _ := dataCli.GatewayIDGetUserID(context.Background(), info.GatewayId)
-		errCh <- &ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
+		errCh <- &exception.ErrLogInfo{User: userID, Agent: data.GetAgentID(), Message: err}
 	}
 }
