@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
 
-func Create(ctx context.Context, c types.Container) (*container.CreateResponse, error) {
+func Create(ctx context.Context, c docker.Container) (*container.CreateResponse, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
@@ -23,11 +24,11 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 
 	// Pull image if necessary
 	switch c.Source.PullWay {
-	case types.ImagePullFromBinary:
+	case docker.ImagePullFromBinary:
 		if err := pullFromImageBinaryData(ctx, cli, c.Source.FromBinary); err != nil {
 			return nil, err
 		}
-	case types.ImagePullFromUrl:
+	case docker.ImagePullFromUrl:
 		pullReq, err := http.NewRequest(http.MethodGet, c.Source.FromUrl, nil)
 		if err != nil {
 			return nil, err
@@ -40,7 +41,7 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 		if err := pullFromImageBinaryReader(ctx, cli, resp.Body); err != nil {
 			return nil, err
 		}
-	case types.ImagePullFromRegistry:
+	case docker.ImagePullFromRegistry:
 		path := func() string {
 			c.Source.FromRegistry = strings.Trim(c.Source.FromRegistry, "/")
 			c.Source.FromRegistry = strings.TrimLeft(c.Source.FromRegistry, "/")
@@ -87,7 +88,7 @@ func Create(ctx context.Context, c types.Container) (*container.CreateResponse, 
 
 // DeployAgent 部署agent容器 返回 agent-container id
 func DeployAgent() (string, error) {
-	resp, err := Create(context.Background(), types.AgentContainer)
+	resp, err := Create(context.Background(), model.AgentContainer)
 	if err != nil {
 		return "", err
 	}

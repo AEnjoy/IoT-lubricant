@@ -6,16 +6,16 @@ import (
 	"os"
 	"sync"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	Config       *types.EdgeSystem
+	Config       *model.EdgeSystem
 	GatewayID    string
 	GatherLock   sync.Mutex
 	OriginConfig openapi.OpenAPICli
@@ -36,8 +36,8 @@ func IsGathering() bool {
 	}
 	return true
 }
-func NullConfig() *types.EdgeSystem {
-	return &types.EdgeSystem{
+func NullConfig() *model.EdgeSystem {
+	return &model.EdgeSystem{
 		Config: &openapi.ApiInfo{},
 	}
 }

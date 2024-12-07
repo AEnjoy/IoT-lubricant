@@ -1,26 +1,22 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"runtime"
-	"time"
 
-	agent "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
 )
 
 const (
-	CONF_FILE_ENV = "CONFIG"
-	HOST_ENV      = "HOST"
-	BIND_GRPC_ENV = "BIND_GRPC"
+	GATEWAY_ID_STR            = "GATEWAY_ID"
+	MQ_LISTEN_PORT_STR        = "GATEWAY_MQ_PORT"
+	CORE_HOST_STR             = "CORE_HOST"
+	CORE_GRPC_LISTEN_PORT_STR = "CORE_PORT"
 )
 
 var (
@@ -41,7 +37,7 @@ func printBuildInfo() {
 	fmt.Printf("Features: %s\n", Features)
 	fmt.Printf("Platform: %s\n", Platform)
 	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
 }
 func main() {
 	var envFilePath string
@@ -59,25 +55,13 @@ func main() {
 		}
 	}
 
-	configFile := os.Getenv(CONF_FILE_ENV)
-	hostname := os.Getenv(HOST_ENV) //ip:port
-	bindGrpc := os.Getenv(BIND_GRPC_ENV)
+	port := os.Getenv(MQ_LISTEN_PORT_STR)
+	id := os.Getenv(GATEWAY_ID_STR)
 
-	f, err := os.ReadFile(configFile)
-	if err != nil {
-		logger.Warnln("Failed to read config file:", err)
-	}
-
-	var config model.EdgeSystem
-	_ = yaml.Unmarshal(f, &config)
-
-	app := agent.NewApp(
-		agent.UseCtrl(context.Background()),
-		agent.UseConfig(&config),
-		agent.UseGRPC(bindGrpc),
-		agent.UseHostAddress(hostname),
-		agent.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
-		agent.UseSignalHandler(utils.HandelExitSignal(nil, agent.SaveConfig, nil, 30*time.Second)),
+	app := gateway.NewApp(
+		gateway.SetGatewayId(id),
+		gateway.SetPort(port),
+		gateway.UseDB(repo.NewGatewayDb(nil)),
 	)
 	panic(app.Run())
 }

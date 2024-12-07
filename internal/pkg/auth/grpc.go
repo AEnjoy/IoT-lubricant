@@ -5,25 +5,24 @@ import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
 import (
 	"context"
-
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 )
 
 var _ ioc.Object = (*InterceptorImpl)(nil)
 
 type InterceptorImpl struct {
-	db types.CoreDbOperator
+	db repo.CoreDbOperator
 }
 
 func (i *InterceptorImpl) Init() error {
-	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(types.CoreDbOperator)
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)
 	i.db = cli
 	return nil
 }

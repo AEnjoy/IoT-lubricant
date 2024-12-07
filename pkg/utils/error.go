@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 )
 
 const errorMessageTemplate = "error message: %s, Message: %s"
