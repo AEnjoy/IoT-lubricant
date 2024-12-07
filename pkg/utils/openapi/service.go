@@ -38,12 +38,12 @@ func NewOpenApiCli(fileName string) (*ApiInfo, error) {
 
 func NewOpenApiCliEx(apiJson, enableJson []byte) (*ApiInfo, error) {
 	retVal := &ApiInfo{l: &sync.Mutex{}}
-	if apiJson != nil && len(apiJson) != 0 {
+	if len(apiJson) != 0 {
 		if err := json.Unmarshal(apiJson, &retVal.OpenAPICli); err != nil {
 			return nil, err
 		}
 	}
-	if enableJson != nil && len(enableJson) != 0 {
+	if len(enableJson) != 0 {
 		if err := json.Unmarshal(enableJson, &retVal.Enable); err != nil {
 			return nil, err
 		}

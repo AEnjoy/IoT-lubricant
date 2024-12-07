@@ -78,7 +78,7 @@ func TestEnableApi(t *testing.T) {
 	assert.Equal(t, 0, len(parameters))
 	assert.Equal(t, 1, len(result.GetEnable().Slot))
 
-	result, err = EnableApi(&api, &EnableParams{GetParams: map[string]string{"key": "value"}, Slot: 0}, "/test")
+	_, err = EnableApi(&api, &EnableParams{GetParams: map[string]string{"key": "value"}, Slot: 0}, "/test")
 	assert.EqualError(t, err, "slot 0 is already used")
 
 	result, err = UpdateApi(&api, &EnableParams{GetParams: map[string]string{"key": "value"}, Slot: 0}, "/test")

@@ -11,7 +11,7 @@ type Result struct {
 }
 
 func (r *Result) CheckResult(abort bool) bool {
-	if r.Success == false {
+	if !r.Success {
 		_, _ = fmt.Fprintln(os.Stdout, "Test_Failed_Message:", r.Message)
 		if abort {
 			fmt.Println("According to the policy, subsequent tests have been terminated")

@@ -89,7 +89,7 @@ func (a *app) handelGatherSignalCh() error {
 					errCh <- err
 				}
 			}()
-		case _ = <-config.StopSignal:
+		case <-config.StopSignal:
 			go func() {
 				if err := a.StopGather(cancel); err != nil {
 					errCh <- err

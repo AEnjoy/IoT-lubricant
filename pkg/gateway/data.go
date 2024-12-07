@@ -5,16 +5,23 @@ import (
 	"errors"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/google/uuid"
 )
 
-const maxBuffer = 50
-
 func (a *app) agentHandelSignal(id string) {
 	//send
-	go a.agentPushDataToServer(a.ctrl, id)
-	go a.handelSendSignal(id)
+	go func() {
+		if err := a.agentPushDataToServer(a.ctrl, id); err != nil {
+			logger.Error(err)
+		}
+	}()
+	go func() {
+		if err := a.handelSendSignal(id); err != nil {
+			logger.Error(err)
+		}
+	}()
 
 	//todo:recv
 }

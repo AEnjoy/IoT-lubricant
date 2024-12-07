@@ -21,10 +21,7 @@ func CheckConfigInvalidGet(a openapi.OpenApi) bool {
 		return false
 	}
 	enable := a.GetEnable()
-	if enable.Get == nil || len(enable.Get) == 0 {
-		return false
-	}
-	return true
+	return len(enable.Get) != 0
 }
 func CheckConfigInvalidPost(a openapi.OpenApi) bool {
 	if a == nil {
@@ -40,10 +37,7 @@ func CheckConfigInvalidPost(a openapi.OpenApi) bool {
 		return false
 	}
 	enable := a.GetEnable()
-	if enable.Post == nil || len(enable.Post) == 0 {
-		return false
-	}
-	return true
+	return len(enable.Post) != 0
 }
 func CheckConfigInvalid(a openapi.OpenApi) bool {
 	return CheckConfigInvalidGet(a) || CheckConfigInvalidPost(a)
