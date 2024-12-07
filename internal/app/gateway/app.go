@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -24,7 +24,7 @@ type app struct {
 	ctrl context.Context
 	mq   mq.Mq[[]byte]
 
-	model.GatewayDbOperator
+	repo.GatewayDbOperator
 
 	port       string
 	grpcClient core.CoreServiceClient //grpc
@@ -78,7 +78,7 @@ func SetGatewayId(id string) func(*app) error {
 	}
 }
 
-func UseDB(db *model.GatewayDb) func(*app) error {
+func UseDB(db *repo.GatewayDb) func(*app) error {
 	return func(a *app) error {
 		a.GatewayDbOperator = db
 		return nil

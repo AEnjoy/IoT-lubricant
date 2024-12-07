@@ -6,7 +6,7 @@ import (
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/app/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
-	"github.com/AEnjoy/IoT-lubricant/pkg/default"
+	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -74,7 +74,7 @@ func UseGRPC(bind string) func(*app) error {
 	return func(a *app) error {
 		if bind == "" {
 			logger.Warnln("grpc bind is empty, use default")
-			bind = _default.AgentDefaultBind
+			bind = def.AgentDefaultBind
 		}
 		go dataService.NewServer(bind)
 		return nil

@@ -1,86 +1,89 @@
-package model
+package repo
 
 import (
 	"context"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )
+
+var _ CoreDbOperator = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
 }
 
 func (d *CoreDb) GatewayIDGetUserID(ctx context.Context, id string) (string, error) {
-	var ret Gateway
+	var ret model.Gateway
 	err := d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
 	return ret.UserId, err
 }
 
 func (d *CoreDb) AgentIDGetGatewayID(ctx context.Context, id string) (string, error) {
-	var ret Agent
+	var ret model.Agent
 	err := d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
 	return ret.GatewayId, err
 }
 
-func (d *CoreDb) AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, agent Agent) error {
+func (d *CoreDb) AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, agent model.Agent) error {
 	return txn.WithContext(ctx).Create(&agent).Error
 }
 
-func (d *CoreDb) UpdateAgent(ctx context.Context, txn *gorm.DB, agent Agent) error {
+func (d *CoreDb) UpdateAgent(ctx context.Context, txn *gorm.DB, agent model.Agent) error {
 	return txn.WithContext(ctx).Where("id = ?", agent.Id).Save(&agent).Error
 }
 
 func (d *CoreDb) DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error {
 	if txn == nil {
-		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&Agent{}).Error
+		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Agent{}).Error
 	}
-	return txn.WithContext(ctx).Where("id = ?", id).Delete(&Agent{}).Error
+	return txn.WithContext(ctx).Where("id = ?", id).Delete(&model.Agent{}).Error
 }
 
-func (d *CoreDb) GetAgentList(ctx context.Context, gatewayID string) ([]Agent, error) {
-	var ret []Agent
+func (d *CoreDb) GetAgentList(ctx context.Context, gatewayID string) ([]model.Agent, error) {
+	var ret []model.Agent
 	err := d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).Find(&ret).Error
 	return ret, err
 }
 
-func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*Gateway, error) {
-	var ret Gateway
+func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*model.Gateway, error) {
+	var ret model.Gateway
 	return &ret, d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
 }
 
-func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway Gateway) error {
+func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error {
 	gateway.UserId = userID
 	if txn == nil {
-		return ErrNeedTxn
+		return model.ErrNeedTxn
 	}
 	return txn.WithContext(ctx).Create(&gateway).Error
 }
 
-func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway Gateway) error {
+func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error {
 	if txn == nil {
-		return ErrNeedTxn
+		return model.ErrNeedTxn
 	}
 	return txn.WithContext(ctx).Where("id = ?", gateway.GatewayID).Save(&gateway).Error
 }
 
 func (d *CoreDb) DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error {
 	if txn == nil {
-		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&Gateway{}).Error
+		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Gateway{}).Error
 	}
-	return txn.WithContext(ctx).Where("id = ?", id).Delete(&Gateway{}).Error
+	return txn.WithContext(ctx).Where("id = ?", id).Delete(&model.Gateway{}).Error
 }
 
-func (d *CoreDb) GetAllGatewayInfo(ctx context.Context) ([]Gateway, error) {
-	var ret []Gateway
+func (d *CoreDb) GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error) {
+	var ret []model.Gateway
 	return ret, d.db.WithContext(ctx).Find(&ret).Error
 }
 
 func (d *CoreDb) DeleteAgentGatherData(ctx context.Context, txn *gorm.DB, id string, timeStart int64, timeEnd int64) error {
 	if txn != nil {
-		return txn.WithContext(ctx).Where("agent_id = ? and created_at >= ? and created_at <= ?", id, timeStart, timeEnd).Delete(&Data{}).Error
+		return txn.WithContext(ctx).Where("agent_id = ? and created_at >= ? and created_at <= ?", id, timeStart, timeEnd).Delete(&model.Data{}).Error
 	}
-	return d.db.WithContext(ctx).Where("agent_id = ? and created_at >= ? and created_at <= ?", id, timeStart, timeEnd).Delete(&Data{}).Error
+	return d.db.WithContext(ctx).Where("agent_id = ? and created_at >= ? and created_at <= ?", id, timeStart, timeEnd).Delete(&model.Data{}).Error
 }
 
 func (d *CoreDb) Begin() *gorm.DB {
@@ -95,8 +98,8 @@ func (d *CoreDb) Rollback(txn *gorm.DB) {
 	txn.Rollback()
 }
 
-func (d *CoreDb) GetAgentInfo(id string) (*Agent, error) {
-	var agent Agent
+func (d *CoreDb) GetAgentInfo(id string) (*model.Agent, error) {
+	var agent model.Agent
 	return &agent, d.db.Where("id = ?", id).First(&agent).Error
 }
 
@@ -109,17 +112,17 @@ func (d *CoreDb) Version() string {
 }
 
 func (d *CoreDb) IsGatewayIdExists(id string) bool {
-	return d.db.Where("id = ?", id).First(&Gateway{}).Error == nil
+	return d.db.Where("id = ?", id).First(&model.Gateway{}).Error == nil
 }
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
-	data := &Data{AgentID: id, Content: content}
+	data := &model.Data{AgentID: id, Content: content}
 	if txn != nil {
 		return txn.WithContext(ctx).Create(data).Error
 	}
 	return d.db.WithContext(ctx).Create(data).Error
 }
-func (d *CoreDb) GetDataCleaner(id string) (*Clean, error) {
-	var ret Clean
+func (d *CoreDb) GetDataCleaner(id string) (*model.Clean, error) {
+	var ret model.Clean
 	return &ret, d.db.Where("agent_id = ?", id).First(&ret).Error
 }
 func (d *CoreDb) CreateTask(ctx context.Context, txn *gorm.DB, id string, task task.Task) error {

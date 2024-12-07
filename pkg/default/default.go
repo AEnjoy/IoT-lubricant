@@ -2,14 +2,13 @@ package _default
 
 import (
 	"fmt"
-
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 )
 
 var (
-	AgentDefaultBind = fmt.Sprintf(":%d", model.AgentGrpcPort)
+	AgentDefaultBind = fmt.Sprintf(":%d", AgentGrpcPort)
 )
 
 const (
 	AgentDefaultConfigFileName = "agent.yaml"
+	AgentGrpcPort              = 5436
 )

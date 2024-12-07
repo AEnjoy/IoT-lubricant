@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/docker/docker/api/types/network"
 )
-
-const AgentGrpcPort = 5436
 
 type Device struct {
 	Id     string `json:"id" gorm:"column:id;primary_key"`
@@ -78,6 +77,6 @@ var AgentContainer = container.Container{
 	Name:    "lubricant-agent",
 	Network: network.NetworkBridge,
 	ExposePort: map[string]int{
-		fmt.Sprintf("%d", AgentGrpcPort): 0,
+		fmt.Sprintf("%d", _default.AgentGrpcPort): 0,
 	},
 }

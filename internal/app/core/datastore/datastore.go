@@ -3,7 +3,7 @@ package datastore
 import (
 	"github.com/AEnjoy/IoT-lubricant/internal/cache"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 )
 
 var _ ioc.Object = (*DataStore)(nil)
@@ -11,7 +11,7 @@ var _ ioc.Object = (*DataStore)(nil)
 type DataStore struct {
 	CacheEnable bool
 	cache.CacheCli[string]
-	model.CoreDbOperator
+	repo.CoreDbOperator
 }
 
 func (d *DataStore) Init() error {

@@ -1,4 +1,4 @@
-package model
+package repo
 
 import (
 	"fmt"
@@ -34,11 +34,9 @@ func Core(database *gorm.DB) *CoreDb {
 
 	return &CoreDb{db: db}
 }
-
 func DefaultCoreClient() *CoreDb {
 	return Core(nil)
 }
-
 func NewGatewayDb(database *gorm.DB) *GatewayDb {
 	if database != nil {
 		return &GatewayDb{db: database}
