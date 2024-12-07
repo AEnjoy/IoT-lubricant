@@ -1,9 +1,9 @@
 package datastore
 
 import (
+	"github.com/AEnjoy/IoT-lubricant/internal/cache"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/cache"
 )
 
 var _ ioc.Object = (*DataStore)(nil)
