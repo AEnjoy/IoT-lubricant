@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/test"
 	api "github.com/AEnjoy/IoT-lubricant/pkg/test/agent"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
@@ -41,17 +42,23 @@ func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
 		return err
 	}
 
-	var doc openapi.ApiInfo
+	var doc openapi.OpenAPICli
 	if err := json.Unmarshal(originalApiData, &doc); err != nil {
 		return err
 	}
-	enableApi, err := edge.EnableApi(doc, &edge.Params{}, "/api/v1/get/time")
+
+	apiInfo, err := openapi.NewOpenApiCliEx(originalApiData, nil)
 	if err != nil {
 		return err
 	}
-	enableApiData, _ := json.Marshal(enableApi)
 
-	_, err = cli.SetAgent(ctx, &pb.SetAgentRequest{
+	enableApi, err := openapi.EnableApi(apiInfo, &openapi.EnableParams{GetParams: map[string]string{}}, "/api/v1/get/time")
+	if err != nil {
+		return err
+	}
+	enableApiData, _ := json.Marshal(enableApi.(*openapi.ApiInfo).Enable)
+
+	resp, err := cli.SetAgent(ctx, &pb.SetAgentRequest{
 		AgentID: test.AgentID,
 		AgentInfo: &pb.AgentInfo{
 			AgentID:     test.AgentID,
@@ -66,6 +73,18 @@ func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
 	if err != nil {
 		return err
 	}
+	if resp.GetInfo().Code != http.StatusOK {
+		println("failed")
+		return errors.New(resp.GetInfo().GetMessage())
+	}
+
+	_, err = cli.GetOpenapiDoc(ctx, &pb.GetOpenapiDocRequest{
+		AgentID: test.AgentID,
+		DocType: pb.OpenapiDocType_originalFile,
+	})
+	if err != nil {
+		return err
+	}
 
 	startGatherResp, err := cli.StartGather(ctx, &pb.StartGatherRequest{})
 	if err != nil {
@@ -75,12 +94,19 @@ func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
 		return errors.New(startGatherResp.Message)
 	}
 
+	time.Sleep(5 * time.Second)
 	data, err := cli.GetGatherData(ctx, &pb.GetDataRequest{AgentID: test.AgentID})
 	if err != nil {
 		return err
 	}
 	if data.GetInfo().GetCode() != http.StatusOK {
 		return errors.New(data.GetInfo().GetMessage())
+	}
+	fmt.Println(data.String())
+
+	_, err = cli.StopGather(ctx, &pb.StopGatherRequest{})
+	if err != nil {
+		return err
 	}
 	os.Exit(0)
 	return nil

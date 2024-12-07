@@ -55,6 +55,12 @@ func EnableApi(doc OpenApi, params *EnableParams, path string) (OpenApi, error) 
 	if apiInfo.Slot == nil {
 		apiInfo.Slot = make(map[int]string)
 	}
+	if apiInfo.Get == nil {
+		apiInfo.Get = make(map[string][]Parameter)
+	}
+	if apiInfo.Post == nil {
+		apiInfo.Post = make(map[string]*RequestBody)
+	}
 
 	if params.GetParams != nil && item.GetGet() != nil {
 		s := int(params.Slot)

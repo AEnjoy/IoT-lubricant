@@ -56,6 +56,7 @@ func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest)
 		}
 		if ds := info.DataSource; ds != nil {
 			if len(ds.OriginalFile) != 0 {
+				logger.Info("Check origin config loaded")
 				var o openapi.OpenAPICli
 				err := json.Unmarshal(ds.OriginalFile, &o)
 				if err != nil {
@@ -66,28 +67,34 @@ func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest)
 				config.Config.Config = &openapi.ApiInfo{
 					OpenAPICli: o,
 				}
-				if !edge.CheckConfigInvalidGet(config.Config.Config) {
-					return &pb.SetAgentResponse{Info: &meta.CommonResponse{
-						Code:    http.StatusBadRequest,
-						Message: "config invalid"}}, nil
-				}
 			}
 			if len(ds.EnableFile) != 0 {
-				var o openapi.OpenAPICli
-				err := json.Unmarshal(ds.OriginalFile, &o)
+				logger.Info("Check enable config loaded")
+				var o openapi.Enable
+				err := json.Unmarshal(ds.EnableFile, &o)
 				if err != nil {
 					resp.Info.Message = err.Error()
 					resp.Info.Code = 500
 					return &resp, err
 				}
-				config.Config.EnableConfig = &openapi.ApiInfo{
-					OpenAPICli: o,
+
+				if config.Config == nil {
+					resp.Info.Message = "You should initialize the OriginalFile before setting the EnableFile"
+					resp.Info.Code = 500
+					return &resp, err
 				}
-				if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+				logger.Debugln(string(ds.EnableFile))
+				c := config.Config.Config.(*openapi.ApiInfo)
+				c.Enable = o
+				config.Config.Config = c
+
+				if !edge.CheckConfigInvalid(config.Config.Config) {
 					return &pb.SetAgentResponse{Info: &meta.CommonResponse{
 						Code:    http.StatusBadRequest,
 						Message: "config invalid"}}, nil
 				}
+				_ = config.RefreshSlot()
+				logger.Info("Enable config loaded----valid")
 			}
 		}
 		if desc := info.Description; desc != nil {
@@ -103,11 +110,10 @@ func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest)
 	} else {
 		return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: http.StatusBadRequest, Message: "request body is empty"}}, nil
 	}
-
-	e1 := config.SaveConfig(true)
-	e2 := config.SaveConfig(false)
-	if e1 != nil || e2 != nil {
-		return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: 500, Message: "Can't save config"}}, errors.Join(e1, e2)
+	logger.Info("Saving config...")
+	err := config.SaveConfig(config.SaveType_ALL)
+	if err != nil {
+		return &pb.SetAgentResponse{Info: &meta.CommonResponse{Code: 500, Message: "Can't save config"}}, err
 	}
 
 	if request.GetStop() != nil {
@@ -141,8 +147,8 @@ func (*agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRe
 		}
 	case pb.OpenapiDocType_enableFile:
 		var err error
-		if config.Config.EnableConfig != nil {
-			e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
+		if config.Config.Config.GetEnable() != nil {
+			e, err = json.Marshal(config.Config.Config.GetEnable())
 			if err != nil {
 				return nil, err
 			}
@@ -155,8 +161,8 @@ func (*agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRe
 				return nil, err
 			}
 		}
-		if config.Config.EnableConfig != nil {
-			e, err = json.Marshal(config.Config.EnableConfig.(*openapi.ApiInfo))
+		if config.Config.Config.GetEnable() != nil {
+			e, err = json.Marshal(config.Config.Config.GetEnable())
 			if err != nil {
 				return nil, err
 			}
@@ -193,17 +199,16 @@ func (*agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest)
 		return nil, errors.New("target agentID error")
 	}
 	var resp pb.DataMessage
-	data.DCL.Lock()
-	defer data.DCL.Unlock()
-	if len(data.DataCollect) != 0 {
-		resp.DataLen = int32(len(data.DataCollect))
-		resp.DataGatherStartTime = data.DataCollect[0].Timestamp.Format("2006-01-02 15:04:05")
+	l := data.Collector.GetDataLen(int(request.GetSlot()))
+	if l > 0 {
+		resp.DataLen = int32(l)
+		_data := data.Collector.GetData(int(request.GetSlot()))
+		resp.DataGatherStartTime = _data[0].Timestamp.Format("2006-01-02 15:04:05")
 		resp.SplitTime = int32(config.Config.Cycle)
-		for _, packet := range data.DataCollect {
+		for _, packet := range _data {
 			resp.Data = append(resp.Data, packet.Data)
 		}
 		resp.Info = &meta.CommonResponse{Code: http.StatusOK, Message: "success"}
-		data.DataCollect = make([]*edge.DataPacket, 0)
 		return &resp, nil
 	} else {
 		resp.Info = &meta.CommonResponse{Code: http.StatusTooEarly, Message: "data is not ready"}
@@ -223,7 +228,7 @@ func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethod
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
 		return &resp, nil
 	}
-	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) && config.Config.Config == nil {
+	if !edge.CheckConfigInvalidGet(config.Config.Config) && config.Config.Config == nil {
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "Invalid internal configuration"}
 		return &resp, nil
 	}
@@ -273,7 +278,7 @@ func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (
 	if config.IsGathering() {
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, nil
 	}
-	if !edge.CheckConfigInvalidGet(config.Config.EnableConfig) {
+	if !edge.CheckConfigInvalidGet(config.Config.Config) {
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Invalid internal configuration"}, nil
 	}
 	select {

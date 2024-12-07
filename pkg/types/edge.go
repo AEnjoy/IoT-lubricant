@@ -18,9 +18,8 @@ type EdgeSystem struct {
 	Algorithm   string `yaml:"algorithm"`    //压缩算法 '-'不压缩 'gzip' 'lz4' 'zstd'
 	EnableSlot  []int  `yaml:"enable-slot"`  // 启用的采集Slot
 
-	FileName     string          `yaml:"file-name"` //ApiDoc本地存储文件路径
-	Config       openapi.OpenApi `yaml:"-"`         // original api doc
-	EnableConfig openapi.OpenApi `yaml:"-"`         // 用于实现功能的配置
+	FileName string          `yaml:"file-name"` //ApiDoc本地存储文件路径
+	Config   openapi.OpenApi `yaml:"-"`         // original api doc
 }
 
 type DriverData struct {

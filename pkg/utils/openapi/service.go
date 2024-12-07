@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
@@ -26,10 +27,26 @@ func NewOpenApiCli(fileName string) (*ApiInfo, error) {
 	}
 	if file.IsFileExists(fileName + ".enable") {
 		fileName = fileName + ".enable"
+		err = retVal.InitEnable(fileName)
+		if err != nil {
+			return nil, err
+		}
 	}
-	err = retVal.InitEnable(fileName)
-	if err != nil {
-		return nil, err
-	}
+
 	return retVal, err
+}
+
+func NewOpenApiCliEx(apiJson, enableJson []byte) (*ApiInfo, error) {
+	retVal := &ApiInfo{l: &sync.Mutex{}}
+	if apiJson != nil && len(apiJson) != 0 {
+		if err := json.Unmarshal(apiJson, &retVal.OpenAPICli); err != nil {
+			return nil, err
+		}
+	}
+	if enableJson != nil && len(enableJson) != 0 {
+		if err := json.Unmarshal(enableJson, &retVal.Enable); err != nil {
+			return nil, err
+		}
+	}
+	return retVal, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"time"
 
@@ -22,7 +23,7 @@ var _ gather = (*app)(nil)
 
 type gather interface {
 	StartGather(context.Context) error
-	StopGather(context.Context) error
+	StopGather(context.CancelFunc) error
 	SaveConfig() error
 }
 
@@ -32,11 +33,11 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 	}
 	defer config.GatherLock.Unlock()
 
-	if !edge.CheckConfigInvalidGet(a) {
+	if !edge.CheckConfigInvalid(config.Config.Config) {
 		return ErrInvalidConfig
 	}
 
-	paths := a.OpenApi.GetPaths()
+	enable := config.Config.Config.GetEnable()
 	cycle := time.Duration(int64(a.config.Cycle) * int64(time.Second))
 
 	for {
@@ -45,45 +46,62 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 			logger.Info("gather worker routine canceled")
 			return nil
 		case <-time.Tick(cycle):
-			logger.Debugln("进行了一次采集")
-			for path, item := range paths {
-				operation := item.GetGet()
-				if operation != nil {
-					data, err := a.SendGETMethod(path, operation.GetParameters())
+			for slot := range enable.Slot {
+				method, path := enable.SlotGetEnable(slot)
+				logger.Debugln("进行了一次采集")
+				switch method {
+				case http.MethodGet:
+					data, err := a.config.Config.SendGETMethod(path, enable.Get[path])
 					if err != nil {
 						return err
 					}
 					logger.Debugln(string(data))
-					dataSetCh <- data
+					dataHandlerCh <- &dataHandler{
+						slot, &data,
+					}
+				case http.MethodPost:
+					data, err := a.config.Config.SendPOSTMethod(path, *enable.Post[path])
+					if err != nil {
+						return err
+					}
+					logger.Debugln(string(data))
+					dataHandlerCh <- &dataHandler{
+						slot, &data,
+					}
 				}
 			}
 		}
 	}
 }
 func (a *app) handelGatherSignalCh() error {
+	errCh := make(chan error)
+	defer close(errCh)
+	var c context.Context
+	var cancel context.CancelFunc
 	for {
 		select {
 		case <-a.ctrl.Done():
 			return nil
 		case ctx := <-config.GatherSignal:
-			if err := a.StartGather(ctx); err != nil {
-				return err
-			}
-		case ctx := <-config.StopSignal:
-			if err := a.StopGather(ctx); err != nil {
-				return err
-			}
+			go func() {
+				c, cancel = context.WithCancel(ctx)
+				if err := a.StartGather(c); err != nil {
+					errCh <- err
+				}
+			}()
+		case _ = <-config.StopSignal:
+			go func() {
+				if err := a.StopGather(cancel); err != nil {
+					errCh <- err
+				}
+			}()
+		case err := <-errCh:
+			return err
 		}
 	}
 }
-func (a *app) StopGather(context.Context) error {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Errorln(r)
-			return
-		}
-	}()
-	close(dataSetCh)
+func (a *app) StopGather(cancel context.CancelFunc) error {
+	cancel()
 	return nil
 }
 func (a *app) SaveConfig() error {
@@ -91,7 +109,7 @@ func (a *app) SaveConfig() error {
 	if err != nil {
 		return err
 	}
-	data, err := json.Marshal(a.OpenApi.(*openapi.ApiInfo).OpenAPICli)
+	data, err := json.Marshal(a.config.Config.(*openapi.ApiInfo).OpenAPICli)
 	if err != nil {
 		return err
 	}

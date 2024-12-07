@@ -6,9 +6,9 @@ import (
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
@@ -16,8 +16,6 @@ import (
 )
 
 type app struct {
-	openapi.OpenApi
-
 	ctrl   context.Context
 	cancel context.CancelFunc
 
@@ -28,12 +26,14 @@ type app struct {
 }
 
 func (a *app) Run() error {
+	_compressor, _ = compress.NewCompressor(a.config.Algorithm)
+	go DataHandler()
 	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
 	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 
-	if edge.CheckConfigInvalidGet(a) {
-		config.GatherSignal <- a.ctrl
-	}
+	//if edge.CheckConfigInvalid(a.OpenApi) {
+	//	//config.GatherSignal <- a.ctrl
+	//}
 	return a.handelGatherSignalCh()
 }
 
@@ -84,7 +84,11 @@ func UseGRPC(bind string) func(*app) error {
 }
 func UseOpenApi(api openapi.OpenApi, err error) func(*app) error {
 	return func(a *app) error {
-		a.OpenApi = api
+		config.Config.Config = api
+		if api != nil {
+			config.OriginConfig = api.(*openapi.ApiInfo).OpenAPICli
+		}
+		_ = config.RefreshSlot()
 		return err
 	}
 }
