@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/AEnjoy/IoT-lubricant/cmd/test/agent/cmd"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/test/agent/cmd"
 	"github.com/spf13/cobra"
 )
 
