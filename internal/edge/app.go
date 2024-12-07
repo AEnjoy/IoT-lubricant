@@ -28,8 +28,6 @@ type app struct {
 func (a *app) Run() error {
 	_compressor, _ = compress.NewCompressor(a.config.Algorithm)
 	go DataHandler()
-	go compressor(a.config.Algorithm, dataSetCh, compressedChan)
-	go transmitter(a.config.ReportCycle, compressedChan, triggerChan, dataChan2)
 
 	//if edge.CheckConfigInvalid(a.OpenApi) {
 	//	//config.GatherSignal <- a.ctrl

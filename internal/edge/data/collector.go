@@ -18,10 +18,6 @@ type Collect interface {
 	RemoveSlot(slot int)
 }
 
-var DataCollect = make([]*edge.DataPacket, 0)
-
-var DCL = sync.Mutex{}
-
 var _ Collect = (*collectSlot)(nil)
 
 type collectSlot struct {
