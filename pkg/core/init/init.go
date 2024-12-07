@@ -1,11 +1,11 @@
 package init
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/pkg/core/datastore"
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 )
 

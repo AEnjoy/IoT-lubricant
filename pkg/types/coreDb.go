@@ -3,12 +3,9 @@ package types
 import (
 	"context"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )
-
-var _ ioc.Object = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
@@ -104,7 +101,7 @@ func (d *CoreDb) GetAgentInfo(id string) (*Agent, error) {
 }
 
 func (d *CoreDb) Weight() uint16 {
-	return ioc.CoreDB
+	return 3
 }
 
 func (d *CoreDb) Version() string {

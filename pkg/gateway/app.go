@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
@@ -13,6 +12,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -22,11 +22,6 @@ var gatewayId string
 type app struct {
 	ctrl context.Context
 	mq   mq.Mq[[]byte]
-
-	dataCli    *data
-	deviceList *sync.Map
-
-	*clientMq
 
 	types.GatewayDbOperator
 
@@ -44,20 +39,11 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 func (a *app) Run() error {
-	a.deviceList = new(sync.Map)
-	a.clientMq = new(clientMq)
-	a.dataCli = new(data)
-	a.dataCli.Start()
-	a.clientMq.ctrl = a.ctrl
-	a.clientMq.deviceList = a.deviceList
-
-	err := a.initClientMq()
-	if err != nil {
-		panic(err)
-	}
-
-	a.Start()
-	return a.grpcApp()
+	_ = a.agentPoolInit() //todo:handel error
+	go a.agentPoolAgentRegis()
+	go a.agentPoolChStartService()
+	//go a.agentHandelSignal()
+	return a.grpcApp() // gateway <--> core
 }
 func SetPort(port string) func(*app) error {
 	return func(s *app) error {
@@ -125,7 +111,7 @@ func LinkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		if err != nil {
 			return err
 		}
-		if err := stream.Send(&core.Ping{Flag: 0}); err != nil {
+		if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
 			return err
 		}
 		resp, err := stream.Recv()

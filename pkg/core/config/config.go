@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/caarlos0/env/v11"
 )

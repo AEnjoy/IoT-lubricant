@@ -1,60 +1,47 @@
 package gateway
 
 import (
-	"bytes"
 	"sync"
-	"time"
+	"sync/atomic"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
 
-var agentStore sync.Map // string: agentID-> data: *agentData
+var agentDataStore sync.Map // string: agentID-> data: *agentData
 
 type agentData struct {
-	data  []*gateway.DataMessage
-	cycle int
+	data  []*agent.DataMessage
+	cycle int //agent数据采集周期
 	//loadTime   string // 第一次数据上载时间
 	sendSignal chan struct{}
 	l          sync.Mutex
 }
 
-func (a *agentData) parseData(in *gateway.DataMessage, cycle int) {
+func (a *agentData) parseData(in *agent.DataMessage) {
 	a.l.Lock()
 	defer a.l.Unlock()
-	if in == nil {
-		return
-	}
-	if cycle <= 0 {
-		cycle = 1
-	}
-	a.cycle = cycle
-	t, _ := time.Parse("2006-01-02 15:04:05", in.Time)
-	for i, data := range bytes.Split(in.Data, compress.Sepa) {
-		a.data = append(a.data, &gateway.DataMessage{
-			Data: data,
-			Time: t.Add(time.Duration(i) * time.Second * time.Duration(cycle)).Format("2006-01-02 15:04:05"),
-		})
-	}
+	a.data = append(a.data, in)
 }
 func (a *agentData) cleanData() {
 	a.l.Lock()
 	defer a.l.Unlock()
-	a.data = make([]*gateway.DataMessage, 0)
+	a.data = make([]*agent.DataMessage, 0)
 }
 func (a *agentData) coverToGrpcData() *core.Data {
 	a.l.Lock()
 	defer a.l.Unlock()
 	var data core.Data
 	for _, datum := range a.data {
-		data.Data = append(data.Data, datum.GetData())
+		for _, singleData := range datum.GetData() {
+			data.Data = append(data.Data, singleData)
+			atomic.AddInt32(&data.DataLen, 1)
+		}
 	}
 
-	data.DataLen = int32(len(data.Data))
 	data.Cycle = int32(a.cycle)
 	if len(a.data) > 0 {
-		data.Time = a.data[0].GetTime()
+		data.Time = a.data[0].GetDataGatherStartTime()
 		return &data
 	}
 	return nil

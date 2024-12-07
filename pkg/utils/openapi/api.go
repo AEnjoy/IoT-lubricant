@@ -7,13 +7,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 )
 
 type ApiInfo struct {
-	filename   string
+	filename string
+	l        *sync.Mutex
+
 	OpenAPICli `json:"open_api_cli"`
+	Enable     `json:"enable"`
 }
 
 var (
@@ -33,6 +38,9 @@ func (api *OpenAPICli) GetApiInfo() Info {
 	return api.Info
 }
 func (api *OpenAPICli) GetPaths() map[string]PathItem {
+	if api.Paths == nil {
+		api.Paths = make(map[string]PathItem)
+	}
 	return api.Paths
 }
 
@@ -87,6 +95,15 @@ type RequestBody struct {
 	Content     map[string]MediaType `json:"content"`
 }
 
+func (api *RequestBody) SetBodyWithJson(kv map[string]string) {
+	if kv == nil {
+		return
+	}
+	api.Content["application/json"] = MediaType{
+		Schema: kv,
+	}
+}
+
 func (api *RequestBody) GetDescription() string {
 	return api.Description
 }
@@ -113,6 +130,14 @@ type Parameter struct {
 	Description string `json:"description,omitempty"`
 	Required    bool   `json:"required,omitempty"`
 	Schema      Schema `json:"schema"`
+}
+
+func (p *Parameter) Set(k, v string) {
+	p.Name = k
+	p.Schema = Schema{
+		Type:       "string",
+		Properties: map[string]Property{p.Name: {Type: v}},
+	}
 }
 
 // Schema 定义了JSON请求body的schema
@@ -247,4 +272,56 @@ func (api *ApiInfo) SendPOSTMethod(path string, body RequestBody) ([]byte, error
 	//	Content:     content,
 	//}
 	return all, nil
+}
+func (api *ApiInfo) SendPOSTMethodEx(path, ct string, body []byte) ([]byte, error) {
+	if _, ok := api.Paths[path]; !ok {
+		return nil, ErrNotFound
+	}
+	if api.Paths[path].Post == nil {
+		return nil, ErrInvalidMethod
+	}
+
+	bytesReader := bytes.NewReader(body)
+	request, err := http.NewRequest(http.MethodPost, path, bytesReader)
+	if err != nil {
+		return nil, err
+	}
+
+	cli := http.Client{}
+	request.Header.Set("Content-Type", ct)
+
+	respHttp, err := cli.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+	defer respHttp.Body.Close()
+
+	all, err := io.ReadAll(respHttp.Body)
+	if err != nil {
+		return nil, err
+	}
+	//
+	//resp := make(map[string]Response)
+	//content := make(map[string]MediaType)
+	//
+	//for k, _ := range api.Paths[path].Get.Responses["200"].Content {
+	//	content[k] = MediaType{all}
+	//}
+	//resp[respHttp.Status] = Response{
+	//	Description: api.Paths[path].Get.Responses[respHttp.Status].Description,
+	//	Content:     content,
+	//}
+	return all, nil
+}
+func (api *ApiInfo) GetEnable() *Enable {
+	return &api.Enable
+}
+func (api *ApiInfo) InitEnable(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return json.NewDecoder(file).Decode(&api.Enable)
 }

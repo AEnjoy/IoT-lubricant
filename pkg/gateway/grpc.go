@@ -7,9 +7,10 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 )
 
-var _ = &core.Ping{
+var _ = &meta.Ping{
 	Flag: 0,
 }
 
@@ -75,7 +76,7 @@ func (a *app) grpcApp() error {
 			}
 			_ = task.Send(resp)
 		case taskTypes.OperationRemoveAgent:
-			a.removeAgent("reserve a seat")
+			a.agentRemove("reserve a seat")
 			panic("not implemented")
 		case taskTypes.OperationNil:
 

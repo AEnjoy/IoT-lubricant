@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GatewayService_Data_FullMethodName          = "/lubricant.gatewayService/data"
-	GatewayService_Ping_FullMethodName          = "/lubricant.gatewayService/ping"
-	GatewayService_PushMessageId_FullMethodName = "/lubricant.gatewayService/pushMessageId"
+	GatewayService_Data_FullMethodName          = "/lubricant.proxy.gatewayService/data"
+	GatewayService_Ping_FullMethodName          = "/lubricant.proxy.gatewayService/ping"
+	GatewayService_PushMessageId_FullMethodName = "/lubricant.proxy.gatewayService/pushMessageId"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
@@ -168,7 +168,7 @@ func _GatewayService_PushMessageId_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GatewayService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lubricant.gatewayService",
+	ServiceName: "lubricant.proxy.gatewayService",
 	HandlerType: (*GatewayServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

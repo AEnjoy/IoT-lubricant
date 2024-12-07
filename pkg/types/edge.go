@@ -4,6 +4,7 @@ package types
 import (
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
 
@@ -15,9 +16,10 @@ type EdgeSystem struct {
 	Cycle       int    `yaml:"cycle"`        //采集周期 默认5 单位：秒
 	ReportCycle int    `yaml:"report-cycle"` //上报周期 默认30 单位：秒
 	Algorithm   string `yaml:"algorithm"`    //压缩算法 '-'不压缩 'gzip' 'lz4' 'zstd'
+	EnableSlot  []int  `yaml:"enable-slot"`  // 启用的采集Slot
 
-	FileName string `yaml:"file-name"` //ApiDoc本地存储文件路径
-	//enableConfig openapi.OpenApi `yaml:"-"`         // 用于实现功能的配置
+	FileName string          `yaml:"file-name"` //ApiDoc本地存储文件路径
+	Config   openapi.OpenApi `yaml:"-"`         // original api doc
 }
 
 type DriverData struct {

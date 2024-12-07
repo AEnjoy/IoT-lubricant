@@ -8,10 +8,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
-	"github.com/AEnjoy/IoT-lubricant/pkg/grpc/middleware"
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
@@ -36,7 +36,7 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 	return context.WithTimeout(root, timeOut*time.Second)
 }
 
-func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[core.Ping, core.Ping]) error {
+func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
 	return nil
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {

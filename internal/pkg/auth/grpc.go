@@ -4,7 +4,7 @@ package auth
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
