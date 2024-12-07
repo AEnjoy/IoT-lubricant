@@ -78,8 +78,8 @@ var (
 )
 
 type agentControl struct {
-	id   string
-	slot []int // for api paths
+	id string
+	// slot []int // for api paths
 
 	agentInfo *types.Agent
 	agentCli  agent.EdgeServiceClient

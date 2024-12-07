@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
-	"github.com/AEnjoy/IoT-lubricant/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"

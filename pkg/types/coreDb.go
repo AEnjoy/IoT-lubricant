@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )

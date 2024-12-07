@@ -8,10 +8,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
-	"github.com/AEnjoy/IoT-lubricant/pkg/grpc/middleware"
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"

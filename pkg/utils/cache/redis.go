@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/redis/go-redis/v9"
 )
 
