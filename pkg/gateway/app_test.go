@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/mock/db"
 	grpcmock "github.com/AEnjoy/IoT-lubricant/pkg/mock/grpc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
@@ -50,7 +51,7 @@ func TestGatewayAPP(t *testing.T) {
 
 	mockDbClient.EXPECT().GetAllAgentId().Return([]string{agentId})
 	mockDbClient.EXPECT().GetAgentGatherCycle(agentId).Return(1)
-	mockDbClient.EXPECT().GetAllAgents().Return([]types.Agent{}, nil)
+	mockDbClient.EXPECT().GetAllAgents().Return([]model.Agent{}, nil)
 
 	mockMqClient.EXPECT().Subscribe(types.Topic_AgentRegister+agentId).Return(regCh, nil)
 

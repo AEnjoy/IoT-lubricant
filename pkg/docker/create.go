@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
@@ -88,7 +88,7 @@ func Create(ctx context.Context, c docker.Container) (*container.CreateResponse,
 
 // DeployAgent 部署agent容器 返回 agent-container id
 func DeployAgent() (string, error) {
-	resp, err := Create(context.Background(), types.AgentContainer)
+	resp, err := Create(context.Background(), model.AgentContainer)
 	if err != nil {
 		return "", err
 	}

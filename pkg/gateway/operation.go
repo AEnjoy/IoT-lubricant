@@ -1,8 +1,10 @@
 package gateway
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/types"
+import (
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
+)
 
-func HandelCreateAgentRequest(req *types.CreateAgentRequest) (*types.CreateAgentResponse, error) {
+func HandelCreateAgentRequest(req *model.CreateAgentRequest) (*model.CreateAgentResponse, error) {
 	// todo: impl me
 	return nil, nil
 }

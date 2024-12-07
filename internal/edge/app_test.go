@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/google/uuid"
 )
@@ -91,7 +91,7 @@ var openAPIConfig = &openapi.ApiInfo{
 	},
 }
 
-var testConfig = &types.EdgeSystem{
+var testConfig = &model.EdgeSystem{
 	ID:          mockID,
 	Cycle:       1,
 	ReportCycle: 4,

@@ -1,5 +1,5 @@
 // Edge-Agent
-package types
+package model
 
 import (
 	"time"

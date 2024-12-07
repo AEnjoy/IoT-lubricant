@@ -4,10 +4,10 @@ import (
 	"flag"
 	"os"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/router"
 	"github.com/AEnjoy/IoT-lubricant/pkg/core"
 	appinit "github.com/AEnjoy/IoT-lubricant/pkg/core/init"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/joho/godotenv"
 )
@@ -44,7 +44,7 @@ func main() {
 		core.SetHostName(hostName),
 		core.SetPort(listenPort),
 		core.UseGinEngine(router.CoreRouter()),
-		core.UseDB(types.DefaultCoreClient()),
+		core.UseDB(model.DefaultCoreClient()),
 	)
 	panic(app.Run())
 }

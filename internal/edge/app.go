@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
@@ -20,7 +20,7 @@ type app struct {
 	cancel context.CancelFunc
 
 	// for init
-	config *types.EdgeSystem
+	config *model.EdgeSystem
 
 	hostAddress string // 这是容器宿主机的ip:port
 }
@@ -45,7 +45,7 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 
-func UseConfig(c *types.EdgeSystem) func(*app) error {
+func UseConfig(c *model.EdgeSystem) func(*app) error {
 	return func(s *app) error {
 		if c == nil {
 			logger.Warnln("config is nil")

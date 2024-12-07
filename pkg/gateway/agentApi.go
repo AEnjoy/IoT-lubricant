@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 )
@@ -81,7 +81,7 @@ type agentControl struct {
 	id string
 	// slot []int // for api paths
 
-	agentInfo *types.Agent
+	agentInfo *model.Agent
 	agentCli  agent.EdgeServiceClient
 	ctx       context.Context
 	cancel    context.CancelFunc

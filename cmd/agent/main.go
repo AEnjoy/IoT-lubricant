@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
@@ -68,7 +68,7 @@ func main() {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
-	var config types.EdgeSystem
+	var config model.EdgeSystem
 	_ = yaml.Unmarshal(f, &config)
 
 	app := edge.NewApp(

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
@@ -51,7 +52,7 @@ func (a *app) grpcApp() error {
 
 		switch c.ID {
 		case taskTypes.OperationAddAgent:
-			var req types.CreateAgentRequest
+			var req model.CreateAgentRequest
 			err := json.Unmarshal(c.Data, &req)
 			if err != nil {
 				return err

@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +13,7 @@ type app struct {
 	port     string
 
 	httpServer *gin.Engine
-	dbClient   *types.CoreDb
+	dbClient   *model.CoreDb
 }
 
 func (s *app) Run() error {
@@ -42,7 +42,7 @@ func SetHostName(hostName string) func(*app) error {
 	}
 }
 
-func UseDB(dbClient *types.CoreDb) func(*app) error {
+func UseDB(dbClient *model.CoreDb) func(*app) error {
 	return func(s *app) error {
 		s.dbClient = dbClient
 		return nil
