@@ -1,4 +1,4 @@
-package types
+package container
 
 import "github.com/docker/docker/api/types/mount"
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/docker/docker/api/types/network"
@@ -51,10 +52,10 @@ func (DeviceAPI) TableName() string {
 }
 
 type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo           Agent              `json:"agent_info"`
-	AgentContainerInfo  Container          `json:"agent_container_info"`
-	DriverContainerInfo Container          `json:"driver_container_info"`
-	OpenApiDoc          openapi.OpenAPICli `json:"open_api_doc"`
+	AgentInfo           Agent               `json:"agent_info"`
+	AgentContainerInfo  container.Container `json:"agent_container_info"`
+	DriverContainerInfo container.Container `json:"driver_container_info"`
+	OpenApiDoc          openapi.OpenAPICli  `json:"open_api_doc"`
 }
 
 func (CreateAgentRequest) TaskOperation() task.Operation {
@@ -67,8 +68,8 @@ func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
 type CreateAgentResponse struct {
 }
 
-var AgentContainer = Container{
-	Source: Image{
+var AgentContainer = container.Container{
+	Source: container.Image{
 		PullWay:      2,
 		FromRegistry: "hub.iotroom.top",
 		RegistryPath: "AEnjoy/lubricant-agent",
