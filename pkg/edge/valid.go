@@ -20,8 +20,7 @@ func CheckConfigInvalidGet(a openapi.OpenApi) bool {
 	if !IsOpenAPIDoc(marshal) {
 		return false
 	}
-	enable := a.GetEnable()
-	return len(enable.Get) != 0
+	return len(a.GetEnable().Get) != 0
 }
 func CheckConfigInvalidPost(a openapi.OpenApi) bool {
 	if a == nil {
@@ -36,8 +35,7 @@ func CheckConfigInvalidPost(a openapi.OpenApi) bool {
 	if !IsOpenAPIDoc(marshal) {
 		return false
 	}
-	enable := a.GetEnable()
-	return len(enable.Post) != 0
+	return len(a.GetEnable().Post) != 0
 }
 func CheckConfigInvalid(a openapi.OpenApi) bool {
 	return CheckConfigInvalidGet(a) || CheckConfigInvalidPost(a)
@@ -48,6 +46,5 @@ func IsOpenAPIDoc(data []byte) bool {
 	if err != nil {
 		return false
 	}
-	err = doc.Validate(loader.Context, openapi3.DisableExamplesValidation())
-	return err == nil
+	return doc.Validate(loader.Context, openapi3.DisableExamplesValidation()) == nil
 }
