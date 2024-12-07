@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"

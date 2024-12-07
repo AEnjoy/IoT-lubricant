@@ -4,10 +4,10 @@ import (
 	"flag"
 	"os"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
+	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/router"
-	"github.com/AEnjoy/IoT-lubricant/pkg/core"
-	appinit "github.com/AEnjoy/IoT-lubricant/pkg/core/init"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/joho/godotenv"
 )

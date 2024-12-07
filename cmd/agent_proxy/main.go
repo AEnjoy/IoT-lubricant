@@ -6,8 +6,8 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
-	"github.com/AEnjoy/IoT-lubricant/pkg/gateway"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 	"github.com/joho/godotenv"
 )

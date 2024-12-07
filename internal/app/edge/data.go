@@ -1,7 +1,7 @@
 package edge
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/internal/edge/data"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/edge/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 )

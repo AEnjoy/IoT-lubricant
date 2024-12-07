@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	dataService "github.com/AEnjoy/IoT-lubricant/internal/edge/grpc"
+	dataService "github.com/AEnjoy/IoT-lubricant/internal/app/edge/grpc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"

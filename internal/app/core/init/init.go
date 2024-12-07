@@ -1,12 +1,12 @@
 package init
 
 import (
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
+	data "github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
-	"github.com/AEnjoy/IoT-lubricant/pkg/core"
-	"github.com/AEnjoy/IoT-lubricant/pkg/core/config"
-	data "github.com/AEnjoy/IoT-lubricant/pkg/core/datastore"
 )
 
 // AppInit 初始化App:

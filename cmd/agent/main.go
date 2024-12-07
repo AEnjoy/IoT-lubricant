@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/edge"
+	edge2 "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
@@ -71,13 +71,13 @@ func main() {
 	var config model.EdgeSystem
 	_ = yaml.Unmarshal(f, &config)
 
-	app := edge.NewApp(
-		edge.UseCtrl(context.Background()),
-		edge.UseConfig(&config),
-		edge.UseGRPC(bindGrpc),
-		edge.UseHostAddress(hostname),
-		edge.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
-		edge.UseSignalHandler(utils.HandelExitSignal(nil, edge.SaveConfig, nil, 30*time.Second)),
+	app := edge2.NewApp(
+		edge2.UseCtrl(context.Background()),
+		edge2.UseConfig(&config),
+		edge2.UseGRPC(bindGrpc),
+		edge2.UseHostAddress(hostname),
+		edge2.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
+		edge2.UseSignalHandler(utils.HandelExitSignal(nil, edge2.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }
