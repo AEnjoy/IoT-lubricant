@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 )
 
 const DefaultGateway = "0.0.0.0"

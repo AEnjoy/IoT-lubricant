@@ -8,7 +8,7 @@ import (
 	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/router"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/joho/godotenv"
 )
 

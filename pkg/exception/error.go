@@ -1,6 +1,8 @@
 package exception
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+import (
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+)
 
 var ErrCh = make(chan error)
 

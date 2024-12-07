@@ -8,7 +8,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"

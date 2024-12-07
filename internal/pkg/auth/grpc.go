@@ -6,14 +6,13 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
 import (
 	"context"
-
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
 )
 
 var _ ioc.Object = (*InterceptorImpl)(nil)

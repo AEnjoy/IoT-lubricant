@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
