@@ -2,13 +2,13 @@ package openapi
 
 import (
 	"bytes"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"sync"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	json "github.com/bytedance/sonic"
 	"github.com/bytedance/sonic/decoder"
@@ -21,11 +21,6 @@ type ApiInfo struct {
 	OpenAPICli `json:"open_api_cli"`
 	Enable     `json:"enable"`
 }
-
-var (
-	ErrNotFound      = errors.New("not found")
-	ErrInvalidMethod = errors.New("invalid method")
-)
 
 // 定义OpenAPI文档的结构体
 type OpenAPICli struct {
@@ -179,10 +174,10 @@ func (api *ApiInfo) InitApis(filename string) error {
 }
 func (api *ApiInfo) SendGETMethod(path string, parameters []Parameter) ([]byte, error) {
 	if _, ok := api.Paths[path]; !ok {
-		return nil, ErrNotFound
+		return nil, errs.ErrNotFound
 	}
 	if api.Paths[path].Get == nil {
-		return nil, ErrInvalidMethod
+		return nil, errs.ErrInvalidMethod
 	}
 
 	fullPath := api.Servers[0].URL + path //
@@ -224,10 +219,10 @@ func (api *ApiInfo) SendGETMethod(path string, parameters []Parameter) ([]byte, 
 }
 func (api *ApiInfo) SendPOSTMethod(path string, body RequestBody) ([]byte, error) {
 	if _, ok := api.Paths[path]; !ok {
-		return nil, ErrNotFound
+		return nil, errs.ErrNotFound
 	}
 	if api.Paths[path].Post == nil {
-		return nil, ErrInvalidMethod
+		return nil, errs.ErrInvalidMethod
 	}
 	fullPath := api.Servers[0].URL + path
 	cli := http.Client{}
@@ -276,10 +271,10 @@ func (api *ApiInfo) SendPOSTMethod(path string, body RequestBody) ([]byte, error
 }
 func (api *ApiInfo) SendPOSTMethodEx(path, ct string, body []byte) ([]byte, error) {
 	if _, ok := api.Paths[path]; !ok {
-		return nil, ErrNotFound
+		return nil, errs.ErrNotFound
 	}
 	if api.Paths[path].Post == nil {
-		return nil, ErrInvalidMethod
+		return nil, errs.ErrInvalidMethod
 	}
 
 	bytesReader := bytes.NewReader(body)

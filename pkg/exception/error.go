@@ -1,53 +1,82 @@
 package exception
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+import (
+	"fmt"
 
-type Exception struct {
-	Code         code.ResCode `json:"code"`
-	Msg          string       `json:"msg"`
-	Reason       interface{}  `json:"reason,omitempty"`
-	DetailReason interface{}  `json:"detail_reason,omitempty"`
-	Data         interface{}  `json:"data,omitempty"`
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+)
+
+const errorMessageTemplate = "error message: %s, Message: %s"
+
+type ErrorHandler struct {
+	ErrorChan  ErrorChan
+	successRun func()
+	errorRun   func(error)
 }
-type Option func(*Exception)
 
-func (e *Exception) Error() string {
-	return e.Msg
+type ErrorChan struct {
+	ErrCh chan Error
 }
 
-// WithMsg 允许设置多条错误信息，但新旧错误信息间没有分隔符
-func WithMsg(msg string) Option {
-	return func(e *Exception) {
-		e.Msg += msg
+type Error struct {
+	Err error
+	Msg string
+}
+
+func (err Error) IsEmpty() bool {
+	return err.Err == nil
+}
+
+func NewErrorChan() *ErrorChan {
+	return &ErrorChan{
+		ErrCh: make(chan Error, 1),
 	}
 }
 
-func WithReason(reason interface{}) Option {
-	return func(e *Exception) {
-		e.Reason = reason
+// Report sends error to the error channel
+func (ec *ErrorChan) Report(err error, format string, a ...any) {
+	message := fmt.Sprintf(format, a...)
+	if err != nil {
+		logger.Debugf("Error reported: ", err, "Message: ", message)
+		select {
+		case ec.ErrCh <- Error{
+			Err: err,
+			Msg: message,
+		}:
+		default:
+		}
 	}
 }
 
-func WithDetailReason(detailReason interface{}) Option {
-	return func(e *Exception) {
-		e.DetailReason = detailReason
+func HandleErrorCh(ec *ErrorChan) *ErrorHandler {
+	var errorHandler = &ErrorHandler{
+		ErrorChan:  *ec,
+		successRun: func() {},
+		errorRun:   func(err error) {},
 	}
+
+	return errorHandler
 }
 
-func WithData(data interface{}) Option {
-	return func(e *Exception) {
-		e.Data = data
-	}
+func (eh *ErrorHandler) ErrorWillDo(callback func(error)) *ErrorHandler {
+	eh.errorRun = callback
+	return eh
 }
 
-func New(code code.ResCode, opts ...Option) *Exception {
-	exception := &Exception{
-		Code: code,
-	}
+func (eh *ErrorHandler) SuccessWillDo(callback func()) *ErrorHandler {
+	eh.successRun = callback
+	return eh
+}
 
-	for _, opt := range opts {
-		opt(exception)
+func (eh *ErrorHandler) Do() {
+	select {
+	case err := <-eh.ErrorChan.ErrCh:
+		logger.Errorf(errorMessageTemplate, err.Err.Error(), err.Msg)
+		if !err.IsEmpty() {
+			eh.errorRun(err.Err)
+			return
+		}
+	default:
 	}
-
-	return exception
+	eh.successRun()
 }

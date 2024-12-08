@@ -7,6 +7,7 @@ const (
 	Success ResCode = 100000 + iota
 	_
 	ErrorBadRequest
+	ErrorNotFound
 	ErrorInternalServerError
 	ErrorUnknown
 )
@@ -33,6 +34,7 @@ const (
 var StatusMsgMap = map[ResCode]string{
 	Success:                  "success",
 	ErrorBadRequest:          "Invalid Request",
+	ErrorNotFound:            "Not Found",
 	ErrorInternalServerError: "Internal Service Error",
 	ErrorUnknown:             "Unknown Error",
 	ErrorTokenInvalid:        "Invalid Token",

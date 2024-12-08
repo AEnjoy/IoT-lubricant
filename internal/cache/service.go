@@ -2,13 +2,10 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 )
 
 const APP_NAME = "cache-client"
-
-var ErrNullCache = errors.New("cache client is nil")
 
 type CacheCli[T any] interface {
 	SetEx(ctx context.Context, key string, value T, duration time.Duration) error

@@ -13,6 +13,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
@@ -88,7 +89,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 
 			if taskID, ok := <-ch; ok {
 				if taskData, err := getTask(ctx, taskTypes.TargetGateway, targetID, taskID); err != nil {
-					if errors.Is(err, ErrTargetNoTask) {
+					if errors.Is(err, errs.ErrTargetNoTask) {
 						//taskSendErrorMessage(s, 404, ErrTargetNoTask.Error())
 						var resp core.NoTaskResponse
 						var message core.TaskDetail
@@ -108,7 +109,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 				}
 			} else {
 				// 超时意味着没有创建过任务ch (任务不存在)
-				taskSendErrorMessage(s, 500, ErrTimeout.Error())
+				taskSendErrorMessage(s, 500, errs.ErrTimeout.Error())
 			}
 		}
 	}
