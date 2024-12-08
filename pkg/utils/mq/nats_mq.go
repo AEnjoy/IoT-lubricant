@@ -1,9 +1,9 @@
 package mq
 
 import (
-	"encoding/json"
 	"sync"
 
+	json "github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
 )
 

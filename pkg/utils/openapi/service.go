@@ -1,10 +1,10 @@
 package openapi
 
 import (
-	"encoding/json"
 	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
+	json "github.com/bytedance/sonic"
 )
 
 var _ OpenApi = (*ApiInfo)(nil)

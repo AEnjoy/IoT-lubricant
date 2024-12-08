@@ -2,7 +2,6 @@ package openapi
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"sync"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
+	json "github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/decoder"
 )
 
 type ApiInfo struct {
@@ -323,5 +324,5 @@ func (api *ApiInfo) InitEnable(filePath string) error {
 		return err
 	}
 	defer file.Close()
-	return json.NewDecoder(file).Decode(&api.Enable)
+	return decoder.NewStreamDecoder(file).Decode(&api.Enable)
 }

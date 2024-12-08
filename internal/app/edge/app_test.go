@@ -1,7 +1,6 @@
 package edge
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +10,8 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	json "github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/encoder"
 	"github.com/google/uuid"
 )
 
@@ -37,7 +38,7 @@ func StartTestServer() string {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(resp)
+		_ = encoder.NewStreamEncoder(w).Encode(resp)
 	}))
 	//go testServer.Start()
 	<-time.After(500 * time.Millisecond)

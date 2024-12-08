@@ -1,9 +1,8 @@
 package edge
 
 import (
-	"encoding/json"
-
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	json "github.com/bytedance/sonic"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 

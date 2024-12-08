@@ -2,7 +2,6 @@ package edge
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	json "github.com/bytedance/sonic"
 )
 
 var (

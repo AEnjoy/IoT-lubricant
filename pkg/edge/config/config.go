@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"os"
 	"sync"
@@ -10,6 +9,7 @@ import (
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	json "github.com/bytedance/sonic/encoder"
 	"github.com/google/go-cmp/cmp"
 	"gopkg.in/yaml.v3"
 )
@@ -66,7 +66,7 @@ func SaveConfig(t SaveType) error {
 			if err != nil {
 				errs = errors.Join(errs, err)
 			} else {
-				errs = errors.Join(errs, json.NewEncoder(confFile).Encode(Config.Config.(*openapi.ApiInfo)))
+				errs = errors.Join(errs, json.NewStreamEncoder(confFile).Encode(Config.Config.(*openapi.ApiInfo)))
 			}
 		}
 	}
@@ -77,7 +77,7 @@ func SaveConfig(t SaveType) error {
 		if err != nil {
 			errs = errors.Join(errs, err)
 		} else {
-			errs = errors.Join(errs, json.NewEncoder(enConfFile).Encode(Config.Config.GetEnable()))
+			errs = errors.Join(errs, json.NewStreamEncoder(enConfFile).Encode(Config.Config.GetEnable()))
 		}
 	}
 	return errs

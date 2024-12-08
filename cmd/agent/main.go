@@ -12,9 +12,9 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -63,13 +63,11 @@ func main() {
 	hostname := os.Getenv(HOST_ENV) //ip:port
 	bindGrpc := os.Getenv(BIND_GRPC_ENV)
 
-	f, err := os.ReadFile(configFile)
+	var config model.EdgeSystem
+	err := file.ReadYamlFile(configFile, &config)
 	if err != nil {
 		logger.Warnln("Failed to read config file:", err)
 	}
-
-	var config model.EdgeSystem
-	_ = yaml.Unmarshal(f, &config)
 
 	app := agent.NewApp(
 		agent.UseCtrl(context.Background()),
