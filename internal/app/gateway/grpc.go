@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"encoding/json"
 	"io"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
@@ -9,6 +8,7 @@ import (
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	json "github.com/bytedance/sonic"
 )
 
 var _ = &meta.Ping{

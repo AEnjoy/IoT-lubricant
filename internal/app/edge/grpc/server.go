@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	json "github.com/bytedance/sonic"
 	"google.golang.org/grpc"
 )
 

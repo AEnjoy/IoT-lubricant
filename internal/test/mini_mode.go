@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	api "github.com/AEnjoy/IoT-lubricant/pkg/test/agent"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	json "github.com/bytedance/sonic"
 	"github.com/google/uuid"
 )
 
