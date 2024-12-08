@@ -1,11 +1,6 @@
 package exception
 
-import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
-)
-
-var ErrCh = make(chan error)
+import "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 
 type Exception struct {
 	Code         code.ResCode `json:"code"`
@@ -26,14 +21,5 @@ func New(code code.ResCode, msg ...string) *Exception {
 	return &Exception{
 		Code: code,
 		Msg:  msgs,
-	}
-}
-func init() {
-	go Handle()
-}
-
-func Handle() {
-	for err := range ErrCh {
-		logger.Errorln(err)
 	}
 }
