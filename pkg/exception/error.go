@@ -9,17 +9,45 @@ type Exception struct {
 	DetailReason interface{}  `json:"detail_reason,omitempty"`
 	Data         interface{}  `json:"data,omitempty"`
 }
+type Option func(*Exception)
 
 func (e *Exception) Error() string {
 	return e.Msg
 }
-func New(code code.ResCode, msg ...string) *Exception {
-	var msgs string
-	for _, t := range msg {
-		msgs += t
+
+// WithMsg 允许设置多条错误信息，但新旧错误信息间没有分隔符
+func WithMsg(msg string) Option {
+	return func(e *Exception) {
+		e.Msg += msg
 	}
-	return &Exception{
+}
+
+func WithReason(reason interface{}) Option {
+	return func(e *Exception) {
+		e.Reason = reason
+	}
+}
+
+func WithDetailReason(detailReason interface{}) Option {
+	return func(e *Exception) {
+		e.DetailReason = detailReason
+	}
+}
+
+func WithData(data interface{}) Option {
+	return func(e *Exception) {
+		e.Data = data
+	}
+}
+
+func New(code code.ResCode, opts ...Option) *Exception {
+	exception := &Exception{
 		Code: code,
-		Msg:  msgs,
 	}
+
+	for _, opt := range opts {
+		opt(exception)
+	}
+
+	return exception
 }
