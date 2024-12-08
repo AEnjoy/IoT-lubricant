@@ -1,6 +1,10 @@
 package exception
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+import (
+	"errors"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+)
 
 type Exception struct {
 	Code         code.ResCode `json:"code"`
@@ -50,4 +54,12 @@ func New(code code.ResCode, opts ...Option) *Exception {
 	}
 
 	return exception
+}
+
+func CheckException(err error) (*Exception, error) {
+	var e *Exception
+	if ok := errors.As(err, &e); ok {
+		return e, nil
+	}
+	return nil, errors.New("not an internal exception")
 }
