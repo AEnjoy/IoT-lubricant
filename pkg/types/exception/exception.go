@@ -9,9 +9,12 @@ import (
 type Exception struct {
 	Code         code.ResCode `json:"code"`
 	Msg          string       `json:"msg"`
+	Level        code.Level   `json:"level,omitempty"`
 	Reason       interface{}  `json:"reason,omitempty"`
 	DetailReason interface{}  `json:"detail_reason,omitempty"`
 	Data         interface{}  `json:"data,omitempty"`
+	Operation    Operation    `json:"-"`
+	doOperation  bool
 }
 type Option func(*Exception)
 
@@ -44,6 +47,27 @@ func WithData(data interface{}) Option {
 	}
 }
 
+func WithLevel(l code.Level) Option {
+	return func(e *Exception) {
+		e.Level = l
+	}
+}
+func WithWillDo(callback func()) Option {
+	return func(e *Exception) {
+		callback()
+	}
+}
+func WithErrWillDo(callback func(error)) Option {
+	return func(e *Exception) {
+		callback(e)
+	}
+}
+func WithOperation(operation Operation, do bool) Option {
+	return func(e *Exception) {
+		e.Operation = operation
+		e.doOperation = do
+	}
+}
 func New(code code.ResCode, opts ...Option) *Exception {
 	exception := &Exception{
 		Code: code,
@@ -53,6 +77,9 @@ func New(code code.ResCode, opts ...Option) *Exception {
 		opt(exception)
 	}
 
+	if exception.Operation != nil && exception.doOperation {
+		exception.Operation.Do(exception)
+	}
 	return exception
 }
 
