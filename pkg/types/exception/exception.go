@@ -78,7 +78,7 @@ func New(code code.ResCode, opts ...Option) *Exception {
 	}
 
 	if exception.Operation != nil && exception.doOperation {
-		exception.Operation.Do(exception)
+		_ = exception.Operation.Do(exception)
 	}
 	return exception
 }

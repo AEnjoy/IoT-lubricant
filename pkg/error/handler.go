@@ -25,7 +25,7 @@ type Error struct {
 }
 
 func (err Error) IsEmpty() bool {
-	return &err.Exception == nil
+	return err.Exception.Msg == ""
 }
 
 func NewErrorChan() *ErrorChan {
