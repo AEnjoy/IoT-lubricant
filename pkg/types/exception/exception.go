@@ -82,7 +82,22 @@ func New(code code.ResCode, opts ...Option) *Exception {
 	}
 	return exception
 }
-
+func ErrNewException(err error, code code.ResCode, opts ...Option) *Exception {
+	if err == nil {
+		return nil
+	}
+	var exception *Exception
+	if errors.As(err, &exception) {
+		exception.Code = code
+		for _, opt := range opts {
+			opt(exception)
+		}
+	} else {
+		opts = append(opts, WithMsg(err.Error()))
+		exception = New(code, opts...)
+	}
+	return exception
+}
 func CheckException(err error) (*Exception, error) {
 	var e *Exception
 	if ok := errors.As(err, &e); ok {
