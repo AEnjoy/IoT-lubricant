@@ -25,7 +25,7 @@ type Error struct {
 }
 
 func (err Error) IsEmpty() bool {
-	return err.Exception.Msg == ""
+	return len(err.Exception.Msg) == 0
 }
 
 func NewErrorChan() *ErrorChan {
@@ -45,7 +45,7 @@ func (ec *ErrorChan) Report(err error, code code.ResCode, format string, useLogg
 		case ec.ErrCh <- Error{
 			Exception: exception.Exception{
 				Code:   code,
-				Msg:    message,
+				Msg:    []string{message},
 				Reason: err,
 			},
 		}:
