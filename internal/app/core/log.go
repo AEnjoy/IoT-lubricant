@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 )
 
 var errCh = make(chan *exception.ErrLogInfo, 3)

@@ -2,7 +2,6 @@ package edge
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -10,13 +9,9 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	json "github.com/bytedance/sonic"
-)
-
-var (
-	ErrInvalidConfig      = errors.New("invalid config. Please check if all necessary settings have been set")
-	ErrMultGatherInstance = errors.New("only one instance of the gather module can be started")
 )
 
 var _ gather = (*app)(nil)
@@ -29,12 +24,12 @@ type gather interface {
 
 func (a *app) StartGather(ctx context.Context) error { // Get
 	if !config.GatherLock.TryLock() {
-		return ErrMultGatherInstance
+		return errs.ErrMultGatherInstance
 	}
 	defer config.GatherLock.Unlock()
 
 	if !edge.CheckConfigInvalid(config.Config.Config) {
-		return ErrInvalidConfig
+		return errs.ErrInvalidConfig
 	}
 
 	enable := config.Config.Config.GetEnable()

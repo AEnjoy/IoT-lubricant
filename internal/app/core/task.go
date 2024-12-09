@@ -6,14 +6,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/user"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
-)
-
-var (
-	ErrTargetNoTask = errors.New("target has no task")
-	ErrTimeout      = errors.New("get task timeout")
 )
 
 // taskID -> task([]bytes)
@@ -71,7 +67,7 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 }
 func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
 	if _, ok := hasTask.Load(targetDeviceID); !ok {
-		return nil, ErrTargetNoTask
+		return nil, errs.ErrTargetNoTask
 	}
 
 	t, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID))
@@ -80,7 +76,7 @@ func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID
 	}
 	select {
 	case <-ctx.Done():
-		return nil, ErrTimeout
+		return nil, errs.ErrTimeout
 	case task := <-t:
 		hasTask.Delete(targetDeviceID)
 		return task, nil

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/google/uuid"
 )
@@ -31,7 +32,7 @@ func (a *app) handelSendSignal(id string) error {
 	//        2. need to support modify and trigger by core server manually
 	v, ok := agentDataStore.Load(id)
 	if !ok {
-		return ErrAgentNotFound
+		return errs.ErrAgentNotFound
 	}
 
 	agentMap := v.(*agentData)
@@ -44,7 +45,7 @@ func (a *app) handelSendSignal(id string) error {
 func (a *app) agentPushDataToServer(ctx context.Context, id string) error {
 	v, ok := agentDataStore.Load(id)
 	if !ok {
-		return ErrAgentNotFound
+		return errs.ErrAgentNotFound
 	}
 	agentMap := v.(*agentData)
 	for {

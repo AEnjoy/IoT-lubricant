@@ -1,9 +1,11 @@
-package utils
+package error
 
 import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 )
 
 const errorMessageTemplate = "error message: %s, Message: %s"
@@ -19,12 +21,11 @@ type ErrorChan struct {
 }
 
 type Error struct {
-	Err error
-	Msg string
+	exception.Exception
 }
 
 func (err Error) IsEmpty() bool {
-	return err.Err == nil
+	return len(err.Exception.Msg) == 0
 }
 
 func NewErrorChan() *ErrorChan {
@@ -34,14 +35,19 @@ func NewErrorChan() *ErrorChan {
 }
 
 // Report sends error to the error channel
-func (ec *ErrorChan) Report(err error, format string, a ...any) {
+func (ec *ErrorChan) Report(err error, code code.ResCode, format string, useLogger bool, a ...any) {
 	message := fmt.Sprintf(format, a...)
 	if err != nil {
-		logger.Debugf("Error reported: ", err, "Message: ", message)
+		if useLogger {
+			logger.Errorf(errorMessageTemplate, message, err)
+		}
 		select {
 		case ec.ErrCh <- Error{
-			Err: err,
-			Msg: message,
+			Exception: exception.Exception{
+				Code:   code,
+				Msg:    []string{message},
+				Reason: err,
+			},
 		}:
 		default:
 		}
@@ -71,9 +77,8 @@ func (eh *ErrorHandler) SuccessWillDo(callback func()) *ErrorHandler {
 func (eh *ErrorHandler) Do() {
 	select {
 	case err := <-eh.ErrorChan.ErrCh:
-		logger.Errorf(errorMessageTemplate, err.Err.Error(), err.Msg)
 		if !err.IsEmpty() {
-			eh.errorRun(err.Err)
+			eh.errorRun(&err.Exception)
 			return
 		}
 	default:

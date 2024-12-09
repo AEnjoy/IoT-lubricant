@@ -9,11 +9,8 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	e "github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-)
-
-var (
-	ErrAgentNotFound = errors.New("agent not found")
 )
 
 func (a *app) dataStoreJoinAgent(id string) (errs error) {
@@ -28,7 +25,7 @@ func (a *app) dataStoreJoinAgent(id string) (errs error) {
 
 func (a *app) agentStop(id string) (errs error) {
 	if _, ok := agentPool[id]; !ok {
-		return ErrAgentNotFound
+		return e.ErrAgentNotFound
 	}
 	agentPool[id].cancel()
 	return

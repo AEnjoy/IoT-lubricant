@@ -1,10 +1,11 @@
 package openapi
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 )
 
 type Enable struct {
@@ -12,13 +13,6 @@ type Enable struct {
 	Post map[string]*RequestBody `json:"post"`
 	Slot map[int]string          `json:"slot"` // slot_id:method-path
 }
-
-var (
-	ErrInvalidInput = errors.New("invalid input")
-	ErrInvalidPath  = errors.New("invalid path")
-	ErrInvalidSlot  = errors.New("invalid slot")
-	ErrNotInit      = errors.New("not initialized")
-)
 
 type EnableParams struct {
 	// 不需要考虑同时设置get和post参数的情况
@@ -42,11 +36,11 @@ func (e *Enable) SlotGetEnable(slot int) (method, path string) {
 // 如果不需要添加参数，params 仍然应该不为 nil，但里面的参数全为空即可
 func EnableApi(doc OpenApi, params *EnableParams, path string) (OpenApi, error) {
 	if params == nil {
-		return nil, ErrInvalidInput
+		return nil, errs.ErrInvalidInput
 	}
 	item, ok := doc.GetPaths()[path]
 	if !ok {
-		return nil, ErrInvalidPath
+		return nil, errs.ErrInvalidPath
 	}
 	apiInfo := doc.(*ApiInfo)
 	apiInfo.l.Lock()
@@ -98,7 +92,7 @@ func DisableApi(doc OpenApi, slot int) (OpenApi, error) {
 	defer apiInfo.l.Unlock()
 
 	if apiInfo.Slot == nil {
-		return nil, ErrInvalidSlot
+		return nil, errs.ErrInvalidSlot
 	}
 
 	method, path := apiInfo.SlotGetEnable(slot)
@@ -118,18 +112,18 @@ func DisableApi(doc OpenApi, slot int) (OpenApi, error) {
 // 如果slot = -1,api会自动寻找对应的slot，否则为覆盖 slot
 func UpdateApi(doc OpenApi, params *EnableParams, path string) (OpenApi, error) {
 	if params == nil {
-		return nil, ErrInvalidInput
+		return nil, errs.ErrInvalidInput
 	}
 	item, ok := doc.GetPaths()[path]
 	if !ok {
-		return nil, ErrInvalidPath
+		return nil, errs.ErrInvalidPath
 	}
 	apiInfo := doc.(*ApiInfo)
 	apiInfo.l.Lock()
 	defer apiInfo.l.Unlock()
 
 	if apiInfo.Slot == nil {
-		return nil, ErrNotInit
+		return nil, errs.ErrNotInit
 	}
 
 	if params.GetParams != nil && item.GetGet() != nil {
@@ -142,7 +136,7 @@ func UpdateApi(doc OpenApi, params *EnableParams, path string) (OpenApi, error) 
 			}
 		}
 		if params.Slot == -1 {
-			return nil, ErrInvalidSlot
+			return nil, errs.ErrInvalidSlot
 		}
 
 		var parameters []Parameter
@@ -165,7 +159,7 @@ func UpdateApi(doc OpenApi, params *EnableParams, path string) (OpenApi, error) 
 			}
 		}
 		if params.Slot == -1 {
-			return nil, ErrInvalidSlot
+			return nil, errs.ErrInvalidSlot
 		}
 
 		apiInfo.Enable.Post[path] = params.PostParams

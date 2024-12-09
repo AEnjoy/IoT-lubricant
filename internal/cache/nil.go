@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 )
 
 var (
@@ -28,41 +29,41 @@ func (n NilCache[T]) Version() string {
 }
 
 func (n NilCache[T]) SetEx(context.Context, string, T, time.Duration) error {
-	return ErrNullCache
+	return errs.ErrNullCache
 }
 
 func (n NilCache[T]) Set(context.Context, string, T) error {
-	return ErrNullCache
+	return errs.ErrNullCache
 }
 
 func (n NilCache[T]) HSet(context.Context, string, string, T) error {
-	return ErrNullCache
+	return errs.ErrNullCache
 }
 
 func (n NilCache[T]) HGet(context.Context, string, string) (T, error) {
 	var zero T
-	return zero, ErrNullCache
+	return zero, errs.ErrNullCache
 }
 
 func (n NilCache[T]) Get(context.Context, string) (T, error) {
 	var zero T
-	return zero, ErrNullCache
+	return zero, errs.ErrNullCache
 }
 
 func (n NilCache[T]) Incr(context.Context, string) (int64, error) {
-	return 0, ErrNullCache
+	return 0, errs.ErrNullCache
 }
 
 func (n NilCache[T]) Decr(context.Context, string) (int64, error) {
-	return 0, ErrNullCache
+	return 0, errs.ErrNullCache
 }
 
 func (n NilCache[T]) Delete(context.Context, string) error {
-	return ErrNullCache
+	return errs.ErrNullCache
 }
 
 func (n NilCache[T]) Expire(context.Context, string, time.Duration) error {
-	return ErrNullCache
+	return errs.ErrNullCache
 }
 
 func (n NilCache[T]) Close(context.Context) error {

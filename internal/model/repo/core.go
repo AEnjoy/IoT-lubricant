@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"gorm.io/gorm"
 )
@@ -55,14 +56,14 @@ func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*model.Gateway,
 func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error {
 	gateway.UserId = userID
 	if txn == nil {
-		return model.ErrNeedTxn
+		return errs.ErrNeedTxn
 	}
 	return txn.WithContext(ctx).Create(&gateway).Error
 }
 
 func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error {
 	if txn == nil {
-		return model.ErrNeedTxn
+		return errs.ErrNeedTxn
 	}
 	return txn.WithContext(ctx).Where("id = ?", gateway.GatewayID).Save(&gateway).Error
 }

@@ -3,10 +3,10 @@ package cache
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -15,17 +15,13 @@ var (
 	_ ioc.Object    = (*RedisCli[any])(nil)
 )
 
-var (
-	ErrNeedInit = errors.New("cache client need init")
-)
-
 type RedisCli[T any] struct {
 	rdb *redis.Client
 }
 
 func (i *RedisCli[T]) Init() error {
 	if i.rdb == nil {
-		return ErrNeedInit
+		return errs.ErrNeedInit
 	}
 	return nil
 }

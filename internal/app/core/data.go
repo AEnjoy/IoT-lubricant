@@ -5,7 +5,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 )
