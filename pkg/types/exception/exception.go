@@ -5,16 +5,17 @@ import (
 	"strings"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+	except "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 )
 
 type Exception struct {
-	Code         code.ResCode `json:"code"`
-	Msg          []string     `json:"msg"`
-	Level        code.Level   `json:"level,omitempty"`
-	Reason       interface{}  `json:"reason,omitempty"`
-	DetailReason interface{}  `json:"detail_reason,omitempty"`
-	Data         interface{}  `json:"data,omitempty"`
-	Operation    Operation    `json:"-"`
+	Code         except.ResCode `json:"code"`
+	Msg          []string       `json:"msg"`
+	Level        code.Level     `json:"level,omitempty"`
+	Reason       interface{}    `json:"reason,omitempty"`
+	DetailReason interface{}    `json:"detail_reason,omitempty"`
+	Data         interface{}    `json:"data,omitempty"`
+	Operation    Operation      `json:"-"`
 	doOperation  bool
 }
 type Option func(*Exception)
@@ -23,6 +24,7 @@ func (e *Exception) Error() string {
 	var str strings.Builder
 	for _, msg := range e.Msg {
 		str.WriteString(msg)
+		str.WriteString("; ")
 	}
 	return str.String()
 }
@@ -73,13 +75,13 @@ func WithOperation(operation Operation, do bool) Option {
 		e.doOperation = do
 	}
 }
-func New(c code.ResCode, opts ...Option) *Exception {
+func New(c except.ResCode, opts ...Option) *Exception {
 	exception := &Exception{
 		Code: c,
 	}
 
 	m := c.GetMsg()
-	if m != code.StatusMsgMap[code.ErrorUnknown] {
+	if m != except.StatusMsgMap[except.ErrorUnknown] {
 		exception.Msg = []string{m}
 	}
 
@@ -92,7 +94,7 @@ func New(c code.ResCode, opts ...Option) *Exception {
 	}
 	return exception
 }
-func ErrNewException(err error, code code.ResCode, opts ...Option) *Exception {
+func ErrNewException(err error, code except.ResCode, opts ...Option) *Exception {
 	if err == nil {
 		return nil
 	}

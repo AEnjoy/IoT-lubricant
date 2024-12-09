@@ -31,6 +31,44 @@ const (
 	ErrorReadRequestBody
 )
 
+// core module
+const (
+	ErrorCoreNoTask ResCode = 120001 + iota
+	ErrorCoreTaskTimeout
+)
+
+// gateway
+const (
+	ErrorGatewayAgentNotFound ResCode = 130001 + iota
+)
+
+// agent
+const (
+	ErrorAgentInvalidConfig ResCode = 140001 + iota
+	ErrorAgentNotAllowMultiGatherInstance
+)
+
+// cache
+const (
+	ErrorCacheNeedInit ResCode = 200001 + iota
+	ErrorCacheNullCache
+)
+
+// database
+const (
+	ErrorDbNeedTxn ResCode = 210001 + iota
+)
+
+// openapi
+const (
+	ErrorApiNotFound ResCode = 220001 + iota
+	ErrorApiInvalidMethod
+	ErrorApiInvalidInput
+	ErrorApiInvalidPath
+	ErrorApiInvalidSlot
+	ErrorApiNotInit
+)
+
 var StatusMsgMap = map[ResCode]string{
 	Success:                  "success",
 	ErrorBadRequest:          "Invalid Request",
@@ -49,6 +87,26 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorInvalidAuthHeader:   "Invalid authorization header",
 	ErrorInvalidAuthKey:      "Invalid authorization key",
 	ErrorForbidden:           "Permission Denied",
+
+	ErrorCoreNoTask:      "target has no task",
+	ErrorCoreTaskTimeout: "get task timeout",
+
+	ErrorGatewayAgentNotFound: "agent not found",
+
+	ErrorAgentInvalidConfig:               "invalid config",
+	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",
+
+	ErrorCacheNeedInit:  "cache client need init",
+	ErrorCacheNullCache: "cache client is nil",
+
+	ErrorDbNeedTxn: "this operation need start with txn support",
+
+	ErrorApiNotFound:      "not found",
+	ErrorApiInvalidMethod: "invalid method",
+	ErrorApiInvalidInput:  "invalid input",
+	ErrorApiInvalidPath:   "invalid path",
+	ErrorApiInvalidSlot:   "invalid slot",
+	ErrorApiNotInit:       "not initialized",
 }
 
 // GetMsg 返回状态码对应msg

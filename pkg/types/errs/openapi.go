@@ -1,13 +1,16 @@
 package errs
 
-import "errors"
+import (
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+)
 
 var (
-	ErrNotFound      = errors.New("not found")
-	ErrInvalidMethod = errors.New("invalid method")
+	ErrNotFound      error = exception.New(code.ErrorApiNotFound)
+	ErrInvalidMethod error = exception.New(code.ErrorApiInvalidMethod)
 
-	ErrInvalidInput = errors.New("invalid input")
-	ErrInvalidPath  = errors.New("invalid path")
-	ErrInvalidSlot  = errors.New("invalid slot")
-	ErrNotInit      = errors.New("not initialized")
+	ErrInvalidInput error = exception.New(code.ErrorApiInvalidInput)
+	ErrInvalidPath  error = exception.New(code.ErrorApiInvalidPath)
+	ErrInvalidSlot  error = exception.New(code.ErrorApiInvalidSlot)
+	ErrNotInit      error = exception.New(code.ErrorApiNotInit)
 )

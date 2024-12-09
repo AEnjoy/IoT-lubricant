@@ -1,8 +1,11 @@
 package errs
 
-import "errors"
+import (
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+)
 
 var (
-	ErrNeedInit  = errors.New("cache client need init")
-	ErrNullCache = errors.New("cache client is nil")
+	ErrNeedInit  error = exception.New(code.ErrorCacheNeedInit)
+	ErrNullCache error = exception.New(code.ErrorCacheNullCache)
 )

@@ -1,7 +1,10 @@
 package errs
 
-import "errors"
+import (
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+)
 
 var (
-	ErrNeedTxn = errors.New("this operation need start with txn support")
+	ErrNeedTxn error = exception.New(code.ErrorDbNeedTxn)
 )

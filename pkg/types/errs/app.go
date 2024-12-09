@@ -1,20 +1,23 @@
 package errs
 
-import "errors"
+import (
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+)
 
 // Core
 var (
-	ErrTargetNoTask = errors.New("target has no task")
-	ErrTimeout      = errors.New("get task timeout")
-)
-
-// Edge-Agent
-var (
-	ErrInvalidConfig      = errors.New("invalid config. Please check if all necessary settings have been set")
-	ErrMultGatherInstance = errors.New("only one instance of the gather module can be started")
+	ErrTargetNoTask error = exception.New(code.ErrorCoreNoTask)
+	ErrTimeout      error = exception.New(code.ErrorCoreTaskTimeout)
 )
 
 // Gateway-proxy
 var (
-	ErrAgentNotFound = errors.New("agent not found")
+	ErrAgentNotFound error = exception.New(code.ErrorGatewayAgentNotFound)
+)
+
+// Edge-Agent
+var (
+	ErrInvalidConfig      error = exception.New(code.ErrorAgentInvalidConfig, exception.WithMsg("Please check if all necessary settings have been set"))
+	ErrMultGatherInstance error = exception.New(code.ErrorAgentNotAllowMultiGatherInstance, exception.WithMsg("Only one instance of the gather module can be started"))
 )

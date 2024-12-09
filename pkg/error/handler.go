@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 )
 
 const errorMessageTemplate = "error message: %s, Message: %s"
