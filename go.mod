@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/DataDog/zstd v1.5.6
-	github.com/bytedance/sonic v1.12.3
+	github.com/bytedance/sonic v1.12.5
 	github.com/caarlos0/env/v11 v11.2.2
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/docker/go-connections v0.5.0
