@@ -2,13 +2,14 @@ package exception
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 )
 
 type Exception struct {
 	Code         code.ResCode `json:"code"`
-	Msg          string       `json:"msg"`
+	Msg          []string     `json:"msg"`
 	Level        code.Level   `json:"level,omitempty"`
 	Reason       interface{}  `json:"reason,omitempty"`
 	DetailReason interface{}  `json:"detail_reason,omitempty"`
@@ -19,13 +20,17 @@ type Exception struct {
 type Option func(*Exception)
 
 func (e *Exception) Error() string {
-	return e.Msg
+	var str strings.Builder
+	for _, msg := range e.Msg {
+		str.WriteString(msg)
+	}
+	return str.String()
 }
 
 // WithMsg 允许设置多条错误信息，但新旧错误信息间没有分隔符
 func WithMsg(msg string) Option {
 	return func(e *Exception) {
-		e.Msg += msg
+		e.Msg = append(e.Msg, msg)
 	}
 }
 
@@ -75,7 +80,7 @@ func New(c code.ResCode, opts ...Option) *Exception {
 
 	m := c.GetMsg()
 	if m != code.StatusMsgMap[code.ErrorUnknown] {
-		exception.Msg = m
+		exception.Msg = []string{m}
 	}
 
 	for _, opt := range opts {
