@@ -68,9 +68,14 @@ func WithOperation(operation Operation, do bool) Option {
 		e.doOperation = do
 	}
 }
-func New(code code.ResCode, opts ...Option) *Exception {
+func New(c code.ResCode, opts ...Option) *Exception {
 	exception := &Exception{
-		Code: code,
+		Code: c,
+	}
+
+	m := c.GetMsg()
+	if m != code.StatusMsgMap[code.ErrorUnknown] {
+		exception.Msg = m
 	}
 
 	for _, opt := range opts {
