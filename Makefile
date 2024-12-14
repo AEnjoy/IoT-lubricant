@@ -31,4 +31,4 @@ mock: install
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
 
 build-agent:
-	docker build -t hub.iotroom.top/AEnjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
+	docker build -t hub.iotroom.top/aenjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
