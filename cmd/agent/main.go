@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	agent "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
 )
 
 const (
 	CONF_FILE_ENV = "CONFIG"
 	HOST_ENV      = "HOST"
+	BIND_GRPC_ENV = "BIND_GRPC"
 )
 
 var (
@@ -40,7 +41,7 @@ func printBuildInfo() {
 	fmt.Printf("Features: %s\n", Features)
 	fmt.Printf("Platform: %s\n", Platform)
 	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("Runing Platform Info: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 }
 func main() {
 	var envFilePath string
@@ -60,26 +61,21 @@ func main() {
 
 	configFile := os.Getenv(CONF_FILE_ENV)
 	hostname := os.Getenv(HOST_ENV) //ip:port
+	bindGrpc := os.Getenv(BIND_GRPC_ENV)
 
-	f, err := os.ReadFile(configFile)
+	var config model.EdgeSystem
+	err := file.ReadYamlFile(configFile, &config)
 	if err != nil {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
-	var config model.EdgeSystem
-	_ = yaml.Unmarshal(f, &config)
-
-	if file.IsFileExists(config.FileName + ".enable") {
-		config.FileName = config.FileName + ".enable"
-	}
-
-	app := edge.NewApp(
-		edge.UseCtrl(context.Background()),
-		edge.UseConfig(&config),
-		edge.UseMq(mq.NewNatsMq[[]byte](fmt.Sprintf("nats://%s", hostname))),
-		//edge.UseGRPC(edge.NewGrpcClient(hostname, config.ID)),
-		edge.UseHostAddress(hostname),
-		edge.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
+	app := agent.NewApp(
+		agent.UseCtrl(context.Background()),
+		agent.UseConfig(&config),
+		agent.UseGRPC(bindGrpc),
+		agent.UseHostAddress(hostname),
+		agent.UseOpenApi(openapi.NewOpenApiCli(config.FileName)),
+		agent.UseSignalHandler(utils.HandelExitSignal(nil, agent.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }

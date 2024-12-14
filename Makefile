@@ -24,7 +24,7 @@ install:
 
 mock: install
 	mockgen \
-		-source=pkg/model/interface.go -destination=pkg/mock/db/mockdb.go \
+		-source=internal/model/repo/service.go -destination=pkg/mock/db/mockdb.go \
 		-package=db
 	mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
