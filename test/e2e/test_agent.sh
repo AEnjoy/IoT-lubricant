@@ -6,7 +6,7 @@ echo "Preparing python dependency"
 sudo pip3 install -r test/mock_driver/clock/requirements.txt
 
 echo "Running Mock E2E test server for openapi"
-python3 test/mock_driver/clock/clock.py &
+sudo python3 test/mock_driver/clock/clock.py &
 
 echo "Start Agent:"
 go build -o cmd/agent/agent ./cmd/agent
