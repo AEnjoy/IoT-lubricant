@@ -9,13 +9,11 @@ echo "Running Mock E2E test server for openapi"
 python3 test/mock_driver/clock/clock.py &
 
 echo "Start Agent:"
-cd cmd/agent
-go build -o agent .
-./agent --env=core.env &
+go build -o cmd/agent/agent ./cmd/agent
+cmd/agent/agent --env=test/mock_driver/clock/agent_env &
 
 echo "Start Test Client:"
-cd ../test/agent
-go build -o agent_test .
-cd ../../test
-../cmd/test/agent/agent_test mini --agent-id clock-agent
-
+go build -o test/agent_test ./cmd/test/agent
+cd test
+./agent_test mini --agent-id clock-agent
+cd ..

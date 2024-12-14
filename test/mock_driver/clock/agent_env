@@ -1,0 +1,4 @@
+CONFIG=test/mock_driver/clock/agent.yaml
+HOST=127.0.0.1
+BIND_GRPC=0.0.0.0:5436
+LOG_LEVEL=debug
