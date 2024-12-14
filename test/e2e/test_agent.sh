@@ -3,7 +3,7 @@ set -e
 echo "Test Agent..."
 
 echo "Preparing python dependency"
-sudo pip3 install -i test/mock_driver/clock/requirements.txt
+sudo pip3 install -r test/mock_driver/clock/requirements.txt
 
 echo "Running Mock E2E test server for openapi"
 python3 test/mock_driver/clock/clock.py &
