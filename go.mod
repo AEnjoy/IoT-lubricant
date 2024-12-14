@@ -8,7 +8,7 @@ require (
 	github.com/caarlos0/env/v11 v11.2.2
 	github.com/docker/docker v27.4.0+incompatible
 	github.com/docker/go-connections v0.5.0
-	github.com/dop251/goja v0.0.0-20241009100908-5f46f2705ca3
+	github.com/dop251/goja 79f3a7efcdbd
 	github.com/getkin/kin-openapi v0.128.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
