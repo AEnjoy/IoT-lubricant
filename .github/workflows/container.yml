@@ -25,11 +25,12 @@ jobs:
         run: |
           set -e
           make build-agent
-          docker run -itd --net=host hub.iotroom.top/aenjoy/lubricant-agent:nightly
+          # docker run -itd --net=host hub.iotroom.top/aenjoy/lubricant-agent:nightly
+          docker run -itd -p 5436:5436 hub.iotroom.top/aenjoy/lubricant-agent:nightly
+          python3 test/files/util_modify_api_url.py
           go build -o test/agent_test ./cmd/test/agent
           sudo pip3 install -r test/mock_driver/clock/requirements.txt
           sudo python3 test/mock_driver/clock/clock.py &
-          # python3 test/files/util_modify_api_url.py
           cd test
           ./agent_test mini --agent-id clock-agent 
           cd ..
