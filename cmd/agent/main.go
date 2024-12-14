@@ -64,8 +64,9 @@ func main() {
 	bindGrpc := os.Getenv(BIND_GRPC_ENV)
 
 	var config model.EdgeSystem
-	err := file.ReadYamlFile(configFile, &config)
-	if err != nil {
+	if configFile == "" {
+		logger.Warnln("No config file specified, using default values.")
+	} else if err := file.ReadYamlFile(configFile, &config); err != nil {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
