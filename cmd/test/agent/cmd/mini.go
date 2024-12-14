@@ -23,12 +23,12 @@ func MiniTest() *cobra.Command {
 				panic(err.Error())
 			}
 			abort, _ := cmd.Flags().GetBool("auto-abort")
-
-			panic(testApp.Service(&testApp.Mini{}).App(cli, abort))
+			init, _ := cmd.Flags().GetBool("has-inited")
+			panic(testApp.Service(&testApp.Mini{}).App(cli, abort, init))
 		},
 		SilenceUsage:  false,
 		SilenceErrors: false,
 	}
-
+	testCommand.Flags().Bool("has-inited", false, "Whether the agent has been initialized")
 	return testCommand
 }

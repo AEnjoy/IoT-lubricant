@@ -21,7 +21,7 @@ var _ Service = new(Mini)
 type Mini struct {
 }
 
-func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
+func (Mini) App(cli pb.EdgeServiceClient, abort, init bool) error {
 	var (
 		r          *test.Result
 		ctx              = context.Background()
@@ -33,9 +33,10 @@ func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
 	r.CheckResult(abort)
 
 	test.GatewayID = uuid.NewString()
-
-	r = api.TestRegisterGateway(cli)
-	r.CheckResult(abort)
+	if init {
+		r = api.TestRegisterGateway(cli)
+		r.CheckResult(abort)
+	}
 
 	originalApiData, err := os.ReadFile("mock_driver/clock/api.json")
 	if err != nil {
@@ -77,7 +78,10 @@ func (Mini) App(cli pb.EdgeServiceClient, abort bool) error {
 		println("failed")
 		return errors.New(resp.GetInfo().GetMessage())
 	}
-
+	if !init {
+		r = api.TestRegisterGateway(cli)
+		r.CheckResult(abort)
+	}
 	_, err = cli.GetOpenapiDoc(ctx, &pb.GetOpenapiDocRequest{
 		AgentID: test.AgentID,
 		DocType: pb.OpenapiDocType_originalFile,
