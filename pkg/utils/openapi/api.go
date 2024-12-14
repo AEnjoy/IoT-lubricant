@@ -165,12 +165,16 @@ func (api *ApiInfo) InitApis(filename string) error {
 	api.filename = filename
 	api.OpenAPICli = OpenAPICli{}
 
-	err := file.ReadJsonFile(filename, &api.OpenAPICli)
-	if err != nil {
-		panic(err)
+	if filename != "" {
+		err := file.ReadJsonFile(filename, &api.OpenAPICli)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		api.OpenAPICli.Paths = make(map[string]PathItem)
 	}
 
-	return err
+	return nil
 }
 func (api *ApiInfo) SendGETMethod(path string, parameters []Parameter) ([]byte, error) {
 	if _, ok := api.Paths[path]; !ok {

@@ -30,6 +30,9 @@ func (*agentServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
 
 func (*agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGatewayRequest) (*pb.RegisterGatewayResponse, error) {
 	var resp pb.RegisterGatewayResponse
+	if config.Config.ID == "" {
+		return &pb.RegisterGatewayResponse{Info: &meta.CommonResponse{}}, nil
+	}
 	if request.GetAgentID() != config.Config.ID {
 		resp.AgentID = config.Config.ID
 		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
