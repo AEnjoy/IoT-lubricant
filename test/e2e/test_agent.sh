@@ -10,12 +10,12 @@ python3 test/mock_driver/clock/clock.py &
 
 echo "Start Agent:"
 cd cmd/agent
-go build . -o agent
+go build -o agent .
 ./agent --env=core.env &
 
 echo "Start Test Client:"
 cd ../test/agent
-go build . -o agent_test
+go build -o agent_test .
 cd ../../test
 ../cmd/test/agent/agent_test mini --agent-id clock-agent
 
