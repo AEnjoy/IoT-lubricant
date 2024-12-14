@@ -10,6 +10,7 @@ RUN go build -o /agent
 FROM alpine:latest
 WORKDIR /root/
 COPY --from=builder /agent .
+EXPOSE 5436
 
 # COPY scripts/files ./files
 

@@ -25,3 +25,9 @@ jobs:
         run: |
           set -e
           make build-agent
+          docker run -itd --net=host hub.iotroom.top/AEnjoy/lubricant-agent:nightly
+          go build -o test/agent_test ./cmd/test/agent
+          # python3 test/files/util_modify_api_url.py
+          cd test
+          ./agent_test mini --agent-id clock-agent 
+          cd ..

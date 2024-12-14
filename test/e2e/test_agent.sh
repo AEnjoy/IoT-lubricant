@@ -15,5 +15,5 @@ cmd/agent/agent --env=test/mock_driver/clock/agent_env &
 echo "Start Test Client:"
 go build -o test/agent_test ./cmd/test/agent
 cd test
-./agent_test mini --agent-id clock-agent
+./agent_test mini --agent-id clock-agent --has-inited
 cd ..
