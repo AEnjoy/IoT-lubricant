@@ -23,10 +23,12 @@ jobs:
 
     - name: UnitTest
       run: |
+        set -e
         make test
 
     - name: E2E Test
       run: |
+        set -e
         sh test/e2e/test_agent.sh
 #    - name: Build
 #      run: go build -v ./...
