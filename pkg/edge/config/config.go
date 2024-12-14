@@ -49,7 +49,9 @@ func SaveConfig(t SaveType) error {
 		if fileName == "" {
 			fileName = def.AgentDefaultConfigFileName
 		}
-
+		if Config.FileName == "" {
+			Config.FileName = def.AgentDefaultOpenapiFileName
+		}
 		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err

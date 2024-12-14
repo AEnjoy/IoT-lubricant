@@ -12,12 +12,15 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	json "github.com/bytedance/sonic"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type agentServer struct {
@@ -29,6 +32,9 @@ func (*agentServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
 }
 
 func (*agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGatewayRequest) (*pb.RegisterGatewayResponse, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	var resp pb.RegisterGatewayResponse
 	if request.GetAgentID() != config.Config.ID {
 		resp.AgentID = config.Config.ID
@@ -43,9 +49,11 @@ func (*agentServer) RegisterGateway(_ context.Context, request *pb.RegisterGatew
 
 func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest) (*pb.SetAgentResponse, error) {
 	var resp pb.SetAgentResponse
-	if request.GetAgentID() != config.Config.ID {
-		resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
-		return &resp, nil
+	if config.Config.ID != "" {
+		if request.GetAgentID() != config.Config.ID {
+			resp.Info = &meta.CommonResponse{Code: 500, Message: "target agentID error"}
+			return &resp, nil
+		}
 	}
 
 	resp.Info = &meta.CommonResponse{Code: 200, Message: "success"}
@@ -132,6 +140,9 @@ func (a *agentServer) SetAgent(ctx context.Context, request *pb.SetAgentRequest)
 }
 
 func (*agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRequest) (*pb.OpenapiDoc, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	var o, e []byte
 	if request.GetAgentID() != config.Config.ID {
 		return nil, errors.New("target agentID error")
@@ -176,6 +187,9 @@ func (*agentServer) GetOpenapiDoc(_ context.Context, request *pb.GetOpenapiDocRe
 }
 
 func (a *agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfoRequest) (*pb.GetAgentInfoResponse, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	c := int32(config.Config.Cycle)
 	ds, err := a.GetOpenapiDoc(ctx, &pb.GetOpenapiDocRequest{AgentID: request.GetAgentID(), DocType: pb.OpenapiDocType_All})
 	if err != nil {
@@ -195,6 +209,9 @@ func (a *agentServer) GetAgentInfo(ctx context.Context, request *pb.GetAgentInfo
 }
 
 func (*agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest) (*pb.DataMessage, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	if request.GetAgentID() != config.Config.ID {
 		return nil, errors.New("target agentID error")
 	}
@@ -222,6 +239,9 @@ func (*agentServer) GetGatherData(_ context.Context, request *pb.GetDataRequest)
 //}
 
 func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethodRequest) (*pb.SendHttpMethodResponse, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	var resp pb.SendHttpMethodResponse
 	resp.Data = &pb.DataMessage{}
 	if request.GetAgentID() != config.Config.ID {
@@ -273,6 +293,9 @@ func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethod
 	return nil, errors.New("method not support")
 }
 func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 	if config.IsGathering() {
@@ -289,6 +312,9 @@ func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (
 	}
 }
 func (*agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*meta.CommonResponse, error) {
+	if config.Config.ID == "" {
+		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
+	}
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 

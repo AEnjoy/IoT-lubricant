@@ -9,6 +9,7 @@ var (
 )
 
 const (
-	AgentDefaultConfigFileName = "agent.yaml"
-	AgentGrpcPort              = 5436
+	AgentDefaultConfigFileName  = "agent.yaml"
+	AgentDefaultOpenapiFileName = "api.json"
+	AgentGrpcPort               = 5436
 )
