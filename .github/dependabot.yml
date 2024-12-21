@@ -7,7 +7,19 @@ updates:
       time: "09:00"
       timezone: "Asia/Shanghai"
   - package-ecosystem: "pip"
-    directory: "/test/mock_driver/clock" # Location of package manifests
+    directory: "/test/mock_driver/clock"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+  - package-ecosystem: "docker"
+    directory: "/"
     schedule:
       interval: "daily"
       time: "09:00"
