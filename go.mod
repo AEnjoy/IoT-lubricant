@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/DataDog/zstd v1.5.6
 	github.com/bytedance/sonic v1.12.5
-	github.com/caarlos0/env/v11 v11.2.2
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/docker/docker v27.4.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dop251/goja v0.0.0-20241009100908-5f46f2705ca3
