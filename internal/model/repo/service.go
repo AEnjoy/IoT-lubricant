@@ -45,11 +45,12 @@ type CoreDbOperator interface {
 	// User:
 }
 type GatewayDbOperator interface {
-	GetServerInfo() model.ServerInfo
+	GetServerInfo() *model.ServerInfo
 	IsAgentIdExists(string) bool
 	GetAllAgentId() []string
 	GetAllAgents() ([]model.Agent, error)
 	RemoveAgent(...string) bool
 	GetAgentReportCycle(string) int
 	GetAgentGatherCycle(string) int
+	GetAgentInstance(id string) model.AgentInstance
 }

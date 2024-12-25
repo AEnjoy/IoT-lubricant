@@ -32,7 +32,7 @@ func (d *CoreDb) AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, a
 }
 
 func (d *CoreDb) UpdateAgent(ctx context.Context, txn *gorm.DB, agent model.Agent) error {
-	return txn.WithContext(ctx).Where("id = ?", agent.Id).Save(&agent).Error
+	return txn.WithContext(ctx).Where("id = ?", agent.AgentId).Save(&agent).Error
 }
 
 func (d *CoreDb) DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error {

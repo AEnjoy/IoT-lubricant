@@ -52,7 +52,7 @@ func (a *app) agentPoolInit() error {
 	var wg sync.WaitGroup
 	for _, agent := range as {
 		wg.Add(1)
-		_ = a.dataStoreJoinAgent(agent.Id)
+		_ = a.dataStoreJoinAgent(agent.AgentId)
 		control := new(agentControl)
 		control.agentInfo = &agent
 		go func() {
@@ -94,7 +94,7 @@ func (a *agentControl) agentJoinToPool(ctx context.Context) error {
 		return err
 	}
 
-	a.id = a.agentInfo.Id
+	a.id = a.agentInfo.AgentId
 	a.agentCli = cli
 
 	agentPoolMutex.Lock()

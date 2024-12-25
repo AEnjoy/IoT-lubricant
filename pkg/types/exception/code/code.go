@@ -40,6 +40,7 @@ const (
 // gateway
 const (
 	ErrorGatewayAgentNotFound ResCode = 130001 + iota
+	WarnAgentOffline
 )
 
 // agent
@@ -93,6 +94,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorCoreTaskTimeout: "get task timeout",
 
 	ErrorGatewayAgentNotFound: "agent not found",
+	WarnAgentOffline:          "agent is offline",
 
 	ErrorAgentInvalidConfig:               "invalid config",
 	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",

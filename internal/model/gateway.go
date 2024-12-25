@@ -7,7 +7,8 @@ import (
 )
 
 type Agent struct {
-	Id          string `json:"id" gorm:"column:id;primary_key"` // agent id
+	ID          int    `json:"id" gorm:"column:id;primary_key"`
+	AgentId     string `json:"agent_id" gorm:"column:agent_id"` // agent id
 	GatewayId   string `json:"gateway_id" gorm:"column:gateway_id"`
 	Description string `json:"description" gorm:"column:description"`
 	Cycle       int    `json:"cycle" gorm:"column:cycle"`               //上报周期 默认30 单位：秒

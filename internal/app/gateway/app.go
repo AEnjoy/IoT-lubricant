@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
+	"os"
+	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
+	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc"
@@ -22,7 +23,6 @@ var gatewayId string
 
 type app struct {
 	ctrl context.Context
-	mq   mq.Mq[[]byte]
 
 	repo.GatewayDbOperator
 
@@ -44,32 +44,12 @@ func (a *app) Run() error {
 	go a.agentPoolAgentRegis()
 	go a.agentPoolChStartService()
 	//go a.agentHandelSignal()
+	for {
+		time.Sleep(time.Second * 5)
+	}
 	return a.grpcApp() // gateway <--> core
 }
-func SetPort(port string) func(*app) error {
-	return func(s *app) error {
-		portInt, err := strconv.Atoi(port)
-		if err != nil {
-			logger.Warn("Invalid port number, using default value.")
-			portInt = 4222
-			port = "4222"
-		}
 
-		s.port = port
-
-		server, err := nats.NewNatsServer(portInt)
-		if err != nil {
-			return err
-		}
-		go server.Start()
-
-		s.mq, err = mq.NewNatsMq[[]byte](fmt.Sprintf("nats://127.0.0.1:%s", s.port))
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-}
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
@@ -85,7 +65,7 @@ func UseDB(db *repo.GatewayDb) func(*app) error {
 	}
 }
 
-func LinkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
+func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 	return func(a *app) error {
 		var conn *grpc.ClientConn
 		var err error
@@ -123,5 +103,33 @@ func LinkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 			return errors.New("lubricant server not ready")
 		}
 		return nil
+	}
+}
+
+func LinkCoreServer() func(*app) error {
+	return func(a *app) error {
+		local := func(info *model.ServerInfo) error {
+			return linkToGrpcServer(fmt.Sprintf("%s:%d", info.Host, info.Port), &info.TlsConfig)(a)
+		}
+		env := func(address string) error {
+			return linkToGrpcServer(address, nil)(a)
+		}
+
+		address := os.Getenv(def.ENV_CORE_HOST_STR)
+		info := a.GatewayDbOperator.GetServerInfo()
+		if info == nil && address == "" {
+			return errors.New("address should not be empty when not initialized")
+		}
+		if info != nil {
+			if info.Host == "" || info.Port == 0 {
+				logger.Error("Incorrect local configuration, starting with environment variable")
+				return env(address)
+			}
+			logger.Info("Use local config to start")
+			return local(info)
+		} else {
+			logger.Info("Use environment variable to start")
+			return env(address)
+		}
 	}
 }

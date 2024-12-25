@@ -5,10 +5,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/gateway"
 )
-
-type EdgeData gateway.DataMessage
 
 type EdgeSystem struct {
 	ID          string `yaml:"id"` // API文档ID

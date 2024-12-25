@@ -8,7 +8,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	json "github.com/bytedance/sonic"
 	"github.com/docker/docker/api/types/network"
 )
 
@@ -51,17 +50,14 @@ func (DeviceAPI) TableName() string {
 }
 
 type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo           Agent               `json:"agent_info"`
-	AgentContainerInfo  container.Container `json:"agent_container_info"`
-	DriverContainerInfo container.Container `json:"driver_container_info"`
-	OpenApiDoc          openapi.OpenAPICli  `json:"open_api_doc"`
+	AgentInfo           Agent                `json:"agent_info"`
+	AgentContainerInfo  *container.Container `json:"agent_container_info,omitempty"`
+	DriverContainerInfo *container.Container `json:"driver_container_info,omitempty"`
+	OpenApiDoc          *openapi.OpenAPICli  `json:"open_api_doc,omitempty"`
 }
 
 func (CreateAgentRequest) TaskOperation() task.Operation {
 	return task.OperationAddAgent
-}
-func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(this)
 }
 
 type CreateAgentResponse struct {
@@ -80,3 +76,16 @@ var AgentContainer = container.Container{
 		fmt.Sprintf("%d", _default.AgentGrpcPort): 0,
 	},
 }
+
+// AgentInstance 记录agent 如何启动的信息
+
+type AgentInstance struct {
+	AgentId string `gorm:"column:agent_id"`
+
+	ContainerID string `gorm:"column:container_id"`
+	IP          string `gorm:"column:ip"`
+	Local       bool   `gorm:"column:local"` // 是否与 agent-proxy 在同一台机器上
+	Online      bool   `gorm:"column:online"`
+}
+
+func (AgentInstance) TableName() string { return "agent_instance" }

@@ -55,13 +55,12 @@ func main() {
 		}
 	}
 
-	port := os.Getenv(MQ_LISTEN_PORT_STR)
 	id := os.Getenv(GATEWAY_ID_STR)
 
 	app := gateway.NewApp(
 		gateway.SetGatewayId(id),
-		gateway.SetPort(port),
 		gateway.UseDB(repo.NewGatewayDb(nil)),
+		gateway.LinkCoreServer(),
 	)
 	panic(app.Run())
 }

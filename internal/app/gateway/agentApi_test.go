@@ -30,7 +30,6 @@ func TestAPP_JoinAgent(t *testing.T) {
 	var success bool
 
 	app := &app{
-		mq:         mockMqClient,
 		ctrl:       ctx,
 		grpcClient: mockGrpcClient,
 	}

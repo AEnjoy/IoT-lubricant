@@ -37,7 +37,6 @@ func TestGatewayAPP(t *testing.T) {
 	defer cf()
 
 	app := &app{
-		mq:                mockMqClient,
 		ctrl:              ctx,
 		GatewayDbOperator: mockDbClient,
 		grpcClient:        mockGrpcClient,
