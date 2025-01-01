@@ -41,6 +41,7 @@ const (
 const (
 	ErrorGatewayAgentNotFound ResCode = 130001 + iota
 	WarnAgentOffline
+	ErrGaterDataReqFailed
 )
 
 // agent
@@ -95,6 +96,7 @@ var StatusMsgMap = map[ResCode]string{
 
 	ErrorGatewayAgentNotFound: "agent not found",
 	WarnAgentOffline:          "agent is offline",
+	ErrGaterDataReqFailed:     "gather data request failed",
 
 	ErrorAgentInvalidConfig:               "invalid config",
 	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",
