@@ -58,20 +58,20 @@ func (a *app) grpcApp() error {
 				return err
 			}
 
-			response, err := HandelCreateAgentRequest(&req)
+			_, err = HandelCreateAgentRequest(&req)
 			if err != nil {
 				return err
 			}
-			result, _ := json.Marshal(response)
+			//result, _ := json.Marshal(response)
 
 			resp := &core.Task{
 				ID: taskId,
 				Task: &core.Task_CorePushTaskResponse{
 					CorePushTaskResponse: &core.CorePushTaskResponse{
-						Message: &core.TaskDetail{
-							Content: result,
-							TaskId:  taskId,
-						},
+						//Message: &core.TaskDetail{
+						//	Content: result,
+						//	TaskId:  taskId,
+						//},
 					},
 				},
 			}

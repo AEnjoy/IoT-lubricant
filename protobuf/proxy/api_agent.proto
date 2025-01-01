@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "protobuf/agent/agent.proto";
+import "google/protobuf/any.proto";
+
+package lubricant.proxy;
+
+option go_package = "protobuf/proxy";
+
+message StartAgentRequest{
+  repeated string agentId =1;
+}
+message StopAgentRequest{
+  repeated string agentId =1;
+}
+message RemoveAgentRequest{
+  repeated string agentId =1;
+}
+message UpdateAgentRequest{
+  string agentId =1;
+}
+message EditAgentRequest{
+  string agentId =1;
+  agent.AgentInfo info = 2;
+}
+message CreateAgentRequest{
+  agent.AgentInfo info = 1;
+  google.protobuf.Any data = 2;
+}
