@@ -18,6 +18,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 )
 
 var gatewayId string
@@ -72,17 +73,22 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 	return func(a *app) error {
 		var conn *grpc.ClientConn
 		var err error
+		kacp := keepalive.ClientParameters{
+			Time:                10 * time.Second, // 每隔 10 秒发送一次心跳
+			Timeout:             3 * time.Second,  // 心跳超时时间为 3 秒
+			PermitWithoutStream: true,             // 允许在没有流的情况下发送心跳
+		}
 		if tls != nil && tls.Enable {
 			config, err := tls.GetTLSLinkConfig()
 			if err != nil {
 				return err
 			}
-			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(config))
+			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(config), grpc.WithKeepaliveParams(kacp))
 			if err != nil {
 				return err
 			}
 		} else {
-			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(kacp))
 			if err != nil {
 				return err
 			}
@@ -105,6 +111,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		if resp.GetFlag() != 1 {
 			return errors.New("lubricant server not ready")
 		}
+
 		return nil
 	}
 }
