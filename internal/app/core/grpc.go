@@ -17,6 +17,7 @@ import (
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 )
 
@@ -94,7 +95,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 						var resp core.NoTaskResponse
 						var message core.TaskDetail
 						message.TaskId = taskID
-						resp.Message = &message
+						//resp.Message = &message
 						_ = s.Send(&core.Task{ID: taskReq.ID, Task: &core.Task_NoTaskResponse{NoTaskResponse: &resp}})
 					} else {
 						taskSendErrorMessage(s, 500, err.Error())
@@ -104,7 +105,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 					var message core.TaskDetail
 					message.Content = taskData
 					message.TaskId = taskID
-					resp.Message = &message
+					//resp.Message = &message
 					_ = s.Send(&core.Task{ID: taskReq.ID, Task: &core.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
 				}
 			} else {
@@ -186,7 +187,7 @@ func (Grpc) Version() string {
 func taskSendErrorMessage(s grpc.BidiStreamingServer[core.Task, core.Task], code int, message string) {
 	var out core.Task
 	var errorResp core.Task_ErrorMessage
-	errorResp.ErrorMessage = &meta.ErrorMessage{Code: int32(code), Message: message}
+	errorResp.ErrorMessage = &meta.ErrorMessage{Code: &status.Status{Code: int32(code), Message: message}}
 	out.Task = &errorResp
 	_ = s.Send(&out)
 }
