@@ -1,6 +1,10 @@
 syntax = "proto3";
 
 import "protobuf/meta/meta.proto";
+import "protobuf/proxy/api_agent.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+import "google/rpc/status.proto";
 
 package lubricant.core;
 
@@ -17,6 +21,14 @@ message TaskDetail {
   string taskId = 1;
   string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
   bytes content = 3; // json格式 []byte
+  oneof task{
+    proxy.StartAgentRequest startAgentRequest = 4;
+    proxy.CreateAgentRequest createAgentRequest=5;
+    proxy.EditAgentRequest editAgentRequest=6;
+    proxy.RemoveAgentRequest removeAgentRequest=7;
+    proxy.StopAgentRequest stopAgentRequest=8;
+    proxy.UpdateAgentRequest updateAgentRequest=9;
+  }
 }
 
 message Task { // Resp
@@ -26,26 +38,48 @@ message Task { // Resp
     GatewayGetTaskResponse gatewayGetTaskResponse = 3;
     CorePushTaskRequest corePushTaskRequest = 4;
     CorePushTaskResponse corePushTaskResponse = 5;
-    NoTaskResponse noTaskResponse = 6;
-    ErrorMessage errorMessage = 7;
+
+    QueryTaskResultRequest coreQueryTaskResultRequest = 6;
+    QueryTaskResultRequest gatewayQueryTaskResultRequest = 7;
+
+    QueryTaskResultResponse coreQueryTaskResultResponse = 8;
+    QueryTaskResultResponse gatewayQueryTaskResultResponse = 9;
+
+    NoTaskResponse noTaskResponse = 10;
+    ErrorMessage errorMessage = 11;
   }
 }
 message NoTaskResponse {
-  TaskDetail message = 1; // 仍然要判断 TaskDetail.messageId
 }
 message GatewayTryGetTaskRequest { // gateway -> core
   string gatewayID = 1;
   optional string taskId = 2;
 }
 message GatewayGetTaskResponse { // core -> gateway
-    TaskDetail message = 1;
+    oneof resp {
+      TaskDetail message = 1;
+      google.protobuf.Empty empty = 2;
+    }
 }
 message CorePushTaskRequest { // core -> gateway
   TaskDetail message = 1;
 }
 message CorePushTaskResponse { // gateway -> core
-  TaskDetail message = 1;
+  string taskId = 1;
 }
+message QueryTaskResultRequest{
+  string taskId = 1;
+}
+message QueryTaskResultResponse{
+  string taskId = 1;
+  oneof result{
+    google.protobuf.Any finish = 2; // 任务完成
+    google.rpc.Status failed = 3; // 任务失败 错误信息
+    google.rpc.Status working = 4; // 任务进行中 进度信息
+    google.rpc.Status pending = 5; // 任务阻塞中 阻塞原因
+  }
+}
+
 message MessageIdInfo {
   string messageId = 1; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;pushMessageId req.messageId应该与返回的resp.messageId一致
   string gatewayId = 2;
@@ -63,3 +97,4 @@ message Data {
   string time = 6; // 起始时间
   int32 cycle = 7; // 数据周期 s
 }
+
