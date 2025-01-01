@@ -50,7 +50,10 @@ func (DeviceAPI) TableName() string {
 }
 
 type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo           Agent                `json:"agent_info"`
+	AgentInfo Agent `json:"agent_info"`
+	CreateAgentConf
+}
+type CreateAgentConf struct {
 	AgentContainerInfo  *container.Container `json:"agent_container_info,omitempty"`
 	DriverContainerInfo *container.Container `json:"driver_container_info,omitempty"`
 	OpenApiDoc          *openapi.OpenAPICli  `json:"open_api_doc,omitempty"`
