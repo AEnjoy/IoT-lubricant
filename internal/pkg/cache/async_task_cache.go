@@ -4,44 +4,66 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 )
 
-type memoryCache struct {
+type MemoryCache[T any] struct {
 	sync.Mutex
-	cacheMap map[string]*Result
-}
-type Result struct {
-	expiredAt time.Time
-	value     *core.QueryTaskResultResponse
+	cacheMap map[string]*Result[T]
 }
 
-var mc = memoryCache{
-	cacheMap: make(map[string]*Result, 50),
-}
+func (m *MemoryCache[T]) cleanExpired() {
+	m.Lock()
+	defer m.Unlock()
 
-func NewResult(expiredAt time.Time, value *core.QueryTaskResultResponse) *Result {
-	return &Result{
-		expiredAt: expiredAt,
-		value:     value,
+	for k, v := range m.cacheMap {
+		if v.expiredAt.Before(time.Now()) {
+			delete(m.cacheMap, k)
+		}
 	}
 }
-func SetCache(reqToken, mutationToken string, value *Result) {
-	mc.Lock()
-	defer mc.Unlock()
+func (m *MemoryCache[T]) Set(reqToken, mutationToken string, value *Result[T]) {
+	m.Lock()
+	defer m.Unlock()
+
+	if value.expiredAt.IsZero() {
+		value.expiredAt = def.DefaultCacheExpired()
+	} else if value.expiredAt.Before(time.Now()) {
+		return
+	}
+
 	if reqToken != "-" {
-		mc.cacheMap[reqToken] = value
+		m.cacheMap[reqToken] = value
 	}
-	mc.cacheMap[mutationToken] = value
+	m.cacheMap[mutationToken] = value
 }
-func GetCache(key string) (*Result, bool) {
-	mc.Lock()
-	defer mc.Unlock()
-	v, ok := mc.cacheMap[key]
-	return v, ok
+
+// GetCache 获取缓存,返回 value 和 exist_state
+func (m *MemoryCache[T]) GetCache(key string) (T, bool) {
+	m.Lock()
+	defer m.Unlock()
+	v, ok := m.cacheMap[key]
+	if ok && v.expiredAt.Before(time.Now()) {
+		delete(m.cacheMap, key)
+		return v.value, false
+	}
+	return v.value, ok
 }
-func DelCache(key string) {
-	mc.Lock()
-	defer mc.Unlock()
-	delete(mc.cacheMap, key)
+func (m *MemoryCache[T]) Delete(key string) {
+	m.Lock()
+	defer m.Unlock()
+	delete(m.cacheMap, key)
+}
+
+type Result[T any] struct {
+	expiredAt time.Time
+	value     T
+}
+
+func NewMemoryCache[T any]() *MemoryCache[T] {
+	retVal := &MemoryCache[T]{
+		cacheMap: make(map[string]*Result[T], 50),
+	}
+	regClearCache(retVal)
+	return retVal
 }
