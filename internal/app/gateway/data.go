@@ -61,7 +61,7 @@ func (a *app) agentPushDataToServer(ctx context.Context, id string) error {
 	}
 }
 func pushDataToServer(ctx context.Context, agentMap *agentData, grpcClient core.CoreServiceClient, id string) error {
-	stream, err := grpcClient.PushData(ctx)
+	stream, err := grpcClient.PushDataStream(ctx)
 	if err != nil {
 		return err
 	}
