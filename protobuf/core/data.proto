@@ -77,6 +77,8 @@ message QueryTaskResultResponse{
     google.rpc.Status failed = 3; // 任务失败 错误信息
     google.rpc.Status working = 4; // 任务进行中 进度信息
     google.rpc.Status pending = 5; // 任务阻塞中 阻塞原因
+
+    google.rpc.Status notFound = 6;
   }
 }
 
