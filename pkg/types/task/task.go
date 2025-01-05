@@ -20,3 +20,8 @@ type Task struct {
 func (Task) TableName() string {
 	return "task_log"
 }
+
+const (
+	TaskStatusUnknow int32 = iota
+	TaskStatusPending
+)

@@ -7,8 +7,7 @@ import (
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 )
 
-var NeverExpired = time.Unix(0, 0)
-
+// MemoryCache todo:适配 CacheCli
 type MemoryCache[T any] struct {
 	cacheMap sync.Map //id-*Result[T]
 }
