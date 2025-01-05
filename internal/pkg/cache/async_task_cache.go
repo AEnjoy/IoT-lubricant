@@ -8,24 +8,20 @@ import (
 )
 
 type MemoryCache[T any] struct {
-	sync.Mutex
-	cacheMap map[string]*Result[T]
+	cacheMap sync.Map //id-*Result[T]
 }
 
 func (m *MemoryCache[T]) cleanExpired() {
-	m.Lock()
-	defer m.Unlock()
-
-	for k, v := range m.cacheMap {
+	m.cacheMap.Range(func(key, value any) bool {
+		k := key.(string)
+		v := value.(*Result[T])
 		if v.expiredAt.Before(time.Now()) {
-			delete(m.cacheMap, k)
+			m.cacheMap.Delete(k)
 		}
-	}
+		return true
+	})
 }
 func (m *MemoryCache[T]) Set(reqToken, mutationToken string, value *Result[T]) {
-	m.Lock()
-	defer m.Unlock()
-
 	if value.expiredAt.IsZero() {
 		value.expiredAt = def.DefaultCacheExpired()
 	} else if value.expiredAt.Before(time.Now()) {
@@ -33,26 +29,23 @@ func (m *MemoryCache[T]) Set(reqToken, mutationToken string, value *Result[T]) {
 	}
 
 	if reqToken != "-" {
-		m.cacheMap[reqToken] = value
+		m.cacheMap.Store(reqToken, value)
 	}
-	m.cacheMap[mutationToken] = value
+	m.cacheMap.Store(mutationToken, value)
 }
 
 // GetCache 获取缓存,返回 value 和 exist_state
 func (m *MemoryCache[T]) GetCache(key string) (T, bool) {
-	m.Lock()
-	defer m.Unlock()
-	v, ok := m.cacheMap[key]
-	if ok && v.expiredAt.Before(time.Now()) {
-		delete(m.cacheMap, key)
-		return v.value, false
+	v, ok := m.cacheMap.Load(key)
+	if ok && v.(*Result[T]).expiredAt.Before(time.Now()) {
+		m.cacheMap.Delete(key)
+		return v.(*Result[T]).value, false
 	}
-	return v.value, ok
+	return v.(*Result[T]).value, ok
 }
+
 func (m *MemoryCache[T]) Delete(key string) {
-	m.Lock()
-	defer m.Unlock()
-	delete(m.cacheMap, key)
+	m.cacheMap.Delete(key)
 }
 
 type Result[T any] struct {
@@ -61,9 +54,7 @@ type Result[T any] struct {
 }
 
 func NewMemoryCache[T any]() *MemoryCache[T] {
-	retVal := &MemoryCache[T]{
-		cacheMap: make(map[string]*Result[T], 50),
-	}
+	retVal := new(MemoryCache[T])
 	regClearCache(retVal)
 	return retVal
 }
