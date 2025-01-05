@@ -7,6 +7,8 @@ import (
 
 const APP_NAME = "cache-client"
 
+var NeverExpired = time.Unix(0, 0)
+
 type CacheCli[T any] interface {
 	SetEx(ctx context.Context, key string, value T, duration time.Duration) error
 	Set(ctx context.Context, key string, value T) error

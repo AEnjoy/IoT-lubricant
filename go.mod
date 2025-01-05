@@ -21,9 +21,11 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats-server/v2 v2.10.24
 	github.com/nats-io/nats.go v1.38.0
+	github.com/panjf2000/ants/v2 v2.10.0
 	github.com/pierrec/lz4 v2.6.1+incompatible
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
@@ -113,6 +115,7 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/net v0.30.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
