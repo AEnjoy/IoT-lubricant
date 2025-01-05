@@ -118,7 +118,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 func (PbCoreServiceImpl) PushMessageId(context.Context, *core.MessageIdInfo) (*core.MessageIdInfo, error) {
 	return nil, nil
 }
-func (PbCoreServiceImpl) PushData(d grpc.BidiStreamingServer[core.Data, core.Data]) error {
+func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[core.Data, core.Data]) error {
 	for {
 		data, err := d.Recv()
 		if err == io.EOF {
