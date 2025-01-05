@@ -7,6 +7,8 @@ import (
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 )
 
+var NeverExpired = time.Unix(0, 0)
+
 type MemoryCache[T any] struct {
 	cacheMap sync.Map //id-*Result[T]
 }
@@ -57,4 +59,10 @@ func NewMemoryCache[T any]() *MemoryCache[T] {
 	retVal := new(MemoryCache[T])
 	regClearCache(retVal)
 	return retVal
+}
+func NewStoreResult[T any](expiredAt time.Time, value T) *Result[T] {
+	return &Result[T]{
+		expiredAt: expiredAt,
+		value:     value,
+	}
 }
