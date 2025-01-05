@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/agent"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/async"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
@@ -28,6 +29,7 @@ type app struct {
 
 	repo.GatewayDbOperator
 	agent agent.Apis
+	task  async.Task
 
 	port       string
 	grpcClient core.CoreServiceClient //grpc
@@ -44,6 +46,9 @@ func NewApp(opts ...func(*app) error) *app {
 }
 func (a *app) Run() error {
 	a.agent = agent.NewAgentApis(a.GatewayDbOperator)
+	a.task = async.NewAsyncTask()
+	a.task.SetActor(a.handelTask)
+
 	_ = a.agentPoolInit() //todo:handel error
 	go a.agentPoolAgentRegis()
 	go a.agentPoolChStartService()
