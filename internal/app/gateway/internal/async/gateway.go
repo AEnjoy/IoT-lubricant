@@ -16,6 +16,7 @@ var _ Task = (*task)(nil)
 type task struct {
 	result   *cache.MemoryCache[*core.QueryTaskResultResponse] // id -> QueryTaskResultResponse
 	queue    chan *core.TaskDetail
+	notify   chan string
 	actor    func(*core.TaskDetail, *cache.MemoryCache[*core.QueryTaskResultResponse])
 	pool     *ants.Pool
 	finished int32
@@ -24,6 +25,7 @@ type task struct {
 func (r *task) init() {
 	r.result = cache.NewMemoryCache[*core.QueryTaskResultResponse]()
 	r.queue = make(chan *core.TaskDetail, 100)
+	r.notify = make(chan string, 5)
 	var err error
 	r.pool, err = ants.NewPool(100, ants.WithPreAlloc(true))
 	if err != nil {
@@ -35,6 +37,9 @@ func (r *task) run() {
 	for detail := range r.queue {
 		err := r.pool.Submit(func() {
 			r.actor(detail, r.result)
+			if detail.MessageId == "notice" {
+				r.notify <- detail.TaskId
+			}
 			atomic.AddInt32(&r.finished, 1)
 		})
 		if err != nil {
@@ -52,7 +57,7 @@ func (r *task) run() {
 	}
 }
 
-func (r *task) AddTask(task *core.TaskDetail) {
+func (r *task) AddTask(task *core.TaskDetail, notice bool) {
 	result := cache.NewStoreResult[*core.QueryTaskResultResponse](cache.NeverExpired,
 		&core.QueryTaskResultResponse{
 			TaskId: task.TaskId,
@@ -63,6 +68,9 @@ func (r *task) AddTask(task *core.TaskDetail) {
 				},
 			},
 		})
+	if notice {
+		task.MessageId = "notice"
+	}
 	r.result.Set(task.TaskId, "", result)
 	r.queue <- task
 }
@@ -84,4 +92,10 @@ func (r *task) SetActor(f func(*core.TaskDetail, *cache.MemoryCache[*core.QueryT
 }
 func (r *task) Release() {
 	r.pool.Release()
+}
+func (r *task) GetNotifyCh() <-chan string {
+	return r.notify
+}
+func (r *task) RemoveResult(id string) {
+	r.result.Delete(id)
 }
