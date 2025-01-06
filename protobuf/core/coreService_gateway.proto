@@ -16,6 +16,8 @@ service coreService {
   rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
 
   rpc pushDataStream(stream Data) returns (stream Data) {}
+  rpc pushData(Data) returns (pushDataResponse) {}
+  rpc getCoreCapacity(getCoreCapacityRequest)returns (getCoreCapacityResponse){}//获取核心服务资源容量，为数据发送做准备
 }
 
 message TaskDetail {
@@ -101,3 +103,12 @@ message Data {
   int32 cycle = 7; // 数据周期 s
 }
 
+message pushDataResponse {
+  google.rpc.Status resp = 1;
+}
+message getCoreCapacityRequest{
+  int32 preAllocatedResourcesSize =1 ;
+}
+message getCoreCapacityResponse{
+  google.rpc.Status resp = 1;
+}

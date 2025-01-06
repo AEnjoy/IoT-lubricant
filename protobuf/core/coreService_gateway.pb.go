@@ -1007,6 +1007,147 @@ func (x *Data) GetCycle() int32 {
 	return 0
 }
 
+type PushDataResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Resp *status.Status `protobuf:"bytes,1,opt,name=resp,proto3" json:"resp,omitempty"`
+}
+
+func (x *PushDataResponse) Reset() {
+	*x = PushDataResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PushDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PushDataResponse) ProtoMessage() {}
+
+func (x *PushDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PushDataResponse.ProtoReflect.Descriptor instead.
+func (*PushDataResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_core_coreService_gateway_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *PushDataResponse) GetResp() *status.Status {
+	if x != nil {
+		return x.Resp
+	}
+	return nil
+}
+
+type GetCoreCapacityRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PreAllocatedResourcesSize int32 `protobuf:"varint,1,opt,name=preAllocatedResourcesSize,proto3" json:"preAllocatedResourcesSize,omitempty"`
+}
+
+func (x *GetCoreCapacityRequest) Reset() {
+	*x = GetCoreCapacityRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCoreCapacityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCoreCapacityRequest) ProtoMessage() {}
+
+func (x *GetCoreCapacityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCoreCapacityRequest.ProtoReflect.Descriptor instead.
+func (*GetCoreCapacityRequest) Descriptor() ([]byte, []int) {
+	return file_protobuf_core_coreService_gateway_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetCoreCapacityRequest) GetPreAllocatedResourcesSize() int32 {
+	if x != nil {
+		return x.PreAllocatedResourcesSize
+	}
+	return 0
+}
+
+type GetCoreCapacityResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Resp *status.Status `protobuf:"bytes,1,opt,name=resp,proto3" json:"resp,omitempty"`
+}
+
+func (x *GetCoreCapacityResponse) Reset() {
+	*x = GetCoreCapacityResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetCoreCapacityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCoreCapacityResponse) ProtoMessage() {}
+
+func (x *GetCoreCapacityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_core_coreService_gateway_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCoreCapacityResponse.ProtoReflect.Descriptor instead.
+func (*GetCoreCapacityResponse) Descriptor() ([]byte, []int) {
+	return file_protobuf_core_coreService_gateway_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetCoreCapacityResponse) GetResp() *status.Status {
+	if x != nil {
+		return x.Resp
+	}
+	return nil
+}
+
 var File_protobuf_core_coreService_gateway_proto protoreflect.FileDescriptor
 
 var file_protobuf_core_coreService_gateway_proto_rawDesc = []byte{
@@ -1189,26 +1330,50 @@ var file_protobuf_core_coreService_gateway_proto_rawDesc = []byte{
 	0x01, 0x28, 0x05, 0x52, 0x07, 0x64, 0x61, 0x74, 0x61, 0x4c, 0x65, 0x6e, 0x12, 0x12, 0x0a, 0x04,
 	0x74, 0x69, 0x6d, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x69, 0x6d, 0x65,
 	0x12, 0x14, 0x0a, 0x05, 0x63, 0x79, 0x63, 0x6c, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52,
-	0x05, 0x63, 0x79, 0x63, 0x6c, 0x65, 0x32, 0x8f, 0x02, 0x0a, 0x0b, 0x63, 0x6f, 0x72, 0x65, 0x53,
-	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2e, 0x0a, 0x04, 0x70, 0x69, 0x6e, 0x67, 0x12, 0x0f,
-	0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x1a,
-	0x0f, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x50, 0x69, 0x6e, 0x67,
-	0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x12, 0x3b, 0x0a, 0x07, 0x67, 0x65, 0x74, 0x54, 0x61, 0x73,
-	0x6b, 0x12, 0x14, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f,
-	0x72, 0x65, 0x2e, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x14, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63,
-	0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x54, 0x61, 0x73, 0x6b, 0x22, 0x00, 0x28,
-	0x01, 0x30, 0x01, 0x12, 0x4f, 0x0a, 0x0d, 0x70, 0x75, 0x73, 0x68, 0x4d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74,
-	0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x49,
-	0x6e, 0x66, 0x6f, 0x1a, 0x1d, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e,
-	0x63, 0x6f, 0x72, 0x65, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x49, 0x6e,
-	0x66, 0x6f, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x0e, 0x70, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61,
-	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x12, 0x14, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61,
-	0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x14, 0x2e, 0x6c,
-	0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x44, 0x61,
-	0x74, 0x61, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42, 0x0f, 0x5a, 0x0d, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x05, 0x63, 0x79, 0x63, 0x6c, 0x65, 0x22, 0x3a, 0x0a, 0x10, 0x70, 0x75, 0x73, 0x68, 0x44, 0x61,
+	0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x26, 0x0a, 0x04, 0x72, 0x65,
+	0x73, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x04, 0x72, 0x65,
+	0x73, 0x70, 0x22, 0x56, 0x0a, 0x16, 0x67, 0x65, 0x74, 0x43, 0x6f, 0x72, 0x65, 0x43, 0x61, 0x70,
+	0x61, 0x63, 0x69, 0x74, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x3c, 0x0a, 0x19,
+	0x70, 0x72, 0x65, 0x41, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x65, 0x64, 0x52, 0x65, 0x73, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x73, 0x53, 0x69, 0x7a, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x19, 0x70, 0x72, 0x65, 0x41, 0x6c, 0x6c, 0x6f, 0x63, 0x61, 0x74, 0x65, 0x64, 0x52, 0x65, 0x73,
+	0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x53, 0x69, 0x7a, 0x65, 0x22, 0x41, 0x0a, 0x17, 0x67, 0x65,
+	0x74, 0x43, 0x6f, 0x72, 0x65, 0x43, 0x61, 0x70, 0x61, 0x63, 0x69, 0x74, 0x79, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x26, 0x0a, 0x04, 0x72, 0x65, 0x73, 0x70, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x72, 0x70, 0x63,
+	0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x04, 0x72, 0x65, 0x73, 0x70, 0x32, 0xbb, 0x03,
+	0x0a, 0x0b, 0x63, 0x6f, 0x72, 0x65, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2e, 0x0a,
+	0x04, 0x70, 0x69, 0x6e, 0x67, 0x12, 0x0f, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e,
+	0x74, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x1a, 0x0f, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61,
+	0x6e, 0x74, 0x2e, 0x50, 0x69, 0x6e, 0x67, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x12, 0x3b, 0x0a,
+	0x07, 0x67, 0x65, 0x74, 0x54, 0x61, 0x73, 0x6b, 0x12, 0x14, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69,
+	0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x14,
+	0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e,
+	0x54, 0x61, 0x73, 0x6b, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x12, 0x4f, 0x0a, 0x0d, 0x70, 0x75,
+	0x73, 0x68, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x12, 0x1d, 0x2e, 0x6c, 0x75,
+	0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x4d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x49, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x1a, 0x1d, 0x2e, 0x6c, 0x75, 0x62,
+	0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x4d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x49, 0x64, 0x49, 0x6e, 0x66, 0x6f, 0x22, 0x00, 0x12, 0x42, 0x0a, 0x0e, 0x70,
+	0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x12, 0x14, 0x2e,
+	0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x44,
+	0x61, 0x74, 0x61, 0x1a, 0x14, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e,
+	0x63, 0x6f, 0x72, 0x65, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x12,
+	0x44, 0x0a, 0x08, 0x70, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x2e, 0x6c, 0x75,
+	0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x44, 0x61, 0x74,
+	0x61, 0x1a, 0x20, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f,
+	0x72, 0x65, 0x2e, 0x70, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x64, 0x0a, 0x0f, 0x67, 0x65, 0x74, 0x43, 0x6f, 0x72, 0x65,
+	0x43, 0x61, 0x70, 0x61, 0x63, 0x69, 0x74, 0x79, 0x12, 0x26, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69,
+	0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x67, 0x65, 0x74, 0x43, 0x6f, 0x72,
+	0x65, 0x43, 0x61, 0x70, 0x61, 0x63, 0x69, 0x74, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x27, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e, 0x63, 0x6f, 0x72,
+	0x65, 0x2e, 0x67, 0x65, 0x74, 0x43, 0x6f, 0x72, 0x65, 0x43, 0x61, 0x70, 0x61, 0x63, 0x69, 0x74,
+	0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x0f, 0x5a, 0x0d, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1223,7 +1388,7 @@ func file_protobuf_core_coreService_gateway_proto_rawDescGZIP() []byte {
 	return file_protobuf_core_coreService_gateway_proto_rawDescData
 }
 
-var file_protobuf_core_coreService_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_protobuf_core_coreService_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_protobuf_core_coreService_gateway_proto_goTypes = []any{
 	(*TaskDetail)(nil),               // 0: lubricant.core.TaskDetail
 	(*Task)(nil),                     // 1: lubricant.core.Task
@@ -1236,25 +1401,28 @@ var file_protobuf_core_coreService_gateway_proto_goTypes = []any{
 	(*QueryTaskResultResponse)(nil),  // 8: lubricant.core.QueryTaskResultResponse
 	(*MessageIdInfo)(nil),            // 9: lubricant.core.MessageIdInfo
 	(*Data)(nil),                     // 10: lubricant.core.Data
-	(*proxy.StartAgentRequest)(nil),  // 11: lubricant.proxy.StartAgentRequest
-	(*proxy.CreateAgentRequest)(nil), // 12: lubricant.proxy.CreateAgentRequest
-	(*proxy.EditAgentRequest)(nil),   // 13: lubricant.proxy.EditAgentRequest
-	(*proxy.RemoveAgentRequest)(nil), // 14: lubricant.proxy.RemoveAgentRequest
-	(*proxy.StopAgentRequest)(nil),   // 15: lubricant.proxy.StopAgentRequest
-	(*proxy.UpdateAgentRequest)(nil), // 16: lubricant.proxy.UpdateAgentRequest
-	(*meta.ErrorMessage)(nil),        // 17: lubricant.ErrorMessage
-	(*emptypb.Empty)(nil),            // 18: google.protobuf.Empty
-	(*anypb.Any)(nil),                // 19: google.protobuf.Any
-	(*status.Status)(nil),            // 20: google.rpc.Status
-	(*meta.Ping)(nil),                // 21: lubricant.Ping
+	(*PushDataResponse)(nil),         // 11: lubricant.core.pushDataResponse
+	(*GetCoreCapacityRequest)(nil),   // 12: lubricant.core.getCoreCapacityRequest
+	(*GetCoreCapacityResponse)(nil),  // 13: lubricant.core.getCoreCapacityResponse
+	(*proxy.StartAgentRequest)(nil),  // 14: lubricant.proxy.StartAgentRequest
+	(*proxy.CreateAgentRequest)(nil), // 15: lubricant.proxy.CreateAgentRequest
+	(*proxy.EditAgentRequest)(nil),   // 16: lubricant.proxy.EditAgentRequest
+	(*proxy.RemoveAgentRequest)(nil), // 17: lubricant.proxy.RemoveAgentRequest
+	(*proxy.StopAgentRequest)(nil),   // 18: lubricant.proxy.StopAgentRequest
+	(*proxy.UpdateAgentRequest)(nil), // 19: lubricant.proxy.UpdateAgentRequest
+	(*meta.ErrorMessage)(nil),        // 20: lubricant.ErrorMessage
+	(*emptypb.Empty)(nil),            // 21: google.protobuf.Empty
+	(*anypb.Any)(nil),                // 22: google.protobuf.Any
+	(*status.Status)(nil),            // 23: google.rpc.Status
+	(*meta.Ping)(nil),                // 24: lubricant.Ping
 }
 var file_protobuf_core_coreService_gateway_proto_depIdxs = []int32{
-	11, // 0: lubricant.core.TaskDetail.startAgentRequest:type_name -> lubricant.proxy.StartAgentRequest
-	12, // 1: lubricant.core.TaskDetail.createAgentRequest:type_name -> lubricant.proxy.CreateAgentRequest
-	13, // 2: lubricant.core.TaskDetail.editAgentRequest:type_name -> lubricant.proxy.EditAgentRequest
-	14, // 3: lubricant.core.TaskDetail.removeAgentRequest:type_name -> lubricant.proxy.RemoveAgentRequest
-	15, // 4: lubricant.core.TaskDetail.stopAgentRequest:type_name -> lubricant.proxy.StopAgentRequest
-	16, // 5: lubricant.core.TaskDetail.updateAgentRequest:type_name -> lubricant.proxy.UpdateAgentRequest
+	14, // 0: lubricant.core.TaskDetail.startAgentRequest:type_name -> lubricant.proxy.StartAgentRequest
+	15, // 1: lubricant.core.TaskDetail.createAgentRequest:type_name -> lubricant.proxy.CreateAgentRequest
+	16, // 2: lubricant.core.TaskDetail.editAgentRequest:type_name -> lubricant.proxy.EditAgentRequest
+	17, // 3: lubricant.core.TaskDetail.removeAgentRequest:type_name -> lubricant.proxy.RemoveAgentRequest
+	18, // 4: lubricant.core.TaskDetail.stopAgentRequest:type_name -> lubricant.proxy.StopAgentRequest
+	19, // 5: lubricant.core.TaskDetail.updateAgentRequest:type_name -> lubricant.proxy.UpdateAgentRequest
 	3,  // 6: lubricant.core.Task.gatewayTryGetTaskRequest:type_name -> lubricant.core.GatewayTryGetTaskRequest
 	4,  // 7: lubricant.core.Task.gatewayGetTaskResponse:type_name -> lubricant.core.GatewayGetTaskResponse
 	5,  // 8: lubricant.core.Task.corePushTaskRequest:type_name -> lubricant.core.CorePushTaskRequest
@@ -1264,28 +1432,34 @@ var file_protobuf_core_coreService_gateway_proto_depIdxs = []int32{
 	8,  // 12: lubricant.core.Task.coreQueryTaskResultResponse:type_name -> lubricant.core.QueryTaskResultResponse
 	8,  // 13: lubricant.core.Task.gatewayQueryTaskResultResponse:type_name -> lubricant.core.QueryTaskResultResponse
 	2,  // 14: lubricant.core.Task.noTaskResponse:type_name -> lubricant.core.NoTaskResponse
-	17, // 15: lubricant.core.Task.errorMessage:type_name -> lubricant.ErrorMessage
+	20, // 15: lubricant.core.Task.errorMessage:type_name -> lubricant.ErrorMessage
 	0,  // 16: lubricant.core.GatewayGetTaskResponse.message:type_name -> lubricant.core.TaskDetail
-	18, // 17: lubricant.core.GatewayGetTaskResponse.empty:type_name -> google.protobuf.Empty
+	21, // 17: lubricant.core.GatewayGetTaskResponse.empty:type_name -> google.protobuf.Empty
 	0,  // 18: lubricant.core.CorePushTaskRequest.message:type_name -> lubricant.core.TaskDetail
-	19, // 19: lubricant.core.QueryTaskResultResponse.finish:type_name -> google.protobuf.Any
-	20, // 20: lubricant.core.QueryTaskResultResponse.failed:type_name -> google.rpc.Status
-	20, // 21: lubricant.core.QueryTaskResultResponse.working:type_name -> google.rpc.Status
-	20, // 22: lubricant.core.QueryTaskResultResponse.pending:type_name -> google.rpc.Status
-	20, // 23: lubricant.core.QueryTaskResultResponse.notFound:type_name -> google.rpc.Status
-	21, // 24: lubricant.core.coreService.ping:input_type -> lubricant.Ping
-	1,  // 25: lubricant.core.coreService.getTask:input_type -> lubricant.core.Task
-	9,  // 26: lubricant.core.coreService.pushMessageId:input_type -> lubricant.core.MessageIdInfo
-	10, // 27: lubricant.core.coreService.pushDataStream:input_type -> lubricant.core.Data
-	21, // 28: lubricant.core.coreService.ping:output_type -> lubricant.Ping
-	1,  // 29: lubricant.core.coreService.getTask:output_type -> lubricant.core.Task
-	9,  // 30: lubricant.core.coreService.pushMessageId:output_type -> lubricant.core.MessageIdInfo
-	10, // 31: lubricant.core.coreService.pushDataStream:output_type -> lubricant.core.Data
-	28, // [28:32] is the sub-list for method output_type
-	24, // [24:28] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	22, // 19: lubricant.core.QueryTaskResultResponse.finish:type_name -> google.protobuf.Any
+	23, // 20: lubricant.core.QueryTaskResultResponse.failed:type_name -> google.rpc.Status
+	23, // 21: lubricant.core.QueryTaskResultResponse.working:type_name -> google.rpc.Status
+	23, // 22: lubricant.core.QueryTaskResultResponse.pending:type_name -> google.rpc.Status
+	23, // 23: lubricant.core.QueryTaskResultResponse.notFound:type_name -> google.rpc.Status
+	23, // 24: lubricant.core.pushDataResponse.resp:type_name -> google.rpc.Status
+	23, // 25: lubricant.core.getCoreCapacityResponse.resp:type_name -> google.rpc.Status
+	24, // 26: lubricant.core.coreService.ping:input_type -> lubricant.Ping
+	1,  // 27: lubricant.core.coreService.getTask:input_type -> lubricant.core.Task
+	9,  // 28: lubricant.core.coreService.pushMessageId:input_type -> lubricant.core.MessageIdInfo
+	10, // 29: lubricant.core.coreService.pushDataStream:input_type -> lubricant.core.Data
+	10, // 30: lubricant.core.coreService.pushData:input_type -> lubricant.core.Data
+	12, // 31: lubricant.core.coreService.getCoreCapacity:input_type -> lubricant.core.getCoreCapacityRequest
+	24, // 32: lubricant.core.coreService.ping:output_type -> lubricant.Ping
+	1,  // 33: lubricant.core.coreService.getTask:output_type -> lubricant.core.Task
+	9,  // 34: lubricant.core.coreService.pushMessageId:output_type -> lubricant.core.MessageIdInfo
+	10, // 35: lubricant.core.coreService.pushDataStream:output_type -> lubricant.core.Data
+	11, // 36: lubricant.core.coreService.pushData:output_type -> lubricant.core.pushDataResponse
+	13, // 37: lubricant.core.coreService.getCoreCapacity:output_type -> lubricant.core.getCoreCapacityResponse
+	32, // [32:38] is the sub-list for method output_type
+	26, // [26:32] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_protobuf_core_coreService_gateway_proto_init() }
@@ -1426,6 +1600,42 @@ func file_protobuf_core_coreService_gateway_proto_init() {
 				return nil
 			}
 		}
+		file_protobuf_core_coreService_gateway_proto_msgTypes[11].Exporter = func(v any, i int) any {
+			switch v := v.(*PushDataResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protobuf_core_coreService_gateway_proto_msgTypes[12].Exporter = func(v any, i int) any {
+			switch v := v.(*GetCoreCapacityRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_protobuf_core_coreService_gateway_proto_msgTypes[13].Exporter = func(v any, i int) any {
+			switch v := v.(*GetCoreCapacityResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_protobuf_core_coreService_gateway_proto_msgTypes[0].OneofWrappers = []any{
 		(*TaskDetail_StartAgentRequest)(nil),
@@ -1465,7 +1675,7 @@ func file_protobuf_core_coreService_gateway_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_protobuf_core_coreService_gateway_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

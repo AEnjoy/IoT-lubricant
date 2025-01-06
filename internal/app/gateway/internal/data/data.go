@@ -37,10 +37,9 @@ func (d *data) Push(message *agent.DataMessage) error {
 func (d *data) Pop() *core.Data {
 	d.l.Lock()
 	defer d.l.Unlock()
+	defer d.cleanData()
 
-	retVal := d.top()
-	d.cleanData()
-	return retVal
+	return d.top()
 }
 
 func (d *data) Top() *core.Data {
