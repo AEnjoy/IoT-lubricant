@@ -13,9 +13,9 @@ type Apis interface {
 	// Push and Store is the same API
 	Push(*agent.DataMessage) error
 	// Pop 从数据队列中取出数据并清理
-	Pop() (*core.Data, error)
+	Pop() *core.Data
 	// Top 从数据队列中取出数据不清理
-	Top() (*core.Data, error)
+	Top() *core.Data
 	// Clean 清空数据队列
 	Clean() error
 }

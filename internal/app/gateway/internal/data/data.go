@@ -1,6 +1,7 @@
 package data
 
 import (
+	"math/rand"
 	"sync"
 	"sync/atomic"
 
@@ -33,30 +34,32 @@ func (d *data) Push(message *agent.DataMessage) error {
 	return nil
 }
 
-func (d *data) Pop() (*core.Data, error) {
+func (d *data) Pop() *core.Data {
 	d.l.Lock()
 	defer d.l.Unlock()
 
-	retVal := d.coverToGrpcData()
+	retVal := d.top()
 	d.cleanData()
-	return retVal, nil
+	return retVal
 }
 
-func (d *data) Top() (*core.Data, error) {
+func (d *data) Top() *core.Data {
 	d.l.Lock()
 	defer d.l.Unlock()
 
+	return d.top()
+}
+func (d *data) top() *core.Data {
 	if len(d.data) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	if d.lastLen == len(d.data) && d.cache != nil {
-		return d.cache, nil
+		return d.cache
 	} else {
-		d.cache = d.coverToGrpcData()
-		d.lastLen = len(d.data)
+		d.makeCache()
 	}
-	return d.cache, nil
+	return d.cache
 }
 
 func (d *data) Clean() error {
@@ -69,6 +72,9 @@ func (d *data) Clean() error {
 
 func (a *data) parseData(in *agent.DataMessage) {
 	a.data = append(a.data, in)
+	if rand.Intn(101) > 70 {
+		a.makeCache()
+	}
 }
 func (a *data) cleanData() {
 	a.data = make([]*agent.DataMessage, 0)
@@ -91,4 +97,8 @@ func (a *data) coverToGrpcData() *core.Data {
 		return &data
 	}
 	return nil
+}
+func (d *data) makeCache() {
+	d.cache = d.coverToGrpcData()
+	d.lastLen = len(d.data)
 }
