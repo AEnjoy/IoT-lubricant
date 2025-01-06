@@ -7,6 +7,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
@@ -18,7 +19,7 @@ var _ = &meta.Ping{
 	Flag: 0,
 }
 
-func (a *app) grpcApp() error {
+func (a *app) grpcTaskApp() error {
 	// todo: not all implemented yet
 	retryAttempts := 3        // 最大重试次数
 	retryDelay := time.Second // 初始重试延迟
@@ -213,4 +214,41 @@ func (a *app) grpcApp() error {
 		}
 	}
 	return nil
+}
+func (a *app) grpcDataApp() error {
+	time.Sleep(30 * time.Second)
+	data.InitDataSendQueue()
+	ch := data.GetDataSendQueue()
+	for d := range ch {
+		//todo:可选: 发送前需要 GetCoreCapacity 检查
+		d.GatewayId = gatewayId
+		resp, err := a.grpcClient.PushData(a.ctrl, d)
+		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				if st.Code() == codes.Unavailable || st.Code() == codes.Canceled || st.Code() == codes.DeadlineExceeded || err == io.EOF {
+					logger.Errorf("PushData exiting due to error: %v", err)
+					continue
+				} else {
+					logger.Errorf("Unrecoverable gRPC Send error: %v", err)
+				}
+			} else {
+				logger.Errorf("Send error: %v", err)
+				if errors.Is(err, io.EOF) {
+					logger.Errorln("grpc stream closed")
+					continue
+				}
+				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+					logger.Errorln("net timeout")
+				}
+				continue
+			}
+			continue
+		}
+		a._checkPushDataStatus(resp)
+	}
+	return nil
+}
+func (a *app) _checkPushDataStatus(resp *core.PushDataResponse) {
+	// todo:
 }

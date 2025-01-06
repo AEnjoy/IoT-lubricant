@@ -56,7 +56,18 @@ func (a *app) Run() error {
 	for {
 		time.Sleep(time.Second * 5)
 	}
-	return a.grpcApp() // gateway <--> core
+	var errs error
+	go func() {
+		if err := a.grpcTaskApp(); err != nil {
+			errs = errors.Join(err)
+		}
+	}()
+	go func() {
+		if err := a.grpcDataApp(); err != nil {
+			errs = errors.Join(err)
+		}
+	}()
+	return errs // gateway <--> core
 }
 
 func SetGatewayId(id string) func(*app) error {
