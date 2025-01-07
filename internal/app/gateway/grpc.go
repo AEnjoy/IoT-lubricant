@@ -74,8 +74,7 @@ func (a *app) grpcTaskApp() error {
 			}
 		}()
 
-		// recv{
-
+		// recv
 		for {
 			resp, err := task.Recv()
 			if err == io.EOF {
@@ -176,41 +175,6 @@ func (a *app) grpcTaskApp() error {
 			case *core.Task_ErrorMessage:
 				logger.Errorf("gateway send request to core success,but get the error: %s", t.ErrorMessage.String())
 			}
-
-			//switch c.ID {
-			//case taskTypes.OperationAddAgent:
-			//	var req model.CreateAgentRequest
-			//	err := json.Unmarshal(c.Data, &req)
-			//	if err != nil {
-			//		return err
-			//	}
-			//
-			//	response, err := HandelCreateAgentRequest(&req)
-			//	if err != nil {
-			//		return err
-			//	}
-			//	_, _ = json.Marshal(response)
-			//
-			//	resp := &core.Task{
-			//		ID: taskId,
-			//		Task: &core.Task_CorePushTaskResponse{
-			//			CorePushTaskResponse: &core.CorePushTaskResponse{
-			//				//Message: &core.TaskDetail{
-			//				//	Content: result,
-			//				//	TaskId:  taskId,
-			//				//},
-			//			},
-			//		},
-			//	}
-			//	_ = task.Send(resp)
-			//case taskTypes.OperationRemoveAgent:
-			//	a.agentRemove("reserve a seat")
-			//	panic("not implemented")
-			//case taskTypes.OperationNil:
-			//
-			//default:
-			//	panic("unhandled default case")
-			//}
 		}
 	}
 	return nil

@@ -9,10 +9,10 @@ import (
 )
 
 type Apis interface {
-	StartAgent(id ...string) error
-	StopAgent(id ...string) error
-	KillAgent(id ...string) error
-	RemoveAgent(id ...string) error
+	StartAgent(id string) error
+	StopAgent(id string) error
+	KillAgent(id string) error
+	RemoveAgent(id string) error
 	UpdateAgent(id string) error
 	EditAgent(id string, info model.Agent) error
 	SetAgent(id string, info *agent.AgentInfo) error

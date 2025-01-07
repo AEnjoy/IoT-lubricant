@@ -42,6 +42,8 @@ const (
 	ErrorGatewayAgentNotFound ResCode = 130001 + iota
 	WarnAgentOffline
 	ErrGaterDataReqFailed
+	OperationOnlyAtLocal
+	ErrorAgentStartFailed
 )
 
 // agent
@@ -73,6 +75,7 @@ const (
 )
 
 var StatusMsgMap = map[ResCode]string{
+	// Common
 	Success:                  "success",
 	ErrorBadRequest:          "Invalid Request",
 	ErrorNotFound:            "Not Found",
@@ -91,22 +94,30 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorInvalidAuthKey:      "Invalid authorization key",
 	ErrorForbidden:           "Permission Denied",
 
+	// Core
 	ErrorCoreNoTask:      "target has no task",
 	ErrorCoreTaskTimeout: "get task timeout",
 
+	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
 	WarnAgentOffline:          "agent is offline",
 	ErrGaterDataReqFailed:     "gather data request failed",
+	OperationOnlyAtLocal:      "only supports local agents",
+	ErrorAgentStartFailed:     "agent start failed",
 
+	// Agent
 	ErrorAgentInvalidConfig:               "invalid config",
 	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",
 	ErrorAgentNeedInit:                    "should be call lubricant.agent.edgeService / setAgent before this operation",
 
+	// Cache
 	ErrorCacheNeedInit:  "cache client need init",
 	ErrorCacheNullCache: "cache client is nil",
 
+	// Database
 	ErrorDbNeedTxn: "this operation need start with txn support",
 
+	// Openapi
 	ErrorApiNotFound:      "not found",
 	ErrorApiInvalidMethod: "invalid method",
 	ErrorApiInvalidInput:  "invalid input",

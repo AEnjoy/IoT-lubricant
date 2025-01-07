@@ -39,3 +39,9 @@ func (p *pool) JoinAgent(ctx context.Context, a *agentControl) error {
 
 	return nil
 }
+func (p *pool) GetAgentControl(id string) *agentControl {
+	if v, ok := p.p.Load(id); ok {
+		return v.(*agentControl)
+	}
+	return nil
+}
