@@ -48,9 +48,9 @@ func TestGatewayAPP(t *testing.T) {
 	regCh := make(chan []byte, 1)
 	dataPushCh := make(chan []byte, 1)
 
-	mockDbClient.EXPECT().GetAllAgentId().Return([]string{agentId})
-	mockDbClient.EXPECT().GetAgentGatherCycle(agentId).Return(1)
-	mockDbClient.EXPECT().GetAllAgents().Return([]model.Agent{}, nil)
+	mockDbClient.EXPECT().GetAllAgentId(nil).Return([]string{agentId})
+	mockDbClient.EXPECT().GetAgentGatherCycle(nil, agentId).Return(1)
+	mockDbClient.EXPECT().GetAllAgents(nil).Return([]model.Agent{}, nil)
 
 	mockMqClient.EXPECT().Subscribe(types.Topic_AgentRegister+agentId).Return(regCh, nil)
 

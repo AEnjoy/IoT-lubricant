@@ -142,7 +142,7 @@ func LinkCoreServer() func(*app) error {
 		}
 
 		address := os.Getenv(def.ENV_CORE_HOST_STR)
-		info := a.GatewayDbOperator.GetServerInfo()
+		info := a.GatewayDbOperator.GetServerInfo(nil)
 		if info == nil && address == "" {
 			return errors.New("address should not be empty when not initialized")
 		}

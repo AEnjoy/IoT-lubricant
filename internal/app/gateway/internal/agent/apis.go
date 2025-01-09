@@ -25,14 +25,14 @@ type agentApis struct {
 
 func (a *agentApis) init() {
 	ctx := context.Background()
-	agents, err := a.db.GetAllAgents()
+	agents, err := a.db.GetAllAgents(nil)
 	if err != nil {
 		panic(err)
 	}
 	//todo: 这里可以加个并发限速
 	for _, agent := range agents {
 		go func(agent model.Agent) {
-			ins := a.db.GetAgentInstance(agent.AgentId)
+			ins := a.db.GetAgentInstance(nil, agent.AgentId)
 
 			control := new(agentControl)
 			control.agentInfo = &agent
@@ -62,7 +62,7 @@ func (a *agentApis) StartAgent(id string) error {
 			exception.WithReason("Cannot control manually added agent instances to start, please manage manually."))
 	}
 
-	ins := a.db.GetAgentInstance(id)
+	ins := a.db.GetAgentInstance(nil, id)
 	if !docker.IsContainerRunning(ins.ContainerID) {
 		err := bootAgentInstance(ins.ContainerID)
 		if err != nil {
@@ -107,5 +107,5 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 }
 
 func (a *agentApis) isLocalAgentDevice(id string) bool {
-	return a.db.GetAgentInstance(id).Local
+	return a.db.GetAgentInstance(nil, id).Local
 }

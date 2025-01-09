@@ -45,12 +45,16 @@ type CoreDbOperator interface {
 	// User:
 }
 type GatewayDbOperator interface {
-	GetServerInfo() *model.ServerInfo
-	IsAgentIdExists(string) bool
-	GetAllAgentId() []string
-	GetAllAgents() ([]model.Agent, error)
-	RemoveAgent(...string) bool
-	GetAgentReportCycle(string) int
-	GetAgentGatherCycle(string) int
-	GetAgentInstance(id string) model.AgentInstance
+	Begin() *gorm.DB
+	Commit(txn *gorm.DB)
+	Rollback(txn *gorm.DB)
+
+	GetServerInfo(_ *gorm.DB) *model.ServerInfo
+	IsAgentIdExists(_ *gorm.DB, id string) bool
+	GetAllAgentId(_ *gorm.DB) []string
+	GetAllAgents(_ *gorm.DB) ([]model.Agent, error)
+	RemoveAgent(txn *gorm.DB, id ...string) bool
+	GetAgentReportCycle(_ *gorm.DB, id string) int
+	GetAgentGatherCycle(_ *gorm.DB, id string) int
+	GetAgentInstance(_ *gorm.DB, id string) model.AgentInstance
 }

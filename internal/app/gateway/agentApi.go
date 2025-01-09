@@ -38,13 +38,15 @@ func (a *app) agentRemove(id ...string) bool {
 		}
 
 		agentDataStore.Delete(id)
-		a.GatewayDbOperator.RemoveAgent(s)
+		txn := a.GatewayDbOperator.Begin()
+		a.GatewayDbOperator.RemoveAgent(txn, s)
+		a.GatewayDbOperator.Commit(txn)
 		// todo: remove agent data and other operation
 	}
 	return true
 }
 func (a *app) agentPoolInit() error {
-	as, err := a.GetAllAgents()
+	as, err := a.GetAllAgents(nil)
 	if err != nil {
 		return err
 	}
