@@ -8,6 +8,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/docker"
+	errCh "github.com/AEnjoy/IoT-lubricant/pkg/error"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
@@ -103,6 +104,20 @@ func (a *agentApis) AddAgent(req *model.CreateAgentRequest) error {
 	return a.CreateAgent(req)
 }
 func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
+	txn := a.db.Begin()
+	errorCh := errCh.NewErrorChan()
+	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
+		a.db.Rollback(txn)
+	}).SuccessWillDo(func() {
+		a.db.Commit(txn)
+	}).Do()
+	// 处理添加不在本机agent的情况
+	if req.CreateAgentConf.AgentContainerInfo == nil && req.CreateAgentConf.DriverContainerInfo == nil &&
+		req.AgentInfo.Address != "" {
+
+	} else {
+
+	}
 	panic("implement me")
 }
 

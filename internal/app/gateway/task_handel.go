@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/cache"
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -43,6 +44,13 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 		finish.Finish, _ = anypb.New(working.Working)
 		result.Result = finish
 	case *core.TaskDetail_CreateAgentRequest:
+		setStatus := func(status string) {
+			wor, _ := anypb.New(wrapperspb.String(status))
+			working.Working.Details = []*anypb.Any{wor}
+		}
+		setStatus("creating")
+		req := model.ProxypbCreateAgentRequest2CreateAgentRequest(t.CreateAgentRequest)
+		a.agent.CreateAgent(req)
 	case *core.TaskDetail_EditAgentRequest:
 	case *core.TaskDetail_RemoveAgentRequest:
 	case *core.TaskDetail_StopAgentRequest:
