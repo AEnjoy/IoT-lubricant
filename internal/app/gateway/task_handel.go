@@ -42,6 +42,7 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 
 		finish.Finish, _ = anypb.New(working.Working)
 		result.Result = finish
+		c.Set(task.GetTaskId(), "", cache.NewStoreResult(cache.NeverExpired, result))
 	case *core.TaskDetail_CreateAgentRequest:
 	case *core.TaskDetail_EditAgentRequest:
 	case *core.TaskDetail_RemoveAgentRequest:
