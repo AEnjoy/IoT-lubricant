@@ -10,6 +10,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/data"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	level "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
@@ -22,10 +23,10 @@ const exceptionSigMaxSize = 10
 
 type agentControl struct {
 	id   string
-	slot []int // for api paths
+	Slot []int // for api paths
 
-	agentCli    agent.EdgeServiceClient
-	agentInfo   *model.Agent
+	AgentCli    agent.EdgeServiceClient
+	AgentInfo   *model.Agent
 	dataCollect data.Apis
 
 	ctx    context.Context
@@ -37,17 +38,34 @@ type agentControl struct {
 	gatherLock sync.Mutex
 	start      bool // online/offline
 
-	once sync.Once
+	_once sync.Once
 }
 
-func (c *agentControl) init() {
-	c.once.Do(func() {
+func (c *agentControl) tryConnect() (cli agent.EdgeServiceClient, closeCallBack func(), err error) {
+	cli, closeCallBack, err = edge.NewAgentCliWithClose(c.AgentInfo.Address)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ctxTimeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err = cli.Ping(ctxTimeout, &meta.Ping{})
+	if err != nil {
+		return nil, nil, err
+	}
+	return
+}
+func (c *agentControl) init(ctx context.Context) {
+	c._once.Do(func() {
+		c.id = c.AgentInfo.AgentId
+		c.ctx, c.cancel = context.WithCancel(ctx)
 		c.exitSig = make(chan struct{})
 		c.exceptSig = make(chan *exception.Exception, exceptionSigMaxSize)
 		c.dataCollect = data.NewDataStoreApis(c.id)
 
-		if len(c.slot) == 0 {
-			c.slot = []int{0}
+		if len(c.Slot) == 0 {
+			c.Slot = []int{0}
 		}
 		go func() {
 			for {
@@ -57,7 +75,7 @@ func (c *agentControl) init() {
 					return
 				default:
 				}
-				_, err := c.agentCli.Ping(c.ctx, &meta.Ping{})
+				_, err := c.AgentCli.Ping(c.ctx, &meta.Ping{})
 				if err != nil {
 					if c.start {
 						c.start = false
@@ -82,11 +100,11 @@ func (c *agentControl) _checkOut() {
 	c.cancel()
 }
 func (c *agentControl) _stop() error {
-	_, err := c.agentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
+	_, err := c.AgentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
 	return err
 }
 func (c *agentControl) _start() error {
-	_, err := c.agentCli.StartGather(c.ctx, &agent.StartGatherRequest{})
+	_, err := c.AgentCli.StartGather(c.ctx, &agent.StartGatherRequest{})
 	return err
 }
 func (c *agentControl) _offlineWarn() {
@@ -97,8 +115,8 @@ func (c *agentControl) _offlineWarn() {
 }
 func (c *agentControl) _gather(wg *sync.WaitGroup) {
 	defer wg.Done()
-	for _, i := range c.slot {
-		resp, err := c.agentCli.GetGatherData(c.ctx, &agent.GetDataRequest{
+	for _, i := range c.Slot {
+		resp, err := c.AgentCli.GetGatherData(c.ctx, &agent.GetDataRequest{
 			AgentID: c.id,
 			Slot:    int32(i),
 		})
@@ -136,7 +154,7 @@ func (c *agentControl) StartGather() error {
 	go func() {
 		defer c.gatherLock.Unlock()
 
-		ticker := time.NewTicker(time.Duration(c.agentInfo.GatherCycle) * time.Second)
+		ticker := time.NewTicker(time.Duration(c.AgentInfo.GatherCycle) * time.Second)
 		defer ticker.Stop()
 
 		var wg sync.WaitGroup
@@ -158,4 +176,9 @@ func (c *agentControl) StopGather() {
 }
 func (c *agentControl) GetDataApi() data.Apis {
 	return c.dataCollect
+}
+func newAgentControl(a *model.Agent) *agentControl {
+	return &agentControl{
+		AgentInfo: a,
+	}
 }

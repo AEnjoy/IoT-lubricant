@@ -12,6 +12,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	code2 "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	except "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 )
@@ -34,9 +35,7 @@ func (a *agentApis) init() {
 	for _, agent := range agents {
 		go func(agent model.Agent) {
 			ins := a.db.GetAgentInstance(nil, agent.AgentId)
-
-			control := new(agentControl)
-			control.agentInfo = &agent
+			control := newAgentControl(&agent)
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
@@ -45,7 +44,7 @@ func (a *agentApis) init() {
 				}
 			}
 
-			if err := a.JoinAgent(ctx, control); err != nil {
+			if err := a.pool.JoinAgent(ctx, control); err != nil {
 				logger.Error("agent join to handel pool failed", agent.AgentId, err)
 			}
 		}(agent)
@@ -114,7 +113,16 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 	// 处理添加不在本机agent的情况
 	if req.CreateAgentConf.AgentContainerInfo == nil && req.CreateAgentConf.DriverContainerInfo == nil &&
 		req.AgentInfo.Address != "" {
-
+		err := a.db.AddAgentInstance(txn, model.AgentInstance{AgentId: req.AgentInfo.AgentId, IP: req.AgentInfo.Address, Online: true})
+		if err != nil {
+			errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
+			return err
+		}
+		err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
+		if err != nil {
+			errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
+			return err
+		}
 	} else {
 
 	}

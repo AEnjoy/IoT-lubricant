@@ -29,6 +29,9 @@ func (d *GatewayDb) GetAgentInstance(_ *gorm.DB, id string) model.AgentInstance 
 	d.db.Where("agent_id = ?", id).First(&ret)
 	return ret
 }
+func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error {
+	return txn.Create(ins).Error
+}
 
 func (*GatewayDb) Name() string {
 	return "Gateway-database-client"

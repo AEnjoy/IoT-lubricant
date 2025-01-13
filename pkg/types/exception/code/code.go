@@ -44,6 +44,7 @@ const (
 	ErrGaterDataReqFailed
 	OperationOnlyAtLocal
 	ErrorAgentStartFailed
+	AddAgentFailed
 )
 
 // agent
@@ -104,6 +105,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrGaterDataReqFailed:     "gather data request failed",
 	OperationOnlyAtLocal:      "only supports local agents",
 	ErrorAgentStartFailed:     "agent start failed",
+	AddAgentFailed:            "add agent failed",
 
 	// Agent
 	ErrorAgentInvalidConfig:               "invalid config",
