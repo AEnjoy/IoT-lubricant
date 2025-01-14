@@ -110,23 +110,57 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 	}).SuccessWillDo(func() {
 		a.db.Commit(txn)
 	}).Do()
+
+	var instance model.AgentInstance
+
 	// 处理添加不在本机agent的情况
 	if req.CreateAgentConf.AgentContainerInfo == nil && req.CreateAgentConf.DriverContainerInfo == nil &&
 		req.AgentInfo.Address != "" {
-		err := a.db.AddAgentInstance(txn, model.AgentInstance{AgentId: req.AgentInfo.AgentId, IP: req.AgentInfo.Address, Online: true})
-		if err != nil {
-			errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
-			return err
-		}
-		err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
-		if err != nil {
-			errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
-			return err
-		}
+		instance = model.AgentInstance{AgentId: req.AgentInfo.AgentId, IP: req.AgentInfo.Address, Online: true}
 	} else {
-
+		var driverIP, agentIP string
+		if req.CreateAgentConf.DriverContainerInfo != nil {
+			resp, err := docker.Create(context.Background(), req.CreateAgentConf.DriverContainerInfo)
+			if err != nil {
+				errorCh.Report(err, code2.AddAgentFailed, "add edge driver failed", true)
+				return err
+			}
+			driverIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
+			if err != nil {
+				errorCh.Report(err, code2.AddAgentFailed, "failed to get driver container ip", true)
+				return err
+			}
+		}
+		if req.CreateAgentConf.AgentContainerInfo != nil {
+			req.CreateAgentConf.AgentContainerInfo.Env["DRIVER_IP"] = driverIP
+			resp, err := docker.Create(context.Background(), req.CreateAgentConf.AgentContainerInfo)
+			if err != nil {
+				errorCh.Report(err, code2.AddAgentFailed, "add edge agent failed", true)
+				return err
+			}
+			agentIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
+			if err != nil {
+				errorCh.Report(err, code2.AddAgentFailed, "failed to get agent container ip", true)
+				return err
+			}
+			instance.ContainerID = resp.ID
+			instance.Local = true
+			instance.AgentId = req.AgentInfo.AgentId
+			instance.IP = fmt.Sprintf("%s:%d", agentIP, req.CreateAgentConf.AgentContainerInfo.ServicePort)
+		}
 	}
-	panic("implement me")
+
+	err := a.db.AddAgentInstance(txn, instance)
+	if err != nil {
+		errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed due to:%v", true, err)
+		return err
+	}
+	err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
+	if err != nil {
+		errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
+		return err
+	}
+	return nil
 }
 
 func (a *agentApis) isLocalAgentDevice(id string) bool {

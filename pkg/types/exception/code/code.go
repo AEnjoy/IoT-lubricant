@@ -75,6 +75,11 @@ const (
 	ErrorApiNotInit
 )
 
+// docker
+const (
+	ErrContainerNotRunning ResCode = 230001 + iota
+)
+
 var StatusMsgMap = map[ResCode]string{
 	// Common
 	Success:                  "success",
@@ -126,6 +131,9 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorApiInvalidPath:   "invalid path",
 	ErrorApiInvalidSlot:   "invalid slot",
 	ErrorApiNotInit:       "not initialized",
+
+	// Docker
+	ErrContainerNotRunning: "container is not running",
 }
 
 // GetMsg 返回状态码对应msg

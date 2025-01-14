@@ -3,9 +3,12 @@ package docker
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
@@ -13,7 +16,19 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func Create(ctx context.Context, c docker.Container) (*container.CreateResponse, error) {
+func Create(ctx context.Context, c *docker.Container) (*container.CreateResponse, error) {
+	if c.Compose != nil {
+		err := os.WriteFile("docker-compose.yaml", *c.Compose, 0644)
+		if err != nil {
+			logger.Error("write docker-compose.yaml failed", err)
+			return nil, err
+		}
+		err = exec.Command("docker-compose", "up", "-d").Run()
+		if err != nil {
+			logger.Error("docker-compose up failed", err)
+			return nil, err
+		}
+	}
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
@@ -88,7 +103,7 @@ func Create(ctx context.Context, c docker.Container) (*container.CreateResponse,
 
 // DeployAgent 部署agent容器 返回 agent-container id
 func DeployAgent() (string, error) {
-	resp, err := Create(context.Background(), model.AgentContainer)
+	resp, err := Create(context.Background(), &model.AgentContainer)
 	if err != nil {
 		return "", err
 	}

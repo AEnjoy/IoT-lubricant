@@ -11,14 +11,16 @@ const (
 )
 
 type Container struct {
-	Source     Image             `json:"source"`
-	Name       string            `json:"name"` // if name is nil, docker will generate a random strings as name
-	ImageName  string            `json:"image_name"`
-	ExposePort map[string]int    `json:"expose_port,omitempty"` // map[containerPort]hostPort
-	Network    string            `json:"network"`               // host, bridge, none(default)
-	Env        map[string]string `json:"env,omitempty"`         // map[key]value
-	Endpoint   string            `json:"endpoint"`              // optional
-	Mount      []mount.Mount     `json:"mount,omitempty"`
+	Source      Image             `json:"source"`
+	Name        string            `json:"name"` // if name is nil, docker will generate a random strings as name
+	ImageName   string            `json:"image_name"`
+	ExposePort  map[string]int    `json:"expose_port,omitempty"` // map[containerPort]hostPort
+	Network     string            `json:"network"`               // host, bridge, none(default)
+	Env         map[string]string `json:"env,omitempty"`         // map[key]value
+	Endpoint    string            `json:"endpoint"`              // optional
+	Mount       []mount.Mount     `json:"mount,omitempty"`
+	Compose     *[]byte           `json:"compose,omitempty"`
+	ServicePort int               `json:"service_port"` // agent service port
 }
 type Image struct {
 	PullWay ImagePullWay `json:"pull_way"` // 0: from binary, 1: from url, 2: from registry

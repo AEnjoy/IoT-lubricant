@@ -2,7 +2,9 @@ package docker
 
 import (
 	"context"
+	"errors"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
@@ -28,4 +30,22 @@ func createNetwork(cli *client.Client) {
 			},
 		},
 	})
+}
+
+func GetContainerIPAddress(ctx context.Context, containerID string) (string, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return "", err
+	}
+	defer cli.Close()
+	inspect, err := cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", err
+	}
+	if !inspect.State.Running {
+		return "", errors.New(code.ErrContainerNotRunning.GetMsg())
+	}
+
+	networkSettings := inspect.NetworkSettings
+	return networkSettings.Networks[NetWorkName].IPAddress, nil
 }
