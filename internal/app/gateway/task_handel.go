@@ -5,6 +5,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/cache"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -15,6 +16,7 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 	// todo:impl me
 	working := new(core.QueryTaskResultResponse_Working)
 	finish := new(core.QueryTaskResultResponse_Finish)
+	failed := new(core.QueryTaskResultResponse_Failed)
 	working.Working = new(status.Status)
 	var result = &core.QueryTaskResultResponse{
 		TaskId: task.TaskId,
@@ -22,6 +24,10 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 	}
 	c.Set(task.GetTaskId(), "", cache.NewStoreResult(cache.NeverExpired, result))
 
+	setWorkingStatus := func(status string) {
+		wor, _ := anypb.New(wrapperspb.String(status))
+		working.Working.Details = []*anypb.Any{wor}
+	}
 	switch t := task.GetTask().(type) {
 	case *core.TaskDetail_StartAgentRequest:
 		ids := t.StartAgentRequest.GetAgentId()
@@ -36,24 +42,32 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 			err := a.agent.StartAgent(id)
 			if err != nil {
 				working.Working.Details[i], _ = anypb.New(wrapperspb.String(fmt.Sprintf("failed due to:%v", err)))
+				failed.Failed = &status.Status{
+					//Code:    int32(err.Code()),
+					Message: err.Error(),
+				}
+				result.Result = failed
 			} else {
 				working.Working.Details[i], _ = anypb.New(wrapperspb.String("done"))
 			}
 		}
-
-		finish.Finish, _ = anypb.New(working.Working)
-		result.Result = finish
 	case *core.TaskDetail_CreateAgentRequest:
-		setStatus := func(status string) {
-			wor, _ := anypb.New(wrapperspb.String(status))
-			working.Working.Details = []*anypb.Any{wor}
-		}
-		setStatus("creating")
+		setWorkingStatus("creating")
 		req := model.ProxypbCreateAgentRequest2CreateAgentRequest(t.CreateAgentRequest)
-		a.agent.CreateAgent(req)
+		err := a.agent.CreateAgent(req)
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			logger.Errorf("failed to create ot add agent: %v\n", err)
+			result.Result = failed
+			return
+		}
+		setWorkingStatus("done")
 	case *core.TaskDetail_EditAgentRequest:
 	case *core.TaskDetail_RemoveAgentRequest:
 	case *core.TaskDetail_StopAgentRequest:
 	case *core.TaskDetail_UpdateAgentRequest:
 	}
+
+	finish.Finish, _ = anypb.New(working.Working)
+	result.Result = finish
 }
