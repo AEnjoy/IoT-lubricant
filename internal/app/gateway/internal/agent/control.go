@@ -36,7 +36,7 @@ type agentControl struct {
 	exceptSig chan *exception.Exception
 
 	gatherLock sync.Mutex
-	start      bool // online/offline
+	online     bool // online/offline
 
 	_once sync.Once
 }
@@ -77,12 +77,12 @@ func (c *agentControl) init(ctx context.Context) {
 				}
 				_, err := c.AgentCli.Ping(c.ctx, &meta.Ping{})
 				if err != nil {
-					if c.start {
-						c.start = false
+					if c.online {
+						c.online = false
 						c._offlineWarn()
 					}
 				} else {
-					c.start = true
+					c.online = true
 				}
 				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+1))
 			}
@@ -90,18 +90,22 @@ func (c *agentControl) init(ctx context.Context) {
 	})
 }
 func (c *agentControl) IsStarted() bool {
-	return c.start
+	return c.online
 }
 
 // 销毁
 func (c *agentControl) _checkOut() {
 	logger.Info("agent control checkout", c.id)
-	_ = c._stop()
-	c.cancel()
+	// todo: remove agent control
 }
-func (c *agentControl) _stop() error {
-	_, err := c.AgentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
-	return err
+func (c *agentControl) _stopGather() error {
+	resp, err := c.AgentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
+	if err != nil {
+		return err
+	}
+	c.cancel()
+
+	return errors.New(resp.GetMessage())
 }
 func (c *agentControl) _start() error {
 	_, err := c.AgentCli.StartGather(c.ctx, &agent.StartGatherRequest{})
@@ -134,17 +138,19 @@ func (c *agentControl) _gather(wg *sync.WaitGroup) {
 
 // Start 启动 Agent 对于是否能启动成功，请稍后通过 IsStarted 判断 (未完全实现)
 func (c *agentControl) Start(ctx context.Context) error {
-	if c.start {
-		return errors.New("agent is already stared")
+	// todo:
+	//if !c.online {
+	//	return errors.New("agent is not started or has been offline")
+	//}
+	if c.gatherLock.TryLock() {
+		defer c.gatherLock.Unlock()
+		c.ctx, c.cancel = context.WithCancel(ctx)
 	}
-
-	c.ctx, c.cancel = context.WithCancel(ctx)
-	//c.start = true
 	return nil
 }
 
 func (c *agentControl) StartGather() error {
-	if !c.start {
+	if !c.online {
 		return errors.New("agent is not started or has been offline")
 	}
 	if !c.gatherLock.TryLock() {
@@ -171,7 +177,13 @@ func (c *agentControl) StartGather() error {
 	}()
 	return nil
 }
-func (c *agentControl) StopGather() {
+func (c *agentControl) StopGather() error {
+	return c._stopGather()
+}
+
+// Stop 销毁
+func (c *agentControl) Stop() {
+	_ = c._stopGather()
 	c._checkOut()
 }
 func (c *agentControl) GetDataApi() data.Apis {

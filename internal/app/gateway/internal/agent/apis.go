@@ -10,11 +10,12 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/docker"
 	errCh "github.com/AEnjoy/IoT-lubricant/pkg/error"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+	errLevel "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	code2 "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
-	except "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
 )
 
 var _ Apis = (*agentApis)(nil)
@@ -39,7 +40,7 @@ func (a *agentApis) init() {
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
-					logger.Error("start container failed", ins.ContainerID, err)
+					logger.Error("online container failed", ins.ContainerID, err)
 					return
 				}
 			}
@@ -54,20 +55,20 @@ func (a *agentApis) init() {
 func (a *agentApis) StartAgent(id string) error {
 	ctrl := a.pool.GetAgentControl(id)
 	if ctrl == nil {
-		return exception.New(except.ErrorGatewayAgentNotFound, exception.WithLevel(code.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+		return exception.New(exceptCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
 	}
 	if !a.isLocalAgentDevice(id) {
-		return exception.New(except.OperationOnlyAtLocal, exception.WithLevel(code.Error),
+		return exception.New(exceptCode.OperationOnlyAtLocal, exception.WithLevel(errLevel.Error),
 			exception.WithMsg(fmt.Sprintf("agentID:%s", id)),
-			exception.WithReason("Cannot control manually added agent instances to start, please manage manually."))
+			exception.WithReason("Cannot control manually added agent instances to online, please manage manually."))
 	}
 
 	ins := a.db.GetAgentInstance(nil, id)
 	if !docker.IsContainerRunning(ins.ContainerID) {
 		err := bootAgentInstance(ins.ContainerID)
 		if err != nil {
-			return exception.ErrNewException(err, except.ErrorAgentStartFailed,
-				exception.WithLevel(code.Error),
+			return exception.ErrNewException(err, exceptCode.ErrorAgentStartFailed,
+				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
 		}
 		return nil
@@ -87,13 +88,58 @@ func (a *agentApis) RemoveAgent(id string) error {
 func (a *agentApis) UpdateAgent(id string) error {
 	panic("implement me")
 }
-func (a *agentApis) EditAgent(id string, info model.Agent) error {
+func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
+	txn := a.db.Begin()
+	errorCh := errCh.NewErrorChan()
+	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
+		a.db.Rollback(txn)
+	}).SuccessWillDo(func() {
+		a.db.Commit(txn)
+	}).Do()
+
+	ag, err := a.db.GetAgent(req.GetAgentId())
+	if err != nil {
+		errorCh.Report(err, exceptCode.GetAgentFailed, "db get agent failed due to:%v", true, err)
+		return err
+	}
+
+	ctrl := a.pool.GetAgentControl(req.GetAgentId())
+	m := model.ProxypbEditAgentRequest2Agent(req)
+	m.Address = ag.Address
+
+	if err = a.db.UpdateAgent(txn, m); err != nil {
+		errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true, err)
+		return err
+	}
+
+	if err = ctrl.StopGather(); err != nil {
+		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed due to:%v", true, err)
+		return err
+	}
+
+	setResp, err := ctrl.AgentCli.SetAgent(context.Background(),
+		&agentpb.SetAgentRequest{AgentID: req.GetAgentId(), AgentInfo: req.Info})
+	if err != nil {
+		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%v", true, err)
+		return err
+	}
+	if grpcCode.Code(setResp.GetInfo().GetCode()) != grpcCode.Code_OK ||
+		(grpcCode.Code(setResp.GetInfo().GetCode()) == grpcCode.Code_INVALID_ARGUMENT && setResp.GetInfo().GetMessage() != "Gather is not working") {
+		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%s", true, setResp.GetInfo().GetMessage())
+		return err
+	}
+
+	_ = ctrl.Start(context.Background())
+	if err = ctrl.StartGather(); err != nil {
+		errorCh.Report(err, exceptCode.StartAgentFailed, "online agent failed due to:%v", true, err)
+		return err
+	}
+	return nil
+}
+func (a *agentApis) SetAgent(id string, info *agentpb.AgentInfo) error {
 	panic("implement me")
 }
-func (a *agentApis) SetAgent(id string, info *agent.AgentInfo) error {
-	panic("implement me")
-}
-func (a *agentApis) GetAgentInfo(id string) (*agent.AgentInfo, error) {
+func (a *agentApis) GetAgentInfo(id string) (*agentpb.AgentInfo, error) {
 	panic("implement me")
 }
 func (a *agentApis) GetAgentModel(id string) (*model.Agent, error) {
@@ -122,12 +168,12 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		if req.CreateAgentConf.DriverContainerInfo != nil {
 			resp, err := docker.Create(context.Background(), req.CreateAgentConf.DriverContainerInfo)
 			if err != nil {
-				errorCh.Report(err, code2.AddAgentFailed, "add edge driver failed", true)
+				errorCh.Report(err, exceptCode.AddAgentFailed, "add edge driver failed", true)
 				return err
 			}
 			driverIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
 			if err != nil {
-				errorCh.Report(err, code2.AddAgentFailed, "failed to get driver container ip", true)
+				errorCh.Report(err, exceptCode.AddAgentFailed, "failed to get driver container ip", true)
 				return err
 			}
 		}
@@ -135,12 +181,12 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 			req.CreateAgentConf.AgentContainerInfo.Env["DRIVER_IP"] = driverIP
 			resp, err := docker.Create(context.Background(), req.CreateAgentConf.AgentContainerInfo)
 			if err != nil {
-				errorCh.Report(err, code2.AddAgentFailed, "add edge agent failed", true)
+				errorCh.Report(err, exceptCode.AddAgentFailed, "add edge agent failed", true)
 				return err
 			}
 			agentIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
 			if err != nil {
-				errorCh.Report(err, code2.AddAgentFailed, "failed to get agent container ip", true)
+				errorCh.Report(err, exceptCode.AddAgentFailed, "failed to get agent container ip", true)
 				return err
 			}
 			instance.ContainerID = resp.ID
@@ -152,12 +198,12 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 
 	err := a.db.AddAgentInstance(txn, instance)
 	if err != nil {
-		errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed due to:%v", true, err)
 		return err
 	}
 	err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
 	if err != nil {
-		errorCh.Report(err, code2.AddAgentFailed, "add agent instance failed", true)
+		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
 	return nil

@@ -52,6 +52,11 @@ const (
 	ErrorAgentInvalidConfig ResCode = 140001 + iota
 	ErrorAgentNotAllowMultiGatherInstance
 	ErrorAgentNeedInit
+	GetAgentFailed
+	UpdateAgentFailed
+	SetAgentFailed
+	StartAgentFailed
+	StopAgentFailed
 )
 
 // cache
@@ -116,7 +121,11 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorAgentInvalidConfig:               "invalid config",
 	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",
 	ErrorAgentNeedInit:                    "should be call lubricant.agent.edgeService / setAgent before this operation",
-
+	GetAgentFailed:                        "get agent failed",
+	UpdateAgentFailed:                     "update agent failed",
+	SetAgentFailed:                        "set agent failed",
+	StartAgentFailed:                      "start agent failed",
+	StopAgentFailed:                       "stop agent failed",
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",
 	ErrorCacheNullCache: "cache client is nil",

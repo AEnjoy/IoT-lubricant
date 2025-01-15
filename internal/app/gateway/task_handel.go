@@ -63,6 +63,15 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 		}
 		setWorkingStatus("done")
 	case *core.TaskDetail_EditAgentRequest:
+		setWorkingStatus("editing")
+		err := a.agent.EditAgent(t.EditAgentRequest.GetAgentId(), t.EditAgentRequest)
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			logger.Errorf("failed to edit agent: %v\n", err)
+			result.Result = failed
+			return
+		}
+		setWorkingStatus("done")
 	case *core.TaskDetail_RemoveAgentRequest:
 	case *core.TaskDetail_StopAgentRequest:
 	case *core.TaskDetail_UpdateAgentRequest:

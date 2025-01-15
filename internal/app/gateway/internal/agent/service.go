@@ -6,6 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 )
 
 type Apis interface {
@@ -14,7 +15,7 @@ type Apis interface {
 	KillAgent(id string) error
 	RemoveAgent(id string) error
 	UpdateAgent(id string) error
-	EditAgent(id string, info model.Agent) error
+	EditAgent(id string, info *proxy.EditAgentRequest) error
 	SetAgent(id string, info *agent.AgentInfo) error
 	GetAgentInfo(id string) (*agent.AgentInfo, error)
 	GetAgentModel(id string) (*model.Agent, error)

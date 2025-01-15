@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 )
 
 type Agent struct {
@@ -22,6 +23,17 @@ type Agent struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
 
+func ProxypbEditAgentRequest2Agent(pbreq *proxy.EditAgentRequest) *Agent {
+	return &Agent{
+		AgentId:     pbreq.GetAgentId(),
+		GatewayId:   pbreq.GetInfo().GetGatewayID(),
+		Description: pbreq.GetInfo().GetDescription(),
+		//Cycle:        pbreq.GetInfo().GetCycle(),
+		GatherCycle: int(pbreq.GetInfo().GetGatherCycle()),
+		//Address:     pbreq.Address, // no need
+		Algorithm: pbreq.GetInfo().GetAlgorithm(),
+	}
+}
 func (Agent) TableName() string {
 	return "agent"
 }
