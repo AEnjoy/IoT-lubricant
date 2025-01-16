@@ -12,11 +12,11 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	level "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
+	errLevel "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 )
 
 const exceptionSigMaxSize = 10
@@ -25,7 +25,7 @@ type agentControl struct {
 	id   string
 	Slot []int // for api paths
 
-	AgentCli    agent.EdgeServiceClient
+	AgentCli    agentpb.EdgeServiceClient
 	AgentInfo   *model.Agent
 	dataCollect data.Apis
 
@@ -42,7 +42,7 @@ type agentControl struct {
 	_exitOnce sync.Once
 }
 
-func (c *agentControl) tryConnect() (cli agent.EdgeServiceClient, closeCallBack func(), err error) {
+func (c *agentControl) tryConnect() (cli agentpb.EdgeServiceClient, closeCallBack func(), err error) {
 	cli, closeCallBack, err = edge.NewAgentCliWithClose(c.AgentInfo.Address)
 	if err != nil {
 		return nil, nil, err
@@ -51,7 +51,7 @@ func (c *agentControl) tryConnect() (cli agent.EdgeServiceClient, closeCallBack 
 	ctxTimeout, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err = cli.Ping(ctxTimeout, &meta.Ping{})
+	_, err = cli.Ping(ctxTimeout, &metapb.Ping{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -75,7 +75,7 @@ func (c *agentControl) init(ctx context.Context) {
 					return
 				default:
 				}
-				_, err := c.AgentCli.Ping(c.ctx, &meta.Ping{})
+				_, err := c.AgentCli.Ping(c.ctx, &metapb.Ping{})
 				if err != nil {
 					if c.online {
 						c.online = false
@@ -103,7 +103,7 @@ func (c *agentControl) _checkOut() {
 	})
 }
 func (c *agentControl) _stopGather() error {
-	resp, err := c.AgentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
+	resp, err := c.AgentCli.StopGather(c.ctx, &agentpb.StopGatherRequest{})
 	if err != nil {
 		return err
 	}
@@ -115,25 +115,25 @@ func (c *agentControl) _stopGather() error {
 	return nil
 }
 func (c *agentControl) _start() error {
-	_, err := c.AgentCli.StartGather(c.ctx, &agent.StartGatherRequest{})
+	_, err := c.AgentCli.StartGather(c.ctx, &agentpb.StartGatherRequest{})
 	return err
 }
 func (c *agentControl) _offlineWarn() {
-	c.exceptSig <- exception.ErrNewException(nil, code.WarnAgentOffline,
-		exception.WithLevel(level.Warn),
+	c.exceptSig <- exception.ErrNewException(nil, exceptCode.WarnAgentOffline,
+		exception.WithLevel(errLevel.Warn),
 		exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 	)
 }
 func (c *agentControl) _gather(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for _, i := range c.Slot {
-		resp, err := c.AgentCli.GetGatherData(c.ctx, &agent.GetDataRequest{
+		resp, err := c.AgentCli.GetGatherData(c.ctx, &agentpb.GetDataRequest{
 			AgentID: c.id,
 			Slot:    int32(i),
 		})
 		if err != nil {
-			c.exceptSig <- exception.ErrNewException(err, code.ErrGaterDataReqFailed,
-				exception.WithLevel(level.Error),
+			c.exceptSig <- exception.ErrNewException(err, exceptCode.ErrGaterDataReqFailed,
+				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 				exception.WithMsg(fmt.Sprintf("Slot: %d", i)),
 			)

@@ -5,8 +5,8 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 )
 
 type Apis interface {
@@ -15,18 +15,17 @@ type Apis interface {
 	KillAgent(id string) error
 	RemoveAgent(id string) error
 	UpdateAgent(id string) error
-	EditAgent(id string, info *proxy.EditAgentRequest) error
-	SetAgent(id string, info *agent.AgentInfo) error
-	GetAgentInfo(id string) (*agent.AgentInfo, error)
+	EditAgent(id string, info *proxypb.EditAgentRequest) error
+	SetAgent(id string, info *agentpb.AgentInfo) error
+	GetAgentInfo(id string) (*agentpb.AgentInfo, error)
 	GetAgentModel(id string) (*model.Agent, error)
 	AddAgent(req *model.CreateAgentRequest) error
 	CreateAgent(req *model.CreateAgentRequest) error
 }
 
 var (
-	_agentCli agent.EdgeServiceClient
-	_apis     Apis
-	once      sync.Once
+	_apis Apis
+	once  sync.Once
 )
 
 // NewAgentApis 初始化并(或)获取AgentApis 对象  在后续获取对象时 可以设置参数为nil
