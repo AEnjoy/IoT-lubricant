@@ -57,6 +57,7 @@ const (
 	SetAgentFailed
 	StartAgentFailed
 	StopAgentFailed
+	RemoveAgentFailed
 )
 
 // cache
@@ -126,6 +127,8 @@ var StatusMsgMap = map[ResCode]string{
 	SetAgentFailed:                        "set agent failed",
 	StartAgentFailed:                      "start agent failed",
 	StopAgentFailed:                       "stop agent failed",
+	RemoveAgentFailed:                     "remove agent failed",
+
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",
 	ErrorCacheNullCache: "cache client is nil",

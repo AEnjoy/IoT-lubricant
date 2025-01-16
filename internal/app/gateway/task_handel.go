@@ -73,6 +73,26 @@ func (a *app) handelTask(task *core.TaskDetail, c *cache.MemoryCache[*core.Query
 		}
 		setWorkingStatus("done")
 	case *core.TaskDetail_RemoveAgentRequest:
+		// todo:这里可以优化为并发执行
+		ids := t.RemoveAgentRequest.GetAgentId()
+		working.Working.Details = make([]*anypb.Any, len(ids), len(ids))
+		for i := 0; i < len(ids); i++ {
+			working.Working.Details[i], _ = anypb.New(wrapperspb.String("pending"))
+		}
+		for i, id := range ids {
+			working.Working.Details[i], _ = anypb.New(wrapperspb.String("removing"))
+			err := a.agent.RemoveAgent(id)
+			if err != nil {
+				working.Working.Details[i], _ = anypb.New(wrapperspb.String(fmt.Sprintf("failed due to:%v", err)))
+				failed.Failed = &status.Status{
+					//Code:    int32(err.Code()),
+					Message: err.Error(),
+				}
+				result.Result = failed
+			} else {
+				working.Working.Details[i], _ = anypb.New(wrapperspb.String("done"))
+			}
+		}
 	case *core.TaskDetail_StopAgentRequest:
 	case *core.TaskDetail_UpdateAgentRequest:
 	}

@@ -33,9 +33,12 @@ func (d *GatewayDb) Commit(txn *gorm.DB) {
 func (d *GatewayDb) Rollback(txn *gorm.DB) {
 	txn.Rollback()
 }
-func (d *GatewayDb) GetAgentInstance(_ *gorm.DB, id string) model.AgentInstance {
+func (d *GatewayDb) GetAgentInstance(txn *gorm.DB, id string) model.AgentInstance {
 	var ret model.AgentInstance
-	d.db.Where("agent_id = ?", id).First(&ret)
+	if txn == nil {
+		txn = d.db
+	}
+	txn.Where("agent_id = ?", id).First(&ret)
 	return ret
 }
 func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error {

@@ -7,6 +7,15 @@ import (
 	"github.com/docker/docker/client"
 )
 
+func Stop(ctx context.Context, name string) error {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return err
+	}
+	defer cli.Close()
+
+	return cli.ContainerStop(ctx, name, container.StopOptions{})
+}
 func Remove(ctx context.Context, name string) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {

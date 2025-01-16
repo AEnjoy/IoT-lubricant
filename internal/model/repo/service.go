@@ -58,6 +58,6 @@ type GatewayDbOperator interface {
 	RemoveAgent(txn *gorm.DB, id ...string) bool
 	GetAgentReportCycle(_ *gorm.DB, id string) int
 	GetAgentGatherCycle(_ *gorm.DB, id string) int
-	GetAgentInstance(_ *gorm.DB, id string) model.AgentInstance
+	GetAgentInstance(optionalTxn *gorm.DB, id string) model.AgentInstance
 	AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error
 }

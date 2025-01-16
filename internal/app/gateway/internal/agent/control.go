@@ -38,7 +38,8 @@ type agentControl struct {
 	gatherLock sync.Mutex
 	online     bool // online/offline
 
-	_once sync.Once
+	_initOnce sync.Once
+	_exitOnce sync.Once
 }
 
 func (c *agentControl) tryConnect() (cli agent.EdgeServiceClient, closeCallBack func(), err error) {
@@ -57,7 +58,7 @@ func (c *agentControl) tryConnect() (cli agent.EdgeServiceClient, closeCallBack 
 	return
 }
 func (c *agentControl) init(ctx context.Context) {
-	c._once.Do(func() {
+	c._initOnce.Do(func() {
 		c.id = c.AgentInfo.AgentId
 		c.ctx, c.cancel = context.WithCancel(ctx)
 		c.exitSig = make(chan struct{})
@@ -71,7 +72,6 @@ func (c *agentControl) init(ctx context.Context) {
 			for {
 				select {
 				case <-c.exitSig:
-					c._checkOut()
 					return
 				default:
 				}
@@ -96,7 +96,11 @@ func (c *agentControl) IsStarted() bool {
 // 销毁
 func (c *agentControl) _checkOut() {
 	logger.Info("agent control checkout", c.id)
-	// todo: remove agent control
+	c._exitOnce.Do(func() {
+		close(c.exitSig)
+		close(c.exceptSig)
+		data.ManualPushAgentData(c.id)
+	})
 }
 func (c *agentControl) _stopGather() error {
 	resp, err := c.AgentCli.StopGather(c.ctx, &agent.StopGatherRequest{})
@@ -105,7 +109,10 @@ func (c *agentControl) _stopGather() error {
 	}
 	c.cancel()
 
-	return errors.New(resp.GetMessage())
+	if resp.GetMessage() != "success" && resp.GetMessage() != "" && resp.GetMessage() != "Gather is not working" {
+		return errors.New(resp.GetMessage())
+	}
+	return nil
 }
 func (c *agentControl) _start() error {
 	_, err := c.AgentCli.StartGather(c.ctx, &agent.StartGatherRequest{})
@@ -181,9 +188,10 @@ func (c *agentControl) StopGather() error {
 	return c._stopGather()
 }
 
-// Stop 销毁
-func (c *agentControl) Stop() {
+// Exit 销毁
+func (c *agentControl) Exit() {
 	_ = c._stopGather()
+	c.exitSig <- struct{}{}
 	c._checkOut()
 }
 func (c *agentControl) GetDataApi() data.Apis {

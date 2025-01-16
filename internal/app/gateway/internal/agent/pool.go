@@ -9,8 +9,13 @@ type pool struct {
 	p sync.Map // id => *agentControl
 }
 
+var _pool *pool
+
 func newPool() *pool {
-	return &pool{}
+	if _pool == nil {
+		_pool = new(pool)
+	}
+	return _pool
 }
 func (p *pool) JoinAgent(ctx context.Context, a *agentControl) error {
 	cli, _, err := a.tryConnect()
@@ -23,6 +28,9 @@ func (p *pool) JoinAgent(ctx context.Context, a *agentControl) error {
 	p.p.Store(a.id, a)
 
 	return nil
+}
+func (p *pool) RemoveAgent(id string) {
+	p.p.Delete(id)
 }
 func (p *pool) GetAgentControl(id string) *agentControl {
 	if v, ok := p.p.Load(id); ok {

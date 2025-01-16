@@ -83,7 +83,42 @@ func (a *agentApis) KillAgent(id string) error {
 	panic("implement me")
 }
 func (a *agentApis) RemoveAgent(id string) error {
-	panic("implement me")
+	txn := a.db.Begin()
+	errorCh := errCh.NewErrorChan()
+	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
+		a.db.Rollback(txn)
+	}).SuccessWillDo(func() {
+		a.db.Commit(txn)
+	}).Do()
+
+	var (
+		ctx  = context.Background()
+		ctrl = a.pool.GetAgentControl(id)
+		ins  = a.db.GetAgentInstance(txn, id)
+	)
+
+	err := ctrl.StopGather()
+	if err != nil {
+		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed", true)
+		return err
+	}
+	if ins.Local {
+		if err = docker.Stop(ctx, ins.ContainerID); err != nil {
+			errorCh.Report(err, exceptCode.StopAgentFailed, "stop agent container failed", true)
+			return err
+		}
+		if err = docker.Remove(ctx, ins.ContainerID); err != nil {
+			errorCh.Report(err, exceptCode.RemoveAgentFailed, "remove agent container failed", true)
+			return err
+		}
+	} else {
+		logger.Warnf("AgentID:[%s] Not supporting the removal of manually added agents, "+
+			"which will result in the deletion of database records", id)
+	}
+
+	ctrl.Exit()
+	a.pool.RemoveAgent(id)
+	return nil
 }
 func (a *agentApis) UpdateAgent(id string) error {
 	panic("implement me")
@@ -99,7 +134,7 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 
 	ag, err := a.db.GetAgent(req.GetAgentId())
 	if err != nil {
-		errorCh.Report(err, exceptCode.GetAgentFailed, "db get agent failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.GetAgentFailed, "db get agent failed due to:%v", true)
 		return err
 	}
 
@@ -108,19 +143,19 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 	m.Address = ag.Address
 
 	if err = a.db.UpdateAgent(txn, m); err != nil {
-		errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true)
 		return err
 	}
 
 	if err = ctrl.StopGather(); err != nil {
-		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed due to:%v", true)
 		return err
 	}
 
 	setResp, err := ctrl.AgentCli.SetAgent(context.Background(),
 		&agentpb.SetAgentRequest{AgentID: req.GetAgentId(), AgentInfo: req.Info})
 	if err != nil {
-		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%v", true)
 		return err
 	}
 	if grpcCode.Code(setResp.GetInfo().GetCode()) != grpcCode.Code_OK ||
@@ -131,7 +166,7 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 
 	_ = ctrl.Start(context.Background())
 	if err = ctrl.StartGather(); err != nil {
-		errorCh.Report(err, exceptCode.StartAgentFailed, "online agent failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.StartAgentFailed, "online agent failed", true)
 		return err
 	}
 	return nil
@@ -198,7 +233,7 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 
 	err := a.db.AddAgentInstance(txn, instance)
 	if err != nil {
-		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed due to:%v", true, err)
+		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
 	err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
