@@ -123,7 +123,9 @@ var AgentContainer = container.Container{
 type AgentInstance struct {
 	AgentId string `gorm:"column:agent_id"`
 
-	ContainerID string `gorm:"column:container_id"`
+	CreateConf  string `gorm:"column:conf,type:json"` // CreateAgentConf
+	ContainerID string `gorm:"column:container_id"`   // AgentContainerID
+	DriverID    string `gorm:"column:driver_id"`      // DriverContainerID
 	IP          string `gorm:"column:ip"`
 	Local       bool   `gorm:"column:local"` // 是否与 agent-proxy 在同一台机器上
 	Online      bool   `gorm:"column:online"`

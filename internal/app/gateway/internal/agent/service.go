@@ -14,7 +14,7 @@ type Apis interface {
 	StopAgent(id string) error
 	KillAgent(id string) error
 	RemoveAgent(id string) error
-	UpdateAgent(id string) error
+	UpdateAgent(id string, optionalConf *model.CreateAgentRequest) error
 	EditAgent(id string, info *proxypb.EditAgentRequest) error
 	SetAgent(id string, info *agentpb.AgentInfo) error
 	GetAgentInfo(id string) (*agentpb.AgentInfo, error)

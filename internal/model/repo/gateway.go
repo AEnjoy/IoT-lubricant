@@ -13,6 +13,10 @@ type GatewayDb struct {
 	db *gorm.DB
 }
 
+func (d *GatewayDb) UpdateAgentInstance(txn *gorm.DB, id string, ins model.AgentInstance) error {
+	return txn.Where("agent_id = ?", id).Updates(ins).Error
+}
+
 func (d *GatewayDb) GetAgent(id string) (retVal model.Agent, err error) {
 	err = d.db.Where("agent_id = ?", id).First(&retVal).Error
 	return

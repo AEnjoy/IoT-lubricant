@@ -7,6 +7,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/bytedance/sonic"
 	grpcStatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -114,6 +115,22 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_UpdateAgentRequest:
+		setWorkingStatus("updating")
+		var conf *model.CreateAgentRequest
+		if data := t.UpdateAgentRequest.GetConf(); len(data) > 0 {
+			conf = &model.CreateAgentRequest{CreateAgentConf: new(model.CreateAgentConf)}
+			err := sonic.Unmarshal(data, conf.CreateAgentConf)
+			if err != nil {
+				logger.Errorf("failed to unmarshal the conf:%v\n", err)
+				return
+			}
+		}
+		err := a.agent.UpdateAgent(t.UpdateAgentRequest.GetAgentId(), conf)
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			return
+		}
+		setWorkingStatus("done")
 	}
 
 	finish.Finish, _ = anypb.New(working.Working)

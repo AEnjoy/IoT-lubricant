@@ -58,6 +58,9 @@ const (
 	StartAgentFailed
 	StopAgentFailed
 	RemoveAgentFailed
+	ErrorNoAgentContainerConfSet
+	ErrorAgentUpdateFailed
+	ErrorAgentUpdateNotSupportRemote
 )
 
 // cache
@@ -128,6 +131,9 @@ var StatusMsgMap = map[ResCode]string{
 	StartAgentFailed:                      "start agent failed",
 	StopAgentFailed:                       "stop agent failed",
 	RemoveAgentFailed:                     "remove agent failed",
+	ErrorNoAgentContainerConfSet:          "agent container conf is not set",
+	ErrorAgentUpdateFailed:                "update agent failed",
+	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
 
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",

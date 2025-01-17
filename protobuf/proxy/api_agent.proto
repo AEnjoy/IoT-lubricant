@@ -18,6 +18,7 @@ message RemoveAgentRequest{
 }
 message UpdateAgentRequest{
   string agentId =1;
+  optional bytes conf =2; //agentCreate config
 }
 message EditAgentRequest{
   string agentId =1;
