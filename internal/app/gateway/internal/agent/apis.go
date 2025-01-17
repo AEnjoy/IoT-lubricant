@@ -76,8 +76,11 @@ func (a *agentApis) StartAgent(id string) error {
 	logger.Warnln("agent already started", id)
 	return nil
 }
+
+// StopAgent 对于来自Core的操作，认为StopAgent操作，实际上只是停止采集，不会真正删除agent实例
 func (a *agentApis) StopAgent(id string) error {
-	panic("implement me")
+	ctrl := a.pool.GetAgentControl(id)
+	return ctrl.StopGather()
 }
 func (a *agentApis) KillAgent(id string) error {
 	panic("implement me")

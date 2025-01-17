@@ -94,6 +94,25 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_StopAgentRequest:
+		ids := t.StopAgentRequest.GetAgentId()
+		working.Working.Details = make([]*anypb.Any, len(ids), len(ids))
+		for i := 0; i < len(ids); i++ {
+			working.Working.Details[i], _ = anypb.New(wrapperspb.String("pending"))
+		}
+		for i, id := range ids {
+			working.Working.Details[i], _ = anypb.New(wrapperspb.String("stopping"))
+			err := a.agent.StopAgent(id)
+			if err != nil {
+				working.Working.Details[i], _ = anypb.New(wrapperspb.String(fmt.Sprintf("failed due to:%v", err)))
+				failed.Failed = &grpcStatus.Status{
+					//Code:    int32(err.Code()),
+					Message: err.Error(),
+				}
+				result.Result = failed
+			} else {
+				working.Working.Details[i], _ = anypb.New(wrapperspb.String("done"))
+			}
+		}
 	case *corepb.TaskDetail_UpdateAgentRequest:
 	}
 
