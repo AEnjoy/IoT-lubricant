@@ -15,6 +15,7 @@ import (
 	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	"github.com/bytedance/sonic"
 	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
 )
 
@@ -123,8 +124,50 @@ func (a *agentApis) RemoveAgent(id string) error {
 	a.pool.RemoveAgent(id)
 	return nil
 }
-func (a *agentApis) UpdateAgent(id string) error {
+func (a *agentApis) UpdateAgent(id string, conf *model.CreateAgentRequest) error {
 	panic("implement me")
+	txn := a.db.Begin()
+	errorCh := errCh.NewErrorChan()
+	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
+		a.db.Rollback(txn)
+	}).SuccessWillDo(func() {
+		a.db.Commit(txn)
+	}).Do()
+	ins := a.db.GetAgentInstance(txn, id)
+
+	if conf == nil {
+		conf = new(model.CreateAgentRequest)
+		if err := sonic.Unmarshal([]byte(ins.CreateConf), conf); err != nil {
+			errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
+			return err
+		}
+	}
+
+	// 四种情况: 1.local-> local  2.remote -> remote 3.local -> remote 4.remote -> local
+	if conf.CreateAgentConf.AgentContainerInfo == nil && conf.AgentInfo.Address == "" {
+		err := exception.New(exceptCode.ErrorNoAgentContainerConfSet, exception.WithLevel(errLevel.Error),
+			exception.WithMsg("agent container conf is needed"))
+		errorCh.Report(err, exceptCode.ErrorNoAgentContainerConfSet, "UpdateAgent request need to set agent container or new ip", true)
+		return err
+	}
+	// 1.local-> local
+	if conf.CreateAgentConf.AgentContainerInfo != nil && conf.AgentInfo.Address == "" {
+		id, err := docker.UpdateContainer(context.Background(), conf.CreateAgentConf.AgentContainerInfo, ins.ContainerID)
+		if err != nil {
+			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent container failed", true)
+			return err
+		}
+		ins.ContainerID = id
+		return nil
+	}
+	// 2.remote -> remote
+	if conf.CreateAgentConf.AgentContainerInfo == nil && conf.AgentInfo.Address != "" {
+		ins.IP = conf.AgentInfo.Address
+	}
+
+	if conf.CreateAgentConf == nil && conf.AgentInfo.Address != "" && !ins.Online { //
+
+	}
 }
 func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 	txn := a.db.Begin()
@@ -196,11 +239,14 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 	}).Do()
 
 	var instance model.AgentInstance
+	instance.CreateConf, _ = sonic.MarshalString(req.CreateAgentConf)
 
 	// 处理添加不在本机agent的情况
 	if req.CreateAgentConf.AgentContainerInfo == nil && req.CreateAgentConf.DriverContainerInfo == nil &&
 		req.AgentInfo.Address != "" {
-		instance = model.AgentInstance{AgentId: req.AgentInfo.AgentId, IP: req.AgentInfo.Address, Online: true}
+		instance.AgentId = req.AgentInfo.AgentId
+		instance.IP = req.AgentInfo.Address
+		instance.Online = true
 	} else {
 		var driverIP, agentIP string
 		if req.CreateAgentConf.DriverContainerInfo != nil {

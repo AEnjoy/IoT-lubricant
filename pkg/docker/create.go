@@ -2,19 +2,65 @@ package docker
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 )
+
+func UpdateContainer(ctx context.Context, c *docker.Container, oldName string) (string, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return "", err
+	}
+	defer cli.Close()
+
+	if err = pullImage(ctx, cli, c); err != nil {
+		return "", err
+	}
+	if err = cli.ContainerStop(ctx, oldName, container.StopOptions{}); err != nil {
+		logger.Warnf("Failed to stop container %s: %v", oldName, err)
+	}
+	if err = cli.ContainerRemove(ctx, oldName, container.RemoveOptions{Force: true}); err != nil {
+		return "", fmt.Errorf("failed to remove container %s: %w", oldName, err)
+	}
+
+	config := &container.Config{
+		Image:        c.Source.RegistryPath,
+		Env:          convertEnvMap(c.Env),
+		ExposedPorts: convertExposePort(c.ExposePort),
+	}
+	hostConfig := &container.HostConfig{
+		RestartPolicy: container.RestartPolicy{
+			Name: container.RestartPolicyAlways,
+		},
+		PortBindings: convertPortBindings(c.ExposePort),
+		Mounts:       c.Mount,
+	}
+	netConfig := &network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{
+			c.Network: {},
+		},
+	}
+
+	resp, err := cli.ContainerCreate(ctx, config, hostConfig, netConfig, nil, c.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to create container: %w", err)
+	}
+
+	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
+		return resp.ID, fmt.Errorf("failed to start container: %w", err)
+	}
+
+	logger.Infof("Container %s updated successfully with new image %s", c.Name, c.Source.RegistryPath)
+	return resp.ID, nil
+}
 
 func Create(ctx context.Context, c *docker.Container) (*container.CreateResponse, error) {
 	if c.Compose != nil {
@@ -38,40 +84,8 @@ func Create(ctx context.Context, c *docker.Container) (*container.CreateResponse
 	createNetwork(cli)
 
 	// Pull image if necessary
-	switch c.Source.PullWay {
-	case docker.ImagePullFromBinary:
-		if err := pullFromImageBinaryData(ctx, cli, c.Source.FromBinary); err != nil {
-			return nil, err
-		}
-	case docker.ImagePullFromUrl:
-		pullReq, err := http.NewRequest(http.MethodGet, c.Source.FromUrl, nil)
-		if err != nil {
-			return nil, err
-		}
-		resp, err := cli.HTTPClient().Do(pullReq)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-		if err := pullFromImageBinaryReader(ctx, cli, resp.Body); err != nil {
-			return nil, err
-		}
-	case docker.ImagePullFromRegistry:
-		path := func() string {
-			c.Source.FromRegistry = strings.Trim(c.Source.FromRegistry, "/")
-			c.Source.FromRegistry = strings.TrimLeft(c.Source.FromRegistry, "/")
-			c.Source.RegistryPath = strings.Trim(c.Source.RegistryPath, "/")
-			c.Source.RegistryPath = strings.TrimLeft(c.Source.RegistryPath, "/")
-			if len(c.Source.FromRegistry) == 0 {
-				c.Source.FromRegistry = "docker.io"
-			}
-			return c.Source.FromRegistry + "/" + c.Source.RegistryPath
-		}()
-		if _, err := cli.ImagePull(ctx, path, image.PullOptions{RegistryAuth: c.Source.RegistryAuth}); err != nil {
-			return nil, err
-		}
-	default:
-		return nil, ErrPullWay
+	if err = pullImage(ctx, cli, c); err != nil {
+		return nil, err
 	}
 
 	// configs

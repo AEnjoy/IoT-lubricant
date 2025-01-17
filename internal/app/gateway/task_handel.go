@@ -114,6 +114,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_UpdateAgentRequest:
+
 	}
 
 	finish.Finish, _ = anypb.New(working.Working)

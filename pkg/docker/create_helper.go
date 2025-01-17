@@ -5,8 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
+	"strings"
 
+	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -118,4 +122,40 @@ func pullFromImageBinaryReader(ctx context.Context, cli *client.Client, data io.
 }
 func pullFromImageBinaryData(ctx context.Context, cli *client.Client, data []byte) error {
 	return pullFromImageBinaryReader(ctx, cli, bytes.NewReader(data))
+}
+func pullImage(ctx context.Context, cli *client.Client, c *docker.Container) error {
+	switch c.Source.PullWay {
+	case docker.ImagePullFromBinary:
+		if err := pullFromImageBinaryData(ctx, cli, c.Source.FromBinary); err != nil {
+			return err
+		}
+	case docker.ImagePullFromUrl:
+		pullReq, err := http.NewRequest(http.MethodGet, c.Source.FromUrl, nil)
+		if err != nil {
+			return err
+		}
+		resp, err := cli.HTTPClient().Do(pullReq)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if err := pullFromImageBinaryReader(ctx, cli, resp.Body); err != nil {
+			return err
+		}
+	case docker.ImagePullFromRegistry:
+		path := func() string {
+			c.Source.FromRegistry = strings.Trim(c.Source.FromRegistry, "/")
+			c.Source.RegistryPath = strings.Trim(c.Source.RegistryPath, "/")
+			if len(c.Source.FromRegistry) == 0 {
+				c.Source.FromRegistry = "docker.io"
+			}
+			return c.Source.FromRegistry + "/" + c.Source.RegistryPath
+		}()
+		if _, err := cli.ImagePull(ctx, path, image.PullOptions{RegistryAuth: c.Source.RegistryAuth}); err != nil {
+			return err
+		}
+	default:
+		return ErrPullWay
+	}
+	return nil
 }
