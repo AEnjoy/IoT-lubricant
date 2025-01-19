@@ -32,6 +32,7 @@ func ProxypbEditAgentRequest2Agent(pbreq *proxy.EditAgentRequest) *Agent {
 		GatherCycle: int(pbreq.GetInfo().GetGatherCycle()),
 		//Address:     pbreq.Address, // no need
 		Algorithm: pbreq.GetInfo().GetAlgorithm(),
+		UpdatedAt: time.Now(),
 	}
 }
 func (Agent) TableName() string {

@@ -54,7 +54,7 @@ type GatewayDbOperator interface {
 	GetAllAgentId(_ *gorm.DB) []string
 	GetAllAgents(_ *gorm.DB) ([]model.Agent, error)
 	GetAgent(id string) (model.Agent, error)
-	UpdateAgent(txn *gorm.DB, agent *model.Agent) error
+	UpdateAgent(txn *gorm.DB, id string, agent *model.Agent) error
 	RemoveAgent(txn *gorm.DB, id ...string) bool
 	GetAgentReportCycle(_ *gorm.DB, id string) int
 	GetAgentGatherCycle(_ *gorm.DB, id string) int

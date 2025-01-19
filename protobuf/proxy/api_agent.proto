@@ -23,6 +23,7 @@ message UpdateAgentRequest{
 message EditAgentRequest{
   string agentId =1;
   agent.AgentInfo info = 2;
+  optional bytes conf = 3; // CreateAgentRequest config
 }
 message CreateAgentRequest{
   agent.AgentInfo info = 1;

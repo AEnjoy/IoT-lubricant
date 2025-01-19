@@ -156,21 +156,6 @@ func (a *agentApis) UpdateAgent(id string, conf *model.CreateAgentRequest) error
 	// 四种情况: 1.local-> local  2.remote -> remote 3.local -> remote 4.remote -> local
 
 	if ins.Local {
-		//3.local -> remote
-		if conf != nil && conf.AgentInfo.Address != "" {
-			//ins.IP = conf.AgentInfo.Address
-			if err := a.RemoveAgent(id); err != nil {
-				errorCh.Report(err, exceptCode.RemoveAgentFailed, "update agent container failed(at remove old agent)", true)
-				return err
-			}
-			conf.AgentInfo.AgentId = id
-			if err := a.CreateAgent(conf); err != nil {
-				errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent container failed(at create new agent)", true)
-				return err
-			}
-			return nil
-		}
-
 		// 1.local-> local
 		if conf == nil {
 			conf = originCreateConf
@@ -185,35 +170,19 @@ func (a *agentApis) UpdateAgent(id string, conf *model.CreateAgentRequest) error
 				ins.ContainerID = id
 			}
 			if conf.DriverContainerInfo != nil {
-				id, err := docker.UpdateContainer(context.Background(), conf.AgentContainerInfo, ins.DriverID)
+				id, err := docker.UpdateContainer(context.Background(), conf.DriverContainerInfo, ins.DriverID)
 				if err != nil {
-					errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent container failed", true)
+					errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update driver container failed", true)
 					return err
 				}
 				ins.DriverID = id
 			}
-			return nil
 		}
 	} else {
-		// 2.remote -> remote
-		if conf == nil {
-			err := exception.New(exceptCode.ErrorAgentUpdateNotSupportRemote, exception.WithLevel(errLevel.Error),
-				exception.WithMsg("agent container conf is needed"))
-			errorCh.Report(err, exceptCode.ErrorAgentUpdateNotSupportRemote, "please manually update your remote agent", true)
-			return err
-		}
-		// 4.remote -> local
-		if conf.AgentContainerInfo != nil {
-			if err := a.RemoveAgent(id); err != nil {
-				errorCh.Report(err, exceptCode.RemoveAgentFailed, "update agent container failed(at remove old agent)", true)
-				return err
-			}
-			conf.AgentInfo.AgentId = id
-			if err := a.CreateAgent(conf); err != nil {
-				errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent container failed(at create new agent)", true)
-				return err
-			}
-		}
+		err := exception.New(exceptCode.ErrorAgentUpdateNotSupportRemote, exception.WithLevel(errLevel.Error),
+			exception.WithMsg("agent container conf is needed"))
+		errorCh.Report(err, exceptCode.ErrorAgentUpdateNotSupportRemote, "please manually update your remote agent or recreate agent", true)
+		return err
 	}
 	return nil
 }
@@ -226,22 +195,49 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 		a.db.Commit(txn)
 	}).Do()
 
-	ag, err := a.db.GetAgent(req.GetAgentId())
-	if err != nil {
-		errorCh.Report(err, exceptCode.GetAgentFailed, "db get agent failed due to:%v", true)
-		return err
-	}
+	ins := a.db.GetAgentInstance(txn, req.GetAgentId())
+	defer func(db repo.GatewayDbOperator, txn *gorm.DB, id string, ins model.AgentInstance) {
+		if err := db.UpdateAgentInstance(txn, id, ins); err != nil {
+			err = exception.ErrNewException(err, exceptCode.ErrorAgentUpdateFailed,
+				exception.WithLevel(errLevel.Error),
+				exception.WithMsg(fmt.Sprintf("agentID:%s", id)),
+				exception.WithMsg("at update agent instance database commit"))
+			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
+		}
+	}(a.db, txn, req.GetAgentId(), ins)
 
+	// 四种情况: 1.local-> local  2.remote -> remote 3.local -> remote 4.remote -> local
 	ctrl := a.pool.GetAgentControl(req.GetAgentId())
 	m := model.ProxypbEditAgentRequest2Agent(req)
-	m.Address = ag.Address
-
-	if err = a.db.UpdateAgent(txn, m); err != nil {
-		errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true)
-		return err
+	if len(req.GetConf()) > 0 {
+		createConf := model.CreateAgentRequest{}
+		if err := sonic.Unmarshal(req.GetConf(), &createConf); err != nil {
+			errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
+			return err
+		}
+		if err := a.RemoveAgent(req.GetAgentId()); err != nil {
+			errorCh.Report(err, exceptCode.RemoveAgentFailed, "update agent container failed(at remove old agent)", true)
+			return err
+		}
+		if err := a.CreateAgent(&createConf); err != nil {
+			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent setting failed(at create new agent)", true)
+			return err
+		}
+		m.Cycle = createConf.AgentInfo.Cycle
+		if createConf.DriverContainerInfo == nil && createConf.AgentContainerInfo == nil && createConf.AgentInfo.Address != "" {
+			// -> remote
+			m.Address = createConf.AgentInfo.Address
+		}
 	}
 
-	if err = ctrl.StopGather(); err != nil {
+	defer func(db repo.GatewayDbOperator, txn *gorm.DB, id string, agent *model.Agent) {
+		err := db.UpdateAgent(txn, id, agent)
+		if err != nil {
+			errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true)
+		}
+	}(a.db, txn, req.GetAgentId(), m)
+
+	if err := ctrl.StopGather(); err != nil {
 		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed due to:%v", true)
 		return err
 	}
