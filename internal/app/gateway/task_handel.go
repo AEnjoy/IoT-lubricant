@@ -32,7 +32,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 	switch t := task.GetTask().(type) {
 	case *corepb.TaskDetail_StartAgentRequest:
 		ids := t.StartAgentRequest.GetAgentId()
-		working.Working.Details = make([]*anypb.Any, len(ids), len(ids))
+		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i := 0; i < len(ids); i++ {
 			working.Working.Details[i], _ = anypb.New(wrapperspb.String("pending"))
 		}
@@ -76,7 +76,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 	case *corepb.TaskDetail_RemoveAgentRequest:
 		// todo:这里可以优化为并发执行
 		ids := t.RemoveAgentRequest.GetAgentId()
-		working.Working.Details = make([]*anypb.Any, len(ids), len(ids))
+		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i := 0; i < len(ids); i++ {
 			working.Working.Details[i], _ = anypb.New(wrapperspb.String("pending"))
 		}
@@ -96,7 +96,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		}
 	case *corepb.TaskDetail_StopAgentRequest:
 		ids := t.StopAgentRequest.GetAgentId()
-		working.Working.Details = make([]*anypb.Any, len(ids), len(ids))
+		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i := 0; i < len(ids); i++ {
 			working.Working.Details[i], _ = anypb.New(wrapperspb.String("pending"))
 		}

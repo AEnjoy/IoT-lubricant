@@ -1,4 +1,4 @@
-package gateway
+package data
 
 import (
 	"math/rand"
@@ -23,8 +23,8 @@ func newRandomDataMessage(n int) *agent.DataMessage {
 	data.Data = s
 	return data
 }
-func newTestAgent(n int) *agentData {
-	agent := &agentData{data: make([]*agent.DataMessage, 0)}
+func newTestAgent(n int) *data {
+	agent := &data{data: make([]*agent.DataMessage, 0)}
 
 	for i := 0; i < n; i++ {
 		data := newRandomDataMessage(n)

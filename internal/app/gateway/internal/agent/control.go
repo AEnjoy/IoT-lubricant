@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strings"
 	"sync"
 	"time"
 
@@ -165,6 +166,17 @@ func (c *agentControl) StartGather() error {
 	}
 
 	go func() {
+		if err := c._start(); err != nil {
+			if !strings.Contains(err.Error(), "Gather is working now") {
+				logger.Errorln("agent: Gather start failed", err)
+				c.exceptSig <- exception.ErrNewException(err, exceptCode.ErrGaterStartFailed,
+					exception.WithLevel(errLevel.Error),
+					exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
+				)
+				return
+			}
+			logger.Warnln("agent: Gather is working now", err)
+		}
 		defer c.gatherLock.Unlock()
 
 		ticker := time.NewTicker(time.Duration(c.AgentInfo.GatherCycle) * time.Second)

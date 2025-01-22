@@ -61,6 +61,7 @@ const (
 	ErrorNoAgentContainerConfSet
 	ErrorAgentUpdateFailed
 	ErrorAgentUpdateNotSupportRemote
+	ErrGaterStartFailed
 )
 
 // cache
@@ -134,6 +135,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorNoAgentContainerConfSet:          "agent container conf is not set",
 	ErrorAgentUpdateFailed:                "update agent failed",
 	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
+	ErrGaterStartFailed:                   "agent start gather failed",
 
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",

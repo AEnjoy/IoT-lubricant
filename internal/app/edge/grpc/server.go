@@ -294,13 +294,14 @@ func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethod
 	return nil, errors.New("method not support")
 }
 func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
+	// todo:重构返回 使用 protobuf/status
 	if config.Config.ID == "" {
 		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
 	}
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 	if config.IsGathering() {
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, nil
+		return &meta.CommonResponse{Code: http.StatusBadRequest, Message: "Gather is working now"}, status.Error(codes.InvalidArgument, "Gather is working now")
 	}
 	if !edge.CheckConfigInvalidGet(config.Config.Config) {
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Invalid internal configuration"}, nil

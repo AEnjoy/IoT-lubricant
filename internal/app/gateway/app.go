@@ -31,7 +31,6 @@ type app struct {
 	agent agent.Apis
 	task  async.Task
 
-	port       string
 	grpcClient core.CoreServiceClient //grpc
 }
 
