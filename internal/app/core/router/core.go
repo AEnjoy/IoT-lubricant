@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/internal/pkg/router/middleware"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/middleware"
 	"github.com/gin-gonic/gin"
 )
 
