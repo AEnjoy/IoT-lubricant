@@ -79,9 +79,25 @@ func (eh *ErrorHandler) Do() {
 	case err := <-eh.ErrorChan.ErrCh:
 		if !err.IsEmpty() {
 			eh.errorRun(&err.Exception)
+			for _, f := range globalErrorDo {
+				f(&err)
+			}
 			return
 		}
 	default:
 	}
+	for _, f := range globalSuccessDo {
+		f()
+	}
 	eh.successRun()
+}
+
+var globalSuccessDo []func()
+var globalErrorDo []func(error)
+
+func ErrorHandlerSetGlobalSuccessWillDo(callback func()) {
+	globalSuccessDo = append(globalSuccessDo, callback)
+}
+func ErrorHandlerSetGlobalErrorWillDo(callback func(error)) {
+	globalErrorDo = append(globalErrorDo, callback)
 }

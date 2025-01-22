@@ -37,7 +37,7 @@ func printBuildInfo() {
 	fmt.Printf("Features: %s\n", Features)
 	fmt.Printf("Platform: %s\n", Platform)
 	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("Runing Platform Info: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 }
 func main() {
 	var envFilePath string
@@ -55,13 +55,12 @@ func main() {
 		}
 	}
 
-	port := os.Getenv(MQ_LISTEN_PORT_STR)
 	id := os.Getenv(GATEWAY_ID_STR)
 
 	app := gateway.NewApp(
 		gateway.SetGatewayId(id),
-		gateway.SetPort(port),
 		gateway.UseDB(repo.NewGatewayDb(nil)),
+		gateway.LinkCoreServer(),
 	)
 	panic(app.Run())
 }

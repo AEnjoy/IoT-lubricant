@@ -40,7 +40,7 @@ func (t Tls) GetTLSLinkConfig() (credentials.TransportCredentials, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	} else if len(t.Cert) != 0 && len(t.Key) != 0 {
 		cert, err = tls.X509KeyPair([]byte(t.Cert), []byte(t.Key))
 		if err != nil {
 			return nil, err
@@ -48,8 +48,8 @@ func (t Tls) GetTLSLinkConfig() (credentials.TransportCredentials, error) {
 		caCert = []byte(t.CA)
 	}
 
-	caCertPool := x509.NewCertPool()
-	if !caCertPool.AppendCertsFromPEM(caCert) {
+	caCertPool, _ := x509.SystemCertPool()
+	if len(caCert) != 0 && !caCertPool.AppendCertsFromPEM(caCert) {
 		return nil, InvalidRootCrt
 	}
 	cred := credentials.NewTLS(&tls.Config{

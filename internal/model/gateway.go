@@ -4,10 +4,12 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 )
 
 type Agent struct {
-	Id          string `json:"id" gorm:"column:id;primary_key"` // agent id
+	ID          int    `json:"id" gorm:"column:id;primary_key,autoIncrement"`
+	AgentId     string `json:"agent_id" gorm:"column:agent_id"` // agent id
 	GatewayId   string `json:"gateway_id" gorm:"column:gateway_id"`
 	Description string `json:"description" gorm:"column:description"`
 	Cycle       int    `json:"cycle" gorm:"column:cycle"`               //上报周期 默认30 单位：秒
@@ -21,6 +23,18 @@ type Agent struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
 
+func ProxypbEditAgentRequest2Agent(pbreq *proxy.EditAgentRequest) *Agent {
+	return &Agent{
+		AgentId:     pbreq.GetAgentId(),
+		GatewayId:   pbreq.GetInfo().GetGatewayID(),
+		Description: pbreq.GetInfo().GetDescription(),
+		//Cycle:        pbreq.GetInfo().GetCycle(),
+		GatherCycle: int(pbreq.GetInfo().GetGatherCycle()),
+		//Address:     pbreq.Address, // no need
+		Algorithm: pbreq.GetInfo().GetAlgorithm(),
+		UpdatedAt: time.Now(),
+	}
+}
 func (Agent) TableName() string {
 	return "agent"
 }

@@ -18,6 +18,7 @@ import (
 	pb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	json "github.com/bytedance/sonic"
+	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -293,13 +294,14 @@ func (*agentServer) SendHttpMethod(_ context.Context, request *pb.SendHttpMethod
 	return nil, errors.New("method not support")
 }
 func (*agentServer) StartGather(ctx context.Context, _ *pb.StartGatherRequest) (*meta.CommonResponse, error) {
+	// todo:重构返回 使用 protobuf/status
 	if config.Config.ID == "" {
 		return nil, status.Error(codes.InvalidArgument, code.ErrorAgentNeedInit.GetMsg())
 	}
 	ctx, cancel := utils.CreateTimeOutContext(ctx, utils.DefaultTimeout_Oper)
 	defer cancel()
 	if config.IsGathering() {
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is working now"}, nil
+		return &meta.CommonResponse{Code: http.StatusBadRequest, Message: "Gather is working now"}, status.Error(codes.InvalidArgument, "Gather is working now")
 	}
 	if !edge.CheckConfigInvalidGet(config.Config.Config) {
 		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Invalid internal configuration"}, nil
@@ -319,13 +321,13 @@ func (*agentServer) StopGather(ctx context.Context, _ *pb.StopGatherRequest) (*m
 	defer cancel()
 
 	if !config.IsGathering() {
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "Gather is not working"}, nil
+		return &meta.CommonResponse{Code: int32(grpcCode.Code_INVALID_ARGUMENT), Message: "Gather is not working"}, nil
 	}
 	select {
 	case <-ctx.Done():
-		return &meta.CommonResponse{Code: http.StatusInternalServerError, Message: "StopGather timeout"}, errors.New("timeout")
+		return &meta.CommonResponse{Code: int32(grpcCode.Code_DEADLINE_EXCEEDED), Message: "StopGather timeout"}, errors.New("timeout")
 	case config.StopSignal <- context.Background():
-		return &meta.CommonResponse{Code: http.StatusOK, Message: "success"}, nil
+		return &meta.CommonResponse{Code: int32(grpcCode.Code_OK), Message: "success"}, nil
 	}
 }
 func NewServer(bind string) {

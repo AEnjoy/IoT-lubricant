@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -45,8 +46,11 @@ func NewGatewayDb(database *gorm.DB) *GatewayDb {
 		Logger: logger.DefualtLog(),
 	})
 	if err != nil {
-		panic("failed to connect database")
+		logger.Fatal("failed to connect database")
 	}
-
+	err = db.AutoMigrate(&model.Agent{}, &model.ServerInfo{}, &model.Gateway{})
+	if err != nil {
+		logger.Fatal(err)
+	}
 	return &GatewayDb{db: db}
 }

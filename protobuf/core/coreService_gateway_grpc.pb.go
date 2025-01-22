@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.27.3
-// source: protobuf/core/data.proto
+// source: protobuf/core/coreService_gateway.proto
 
 package core
 
@@ -20,10 +20,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CoreService_Ping_FullMethodName          = "/lubricant.core.coreService/ping"
-	CoreService_GetTask_FullMethodName       = "/lubricant.core.coreService/getTask"
-	CoreService_PushMessageId_FullMethodName = "/lubricant.core.coreService/pushMessageId"
-	CoreService_PushData_FullMethodName      = "/lubricant.core.coreService/pushData"
+	CoreService_Ping_FullMethodName            = "/lubricant.core.coreService/ping"
+	CoreService_GetTask_FullMethodName         = "/lubricant.core.coreService/getTask"
+	CoreService_PushMessageId_FullMethodName   = "/lubricant.core.coreService/pushMessageId"
+	CoreService_PushDataStream_FullMethodName  = "/lubricant.core.coreService/pushDataStream"
+	CoreService_PushData_FullMethodName        = "/lubricant.core.coreService/pushData"
+	CoreService_GetCoreCapacity_FullMethodName = "/lubricant.core.coreService/getCoreCapacity"
 )
 
 // CoreServiceClient is the client API for CoreService service.
@@ -33,7 +35,9 @@ type CoreServiceClient interface {
 	Ping(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[meta.Ping, meta.Ping], error)
 	GetTask(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Task, Task], error)
 	PushMessageId(ctx context.Context, in *MessageIdInfo, opts ...grpc.CallOption) (*MessageIdInfo, error)
-	PushData(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error)
+	PushDataStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error)
+	PushData(ctx context.Context, in *Data, opts ...grpc.CallOption) (*PushDataResponse, error)
+	GetCoreCapacity(ctx context.Context, in *GetCoreCapacityRequest, opts ...grpc.CallOption) (*GetCoreCapacityResponse, error)
 }
 
 type coreServiceClient struct {
@@ -80,9 +84,9 @@ func (c *coreServiceClient) PushMessageId(ctx context.Context, in *MessageIdInfo
 	return out, nil
 }
 
-func (c *coreServiceClient) PushData(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error) {
+func (c *coreServiceClient) PushDataStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &CoreService_ServiceDesc.Streams[2], CoreService_PushData_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &CoreService_ServiceDesc.Streams[2], CoreService_PushDataStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +95,27 @@ func (c *coreServiceClient) PushData(ctx context.Context, opts ...grpc.CallOptio
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type CoreService_PushDataClient = grpc.BidiStreamingClient[Data, Data]
+type CoreService_PushDataStreamClient = grpc.BidiStreamingClient[Data, Data]
+
+func (c *coreServiceClient) PushData(ctx context.Context, in *Data, opts ...grpc.CallOption) (*PushDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PushDataResponse)
+	err := c.cc.Invoke(ctx, CoreService_PushData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreServiceClient) GetCoreCapacity(ctx context.Context, in *GetCoreCapacityRequest, opts ...grpc.CallOption) (*GetCoreCapacityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCoreCapacityResponse)
+	err := c.cc.Invoke(ctx, CoreService_GetCoreCapacity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
 // CoreServiceServer is the server API for CoreService service.
 // All implementations must embed UnimplementedCoreServiceServer
@@ -100,7 +124,9 @@ type CoreServiceServer interface {
 	Ping(grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error
 	GetTask(grpc.BidiStreamingServer[Task, Task]) error
 	PushMessageId(context.Context, *MessageIdInfo) (*MessageIdInfo, error)
-	PushData(grpc.BidiStreamingServer[Data, Data]) error
+	PushDataStream(grpc.BidiStreamingServer[Data, Data]) error
+	PushData(context.Context, *Data) (*PushDataResponse, error)
+	GetCoreCapacity(context.Context, *GetCoreCapacityRequest) (*GetCoreCapacityResponse, error)
 	mustEmbedUnimplementedCoreServiceServer()
 }
 
@@ -120,8 +146,14 @@ func (UnimplementedCoreServiceServer) GetTask(grpc.BidiStreamingServer[Task, Tas
 func (UnimplementedCoreServiceServer) PushMessageId(context.Context, *MessageIdInfo) (*MessageIdInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PushMessageId not implemented")
 }
-func (UnimplementedCoreServiceServer) PushData(grpc.BidiStreamingServer[Data, Data]) error {
-	return status.Errorf(codes.Unimplemented, "method PushData not implemented")
+func (UnimplementedCoreServiceServer) PushDataStream(grpc.BidiStreamingServer[Data, Data]) error {
+	return status.Errorf(codes.Unimplemented, "method PushDataStream not implemented")
+}
+func (UnimplementedCoreServiceServer) PushData(context.Context, *Data) (*PushDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PushData not implemented")
+}
+func (UnimplementedCoreServiceServer) GetCoreCapacity(context.Context, *GetCoreCapacityRequest) (*GetCoreCapacityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCoreCapacity not implemented")
 }
 func (UnimplementedCoreServiceServer) mustEmbedUnimplementedCoreServiceServer() {}
 func (UnimplementedCoreServiceServer) testEmbeddedByValue()                     {}
@@ -176,12 +208,48 @@ func _CoreService_PushMessageId_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CoreService_PushData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(CoreServiceServer).PushData(&grpc.GenericServerStream[Data, Data]{ServerStream: stream})
+func _CoreService_PushDataStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CoreServiceServer).PushDataStream(&grpc.GenericServerStream[Data, Data]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type CoreService_PushDataServer = grpc.BidiStreamingServer[Data, Data]
+type CoreService_PushDataStreamServer = grpc.BidiStreamingServer[Data, Data]
+
+func _CoreService_PushData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Data)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServiceServer).PushData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoreService_PushData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServiceServer).PushData(ctx, req.(*Data))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CoreService_GetCoreCapacity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCoreCapacityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServiceServer).GetCoreCapacity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoreService_GetCoreCapacity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServiceServer).GetCoreCapacity(ctx, req.(*GetCoreCapacityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
 
 // CoreService_ServiceDesc is the grpc.ServiceDesc for CoreService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -193,6 +261,14 @@ var CoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "pushMessageId",
 			Handler:    _CoreService_PushMessageId_Handler,
+		},
+		{
+			MethodName: "pushData",
+			Handler:    _CoreService_PushData_Handler,
+		},
+		{
+			MethodName: "getCoreCapacity",
+			Handler:    _CoreService_GetCoreCapacity_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
@@ -209,11 +285,11 @@ var CoreService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "pushData",
-			Handler:       _CoreService_PushData_Handler,
+			StreamName:    "pushDataStream",
+			Handler:       _CoreService_PushDataStream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
-	Metadata: "protobuf/core/data.proto",
+	Metadata: "protobuf/core/coreService_gateway.proto",
 }

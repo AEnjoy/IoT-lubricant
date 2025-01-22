@@ -40,6 +40,11 @@ const (
 // gateway
 const (
 	ErrorGatewayAgentNotFound ResCode = 130001 + iota
+	WarnAgentOffline
+	ErrGaterDataReqFailed
+	OperationOnlyAtLocal
+	ErrorAgentStartFailed
+	AddAgentFailed
 )
 
 // agent
@@ -47,6 +52,16 @@ const (
 	ErrorAgentInvalidConfig ResCode = 140001 + iota
 	ErrorAgentNotAllowMultiGatherInstance
 	ErrorAgentNeedInit
+	GetAgentFailed
+	UpdateAgentFailed
+	SetAgentFailed
+	StartAgentFailed
+	StopAgentFailed
+	RemoveAgentFailed
+	ErrorNoAgentContainerConfSet
+	ErrorAgentUpdateFailed
+	ErrorAgentUpdateNotSupportRemote
+	ErrGaterStartFailed
 )
 
 // cache
@@ -70,7 +85,13 @@ const (
 	ErrorApiNotInit
 )
 
+// docker
+const (
+	ErrContainerNotRunning ResCode = 230001 + iota
+)
+
 var StatusMsgMap = map[ResCode]string{
+	// Common
 	Success:                  "success",
 	ErrorBadRequest:          "Invalid Request",
 	ErrorNotFound:            "Not Found",
@@ -89,26 +110,50 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorInvalidAuthKey:      "Invalid authorization key",
 	ErrorForbidden:           "Permission Denied",
 
+	// Core
 	ErrorCoreNoTask:      "target has no task",
 	ErrorCoreTaskTimeout: "get task timeout",
 
+	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
+	WarnAgentOffline:          "agent is offline",
+	ErrGaterDataReqFailed:     "gather data request failed",
+	OperationOnlyAtLocal:      "only supports local agents",
+	ErrorAgentStartFailed:     "agent start failed",
+	AddAgentFailed:            "add agent failed",
 
+	// Agent
 	ErrorAgentInvalidConfig:               "invalid config",
 	ErrorAgentNotAllowMultiGatherInstance: "not allow multi gather instance",
 	ErrorAgentNeedInit:                    "should be call lubricant.agent.edgeService / setAgent before this operation",
+	GetAgentFailed:                        "get agent failed",
+	UpdateAgentFailed:                     "update agent failed",
+	SetAgentFailed:                        "set agent failed",
+	StartAgentFailed:                      "start agent failed",
+	StopAgentFailed:                       "stop agent failed",
+	RemoveAgentFailed:                     "remove agent failed",
+	ErrorNoAgentContainerConfSet:          "agent container conf is not set",
+	ErrorAgentUpdateFailed:                "update agent failed",
+	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
+	ErrGaterStartFailed:                   "agent start gather failed",
 
+	// Cache
 	ErrorCacheNeedInit:  "cache client need init",
 	ErrorCacheNullCache: "cache client is nil",
 
+	// Database
 	ErrorDbNeedTxn: "this operation need start with txn support",
 
+	// Openapi
 	ErrorApiNotFound:      "not found",
 	ErrorApiInvalidMethod: "invalid method",
 	ErrorApiInvalidInput:  "invalid input",
 	ErrorApiInvalidPath:   "invalid path",
 	ErrorApiInvalidSlot:   "invalid slot",
 	ErrorApiNotInit:       "not initialized",
+
+	// Docker
+	ErrContainerNotRunning: "container is not running",
 }
 
 // GetMsg 返回状态码对应msg

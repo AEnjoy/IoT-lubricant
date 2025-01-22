@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	json "github.com/bytedance/sonic"
+	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	"github.com/bytedance/sonic"
 	"github.com/docker/docker/api/types/network"
 )
 
@@ -51,17 +53,52 @@ func (DeviceAPI) TableName() string {
 }
 
 type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo           Agent               `json:"agent_info"`
-	AgentContainerInfo  container.Container `json:"agent_container_info"`
-	DriverContainerInfo container.Container `json:"driver_container_info"`
-	OpenApiDoc          openapi.OpenAPICli  `json:"open_api_doc"`
+	AgentInfo Agent `json:"agent_info"`
+	*CreateAgentConf
+}
+type CreateAgentConf struct {
+	AgentContainerInfo  *container.Container `json:"agent_container_info,omitempty"`
+	DriverContainerInfo *container.Container `json:"driver_container_info,omitempty"`
+	OpenApiDoc          *openapi.OpenAPICli  `json:"open_api_doc,omitempty"`
+}
+
+func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *proxy.CreateAgentRequest) *CreateAgentRequest {
+	var retVal = new(CreateAgentRequest)
+	retVal.AgentInfo.GatewayId = pbreq.GetInfo().GetGatewayID()
+	retVal.AgentInfo.AgentId = pbreq.GetInfo().GetAgentID()
+	retVal.AgentInfo.Description = pbreq.GetInfo().GetDescription()
+	retVal.AgentInfo.Algorithm = pbreq.GetInfo().GetAlgorithm()
+	retVal.AgentInfo.GatherCycle = int(pbreq.GetInfo().GetGatherCycle())
+	// retVal.AgentInfo.Cycle = int(pbreq.GetInfo().GetReportCycle())
+	// retVal.AgentInfo.Address = int(pbreq.GetInfo().GetAddress())
+	var conf CreateAgentConf
+	if c := pbreq.GetConf(); len(c) > 0 {
+		err := sonic.Unmarshal(c, &conf)
+		if err != nil {
+			logger.Errorf("can't unmarshal the content when conf has been set:%v\n", err)
+		}
+	}
+
+	conf.OpenApiDoc = func() *openapi.OpenAPICli {
+		ds := pbreq.GetInfo().GetDataSource()
+		if ds == nil || len(ds.GetOriginalFile()) == 0 {
+			return nil
+		}
+		var doc openapi.OpenAPICli
+		err := sonic.Unmarshal(ds.GetOriginalFile(), &doc)
+		if err != nil {
+			logger.Errorf("can't unmarshal the content when doc has been set:%v\n", err)
+			return nil
+		}
+		return &doc
+	}()
+
+	retVal.CreateAgentConf = &conf
+	return retVal
 }
 
 func (CreateAgentRequest) TaskOperation() task.Operation {
 	return task.OperationAddAgent
-}
-func (this CreateAgentRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(this)
 }
 
 type CreateAgentResponse struct {
@@ -80,3 +117,18 @@ var AgentContainer = container.Container{
 		fmt.Sprintf("%d", _default.AgentGrpcPort): 0,
 	},
 }
+
+// AgentInstance 记录agent 如何启动的信息
+
+type AgentInstance struct {
+	AgentId string `gorm:"column:agent_id"`
+
+	CreateConf  string `gorm:"column:conf,type:json"` // CreateAgentConf
+	ContainerID string `gorm:"column:container_id"`   // AgentContainerID
+	DriverID    string `gorm:"column:driver_id"`      // DriverContainerID
+	IP          string `gorm:"column:ip"`
+	Local       bool   `gorm:"column:local"` // 是否与 agent-proxy 在同一台机器上
+	Online      bool   `gorm:"column:online"`
+}
+
+func (AgentInstance) TableName() string { return "agent_instance" }
