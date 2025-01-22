@@ -48,13 +48,6 @@ func (a *app) Run() error {
 	a.task = async.NewAsyncTask()
 	a.task.SetActor(a.handelTask)
 
-	//_ = a.agentPoolInit() //todo:handel error
-	//go a.agentPoolAgentRegis()
-	//go a.agentPoolChStartService()
-	//go a.agentHandelSignal()
-	//for {
-	//	time.Sleep(time.Second * 5)
-	//}
 	go func() {
 		_ = a.grpcDataApp()
 	}()
