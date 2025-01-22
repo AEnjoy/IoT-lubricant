@@ -39,7 +39,7 @@ func (c *MapContainer) Get(name string) any {
 
 func (c *MapContainer) Init() error {
 	if c.inited {
-		return fmt.Errorf("container %s all has already been initialized", c.name)
+		return fmt.Errorf("object %s all has already been initialized", c.name)
 	}
 	// Create a slice of object names and weights for sorting
 	type weightedObject struct {
