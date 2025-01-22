@@ -49,25 +49,17 @@ func (a *app) Run() error {
 	a.task = async.NewAsyncTask()
 	a.task.SetActor(a.handelTask)
 
-	_ = a.agentPoolInit() //todo:handel error
-	go a.agentPoolAgentRegis()
-	go a.agentPoolChStartService()
+	//_ = a.agentPoolInit() //todo:handel error
+	//go a.agentPoolAgentRegis()
+	//go a.agentPoolChStartService()
 	//go a.agentHandelSignal()
-	for {
-		time.Sleep(time.Second * 5)
-	}
-	var errs error
+	//for {
+	//	time.Sleep(time.Second * 5)
+	//}
 	go func() {
-		if err := a.grpcTaskApp(); err != nil {
-			errs = errors.Join(err)
-		}
+		_ = a.grpcDataApp()
 	}()
-	go func() {
-		if err := a.grpcDataApp(); err != nil {
-			errs = errors.Join(err)
-		}
-	}()
-	return errs // gateway <--> core
+	return a.grpcTaskApp() // gateway <--> core
 }
 
 func SetGatewayId(id string) func(*app) error {
@@ -137,25 +129,29 @@ func LinkCoreServer() func(*app) error {
 		local := func(info *model.ServerInfo) error {
 			return linkToGrpcServer(fmt.Sprintf("%s:%d", info.Host, info.Port), &info.TlsConfig)(a)
 		}
-		env := func(address string) error {
-			return linkToGrpcServer(address, nil)(a)
+		env := func(address, port string) error {
+			if port == "" {
+				return linkToGrpcServer(address, nil)(a)
+			}
+			return linkToGrpcServer(fmt.Sprintf("%s:%s", address, port), nil)(a)
 		}
 
 		address := os.Getenv(def.ENV_CORE_HOST_STR)
+		port := os.Getenv(def.ENV_CORE_PORT_STR)
 		info := a.GatewayDbOperator.GetServerInfo(nil)
-		if info == nil && address == "" {
+		if info == nil && (address == "" || port == "") {
 			return errors.New("address should not be empty when not initialized")
 		}
 		if info != nil {
 			if info.Host == "" || info.Port == 0 {
 				logger.Error("Incorrect local configuration, starting with environment variable")
-				return env(address)
+				return env(address, port)
 			}
 			logger.Info("Use local config to start")
 			return local(info)
 		} else {
 			logger.Info("Use environment variable to start")
-			return env(address)
+			return env(address, port)
 		}
 	}
 }

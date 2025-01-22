@@ -34,11 +34,11 @@ func (a *agentApis) init() {
 	if err != nil {
 		panic(err)
 	}
-	//todo: 这里可以加个并发限速
+	//todo: 这里可以加个并发限速防止goroutine合并/丢弃
 	for _, agent := range agents {
-		go func(agent model.Agent) {
+		go func(agent *model.Agent) {
 			ins := a.db.GetAgentInstance(nil, agent.AgentId)
-			control := newAgentControl(&agent)
+			control := newAgentControl(agent)
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
@@ -50,7 +50,7 @@ func (a *agentApis) init() {
 			if err := a.pool.JoinAgent(ctx, control); err != nil {
 				logger.Error("agent join to handel pool failed", agent.AgentId, err)
 			}
-		}(agent)
+		}(&agent)
 		time.Sleep(100 * time.Millisecond) //避免Goroutine启动过快失败
 	}
 }
