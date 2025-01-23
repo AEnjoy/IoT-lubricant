@@ -21,7 +21,7 @@ func AppInit() error {
 	once.Do(func() {
 		var objects = map[string]ioc.Object{
 			config.APP_NAME:            ioc.Controller.Get(config.APP_NAME).(*config.Config),
-			ioc.APP_NAME_CORE_DATABASE: &repo.CoreDb{},
+			ioc.APP_NAME_CORE_DATABASE: repo.DefaultCoreClient(),
 			ioc.APP_NAME_CORE_DATABASE_STORE: func() ioc.Object {
 				c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
 				if c.RedisEnable {

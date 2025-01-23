@@ -65,3 +65,9 @@ func SetPort(port string) func(*app) error {
 		return nil
 	}
 }
+
+func UseServerKey() func(*app) error {
+	return func(*app) error {
+		return initKeys()
+	}
+}

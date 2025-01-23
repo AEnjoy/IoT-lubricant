@@ -45,6 +45,7 @@ func main() {
 		core.SetPort(listenPort),
 		core.UseGinEngine(router.CoreRouter()),
 		core.UseDB(repo.DefaultCoreClient()),
+		core.UseServerKey(),
 	)
 	panic(app.Run())
 }

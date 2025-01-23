@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/user"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type User interface {
 
 func NewUser() User {
 	if _user == nil {
-		_user = &user.User{Db: repo.Core(nil)}
+		_user = &user.User{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
 	}
 	return _user
 }

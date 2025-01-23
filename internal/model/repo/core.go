@@ -15,6 +15,16 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {
+	return d.db.WithContext(ctx).Create(tk).Error
+}
+
+func (d *CoreDb) QueryUser(ctx context.Context, userName, uuid string) (ret model.User, err error) {
+	// one of these two methods will return the first user
+	err = d.db.Where("username = ? or user_id = ?", userName, uuid).First(&ret).Error
+	return
+}
+
 func (d *CoreDb) GatewayIDGetUserID(ctx context.Context, id string) (string, error) {
 	var ret model.Gateway
 	err := d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error

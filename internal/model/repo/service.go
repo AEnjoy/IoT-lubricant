@@ -43,6 +43,10 @@ type CoreDbOperator interface {
 	TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, commend string) error
 
 	// User:
+	QueryUser(ctx context.Context, userName, uuid string) (model.User, error)
+
+	// Auth:
+	SaveToken(ctx context.Context, tk *model.Token) error
 }
 type GatewayDbOperator interface {
 	Begin() *gorm.DB
