@@ -6,7 +6,7 @@ require (
 	github.com/DataDog/zstd v1.5.6
 	github.com/bytedance/sonic v1.12.7
 	github.com/caarlos0/env/v11 v11.3.1
-	github.com/docker/docker v27.5.0+incompatible
+	github.com/docker/docker v27.5.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dop251/goja v0.0.0-20241009100908-5f46f2705ca3
 	github.com/getkin/kin-openapi v0.128.0
