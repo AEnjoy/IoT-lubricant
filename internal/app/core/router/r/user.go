@@ -9,6 +9,8 @@ type UserRoute struct {
 }
 
 func (UserRoute) InitRouter(router *gin.RouterGroup) {
+	user := router.Group("/user")
 	controller := v1.NewUser()
-	router.POST("/create", controller.Create)
+
+	user.POST("/create", controller.Create)
 }
