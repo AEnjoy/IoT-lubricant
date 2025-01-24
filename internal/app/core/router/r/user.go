@@ -8,8 +8,8 @@ import (
 type UserRoute struct {
 }
 
-func (UserRoute) InitRouter(router *gin.RouterGroup) {
-	user := router.Group("/user")
+func (UserRoute) InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc) {
+	user := router.Group("/user", mids...)
 	controller := v1.NewUser()
 
 	user.POST("/create", controller.Create)

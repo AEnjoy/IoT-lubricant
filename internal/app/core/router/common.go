@@ -8,10 +8,9 @@ import (
 func CommonGroups() []CommonRouter {
 	return []CommonRouter{
 		r.UserRoute{},
-		r.AuthRoute{},
 	}
 }
 
 type CommonRouter interface {
-	InitRouter(router *gin.RouterGroup)
+	InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc)
 }

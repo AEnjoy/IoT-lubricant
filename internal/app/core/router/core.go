@@ -1,8 +1,10 @@
 package router
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/middleware"
 	"github.com/gin-gonic/gin"
+
+	v1 "github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/middleware"
 )
 
 func RouterGroups() []CommonRouter {
@@ -24,11 +26,14 @@ func CoreRouter() (*gin.Engine, error) {
 	// Health
 	router.GET("/health", Health)
 
-	// v1
+	// v1Route
+	v1Route := router.Group("/api/v1")
+	signinController := v1.NewAuth()
+	v1Route.POST("/signin", signinController.Signin)
+
 	routerGroupApp = CommonGroups()
-	privateGroup := router.Group("/api/v1")
 	for _, r := range routerGroupApp {
-		r.InitRouter(privateGroup)
+		r.InitRouter(v1Route, middleware.Auth())
 	}
 
 	// Static
