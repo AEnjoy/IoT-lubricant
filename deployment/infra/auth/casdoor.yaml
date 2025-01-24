@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auth-core
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: casdoor
+  namespace: auth-core
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: casdoor
+  template:
+    metadata:
+      labels:
+        app: casdoor
+    spec:
+      containers:
+        - name: casdoor-container
+          image: casbin/casdoor:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: driverName
+              value: "mysql"
+            - name: dataSourceName
+              value: "casdoor:123456@tcp(mysql.database.svc.cluster.local:3306)/"
+            - name: redisEndpoint
+              value: "redis.database.svc.cluster.local:6379,3,123456"
+---
+# 定义 Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: casdoor-service
+  namespace: auth-core
+spec:
+  selector:
+    app: casdoor
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
