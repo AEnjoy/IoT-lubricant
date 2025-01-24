@@ -2,10 +2,17 @@ package v1
 
 import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/request"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	_auth *Auth
 )
 
 type Auth struct {
@@ -43,4 +50,35 @@ func (a Auth) Login(c *gin.Context) {
 			false, true)
 		helper.Success(user, c)
 	}
+}
+func (a Auth) Signin(c *gin.Context) {
+	code, _ := c.GetQuery("code")
+	state, _ := c.GetQuery("state")
+	token, err := casdoorsdk.GetOAuthToken(code, state)
+	if err != nil {
+		logger.Errorln(err)
+		helper.FailedByServer(err, c)
+		return
+	}
+	c.SetCookie(model.COOKIE_TOKEY_KEY,
+		token.AccessToken, token.Expiry.Second(), "/", "",
+		false, true)
+	u, err := casdoorsdk.ParseJwtToken(token.AccessToken)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	err = a.Db.SaveTokenOauth2(c, token, u.User.Id)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	helper.Success(u, c)
+}
+
+func NewAuth() *Auth {
+	if _auth == nil {
+		_auth = &Auth{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
+	}
+	return _auth
 }

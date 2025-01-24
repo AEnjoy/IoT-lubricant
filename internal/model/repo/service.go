@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"golang.org/x/oauth2"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
@@ -47,6 +48,7 @@ type CoreDbOperator interface {
 
 	// Auth:
 	SaveToken(ctx context.Context, tk *model.Token) error
+	SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error
 }
 type GatewayDbOperator interface {
 	Begin() *gorm.DB

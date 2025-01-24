@@ -46,6 +46,7 @@ func main() {
 		core.UseGinEngine(router.CoreRouter()),
 		core.UseDB(repo.DefaultCoreClient()),
 		core.UseServerKey(),
+		core.UseCasdoor(),
 	)
 	panic(app.Run())
 }

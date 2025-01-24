@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"golang.org/x/oauth2"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
@@ -18,7 +19,15 @@ type CoreDb struct {
 func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {
 	return d.db.WithContext(ctx).Create(tk).Error
 }
-
+func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error {
+	var mToken model.Token
+	mToken.AccessToken = tk.AccessToken
+	mToken.RefreshToken = tk.RefreshToken
+	mToken.AccessTokenExpiredAt = tk.Expiry.Second()
+	mToken.RefreshTokenExpiredAt = tk.Expiry.Second()
+	mToken.UserId = userID
+	return d.SaveToken(ctx, &mToken)
+}
 func (d *CoreDb) QueryUser(ctx context.Context, userName, uuid string) (ret model.User, err error) {
 	// one of these two methods will return the first user
 	err = d.db.Where("username = ? or user_id = ?", userName, uuid).First(&ret).Error

@@ -71,3 +71,8 @@ func UseServerKey() func(*app) error {
 		return initKeys()
 	}
 }
+func UseCasdoor() func(*app) error {
+	return func(s *app) error {
+		return initCasdoor()
+	}
+}
