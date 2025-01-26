@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lubricant-core
+  namespace: lubricant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lubricant-core
+  template:
+    metadata:
+      labels:
+        app: lubricant-core
+    spec:
+      containers:
+        - name: lubricant-core
+          image: hub.iotroom.top/aenjoy/lubricant-core:nightly
+          ports:
+            - containerPort: 8080
+            - containerPort: 5423
+          env:
+            - name: HTTP_LISTEN_PORT
+              value: "8080"
+            - name: DB_USER
+              value: "lubricant"
+            - name: DB_ADDRESS
+              value: "mysql.database.svc.cluster.local"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "lubricant"
+            - name: HOSTNAME
+              value: "localhost"
+            - name: LOG_LEVEL
+              value: "debug"
+            - name: AUTH_MODE
+              value: "casdoor"
+            - name: AUTH_ENDPOINT
+              value: "http://casdoor.auth-core.svc.cluster.local:8000"
+            - name: AUTH_CLIENT_ID
+              value: "<your-client-id>"
+            - name: AUTH_ORGANIZATION
+              value: "default"
+            - name: AUTH_PUBLICKEYFILE
+              value: "/etc/casdoor/public.pem"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lubricant-secrets
+                  key: DB_PASSWORD
+            - name: AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lubricant-secrets
+                  key: AUTH_CLIENT_SECRET
+          volumeMounts:
+            - name: casdoor-publickey
+              mountPath: /etc/casdoor
+              readOnly: true
+      volumes:
+        - name: casdoor-publickey
+          hostPath:
+            path: /etc/casdoor/public.pem
+            type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lubricant-core
+  namespace: lubricant
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+    - port: 5423
+      targetPort: 5423
+  selector:
+    app: lubricant-core

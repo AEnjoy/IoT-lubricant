@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update
-
 # create secret
 lubricant_MYSQL_ROOT_PASSWORD=123456
 lubricant_MYSQL_CUSTOM_PASSWORD=123456
