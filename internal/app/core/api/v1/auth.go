@@ -1,11 +1,20 @@
 package v1
 
 import (
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"io"
+	"os"
+	"sync"
+
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/global"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/request"
+	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
@@ -74,6 +83,79 @@ func (a Auth) Signin(c *gin.Context) {
 		return
 	}
 	helper.Success(u, c)
+}
+
+var setAuthCrtLock sync.Mutex
+
+func (a Auth) SetAuthCrt(c *gin.Context) {
+	if !setAuthCrtLock.TryLock() {
+		err := errors.New("do not allow certificates to be set concurrently")
+		helper.FailedByClient(err, c)
+		return
+	}
+	defer setAuthCrtLock.Unlock()
+
+	if !global.AllowSetAuthCrt {
+		err := errors.New("do not allow certificates to be set")
+		helper.FailedByClient(err, c)
+		return
+	}
+
+	// 从PUT请求中读取文件数据
+	file, err := c.FormFile("file")
+	if err != nil {
+		helper.FailedByClient(err, c)
+		return
+	}
+
+	// 打开上传的文件
+	src, err := file.Open()
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	defer src.Close()
+
+	fileBytes, err := io.ReadAll(src)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+
+	if !isValidCertificate(fileBytes) {
+		helper.FailedByClient(err, c)
+		return
+	}
+
+	dst, err := os.Create(def.AuthCertFilePath)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	defer dst.Close()
+
+	_, err = dst.Write(fileBytes)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+
+	global.AllowSetAuthCrt = false
+	helper.Success(nil, c)
+}
+
+// 校验文件是否为合法的证书文件
+func isValidCertificate(fileBytes []byte) bool {
+	block, _ := pem.Decode(fileBytes)
+	if block == nil {
+		return false
+	}
+
+	_, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func NewAuth() *Auth {

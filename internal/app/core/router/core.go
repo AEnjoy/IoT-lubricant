@@ -29,7 +29,8 @@ func CoreRouter() (*gin.Engine, error) {
 	// v1Route
 	v1Route := router.Group("/api/v1")
 	signinController := v1.NewAuth()
-	v1Route.POST("/signin", signinController.Signin)
+	v1Route.POST("/signin", signinController.Signin)      // /api/v1/signin
+	v1Route.POST("/set-crt", signinController.SetAuthCrt) // /api/v1/set-crt
 
 	routerGroupApp = CommonGroups()
 	for _, r := range routerGroupApp {
