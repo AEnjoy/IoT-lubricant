@@ -39,9 +39,11 @@ jobs:
       - name: Prepare Kubernetes Environment
         run: |
           set -e
+          kubectl run nginx --image=nginx:1.25
           bash deployment/infra/db/redis.sh
           bash deployment/infra/db/deploy-mysql.sh
           bash deployment/infra/auth/casdoor.sh
+          bash scripts/push_files_to_nginx_pod.sh
 
       - name: Deploy Lubricant
         run: |
