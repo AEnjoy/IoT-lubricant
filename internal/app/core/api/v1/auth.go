@@ -12,8 +12,8 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/global"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/form/request"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/internal/model/request"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
@@ -57,7 +57,7 @@ func (a Auth) Login(c *gin.Context) {
 			tk.RefreshTokenExpiredAt,
 			"/", "",
 			false, true)
-		helper.Success(user, c)
+		helper.SuccessJson(user, c)
 	}
 }
 func (a Auth) Signin(c *gin.Context) {
@@ -82,7 +82,7 @@ func (a Auth) Signin(c *gin.Context) {
 		helper.FailedByServer(err, c)
 		return
 	}
-	helper.Success(u, c)
+	helper.SuccessJson(u, c)
 }
 
 var setAuthCrtLock sync.Mutex
@@ -141,7 +141,7 @@ func (a Auth) SetAuthCrt(c *gin.Context) {
 	}
 
 	global.AllowSetAuthCrt = false
-	helper.Success(nil, c)
+	helper.SuccessJson(nil, c)
 }
 
 // 校验文件是否为合法的证书文件
