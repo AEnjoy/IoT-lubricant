@@ -12,9 +12,10 @@ import (
 
 var dataCli = func() *datastore.DataStore {
 	return ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
-}()
+}
 
 func HandelRecvData(data *core.Data) {
+	dataCli := dataCli()
 	cleaner, err := dataCli.GetDataCleaner(data.GetAgentID())
 	if err == nil {
 		info, _ := dataCli.GetAgentInfo(data.GetAgentID())

@@ -17,11 +17,11 @@ func Core(database *gorm.DB) *CoreDb {
 	}
 
 	var (
-		user         = os.Getenv("DATASOURCE_USERNAME")
-		password     = os.Getenv("DATASOURCE_PASSWORD")
-		address      = os.Getenv("DATASOURCE_HOST")
-		port         = os.Getenv("DATASOURCE_PORT")
-		databaseName = os.Getenv("DATASOURCE_DB")
+		user         = os.Getenv("DB_USER")
+		password     = os.Getenv("DB_PASSWORD")
+		address      = os.Getenv("DB_ADDRESS")
+		port         = os.Getenv("DB_PORT")
+		databaseName = os.Getenv("DB_NAME")
 	)
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?charset=utf8&parseTime=True&loc=Local", user, password, address, port, databaseName)
@@ -30,6 +30,7 @@ func Core(database *gorm.DB) *CoreDb {
 	})
 
 	if err != nil {
+		logger.Debugln("dsn:", dsn)
 		panic("failed to connect database")
 	}
 

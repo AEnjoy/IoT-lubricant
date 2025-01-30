@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 )
 
 var _ Container = (*MapContainer)(nil)
@@ -23,17 +25,20 @@ func (c *MapContainer) Version(name string) string {
 	return ""
 }
 func (c *MapContainer) LoadObject(s map[string]Object) {
+	logger.Debugf("Load objects: %v", s)
 	c.l.Lock()
 	defer c.l.Unlock()
 	c.storge = s
 }
 func (c *MapContainer) Registry(name string, obj Object) {
+	logger.Debugf("Registry object: %s", name)
 	c.l.Lock()
 	defer c.l.Unlock()
 	c.storge[name] = obj
 }
 
 func (c *MapContainer) Get(name string) any {
+	logger.Debugf("Get object: %s", name)
 	return c.storge[name]
 }
 

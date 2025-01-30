@@ -23,5 +23,5 @@ func printBuildInfo() {
 	fmt.Printf("Features: %s\n", Features)
 	fmt.Printf("Platform: %s\n", Platform)
 	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("Runing Platform Info: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 }

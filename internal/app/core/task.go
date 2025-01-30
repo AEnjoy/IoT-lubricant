@@ -19,6 +19,7 @@ var (
 )
 
 func CreateTask(taskID string, targetType task.Target, targetDeviceID string, taskBin []byte) error {
+	dataCli := dataCli()
 	hasTask.Store(targetDeviceID, struct{}{})
 	e1 := taskMq.Publish(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID), []byte(taskID))     // 创建任务
 	e2 := taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID), taskBin) // 发送任务

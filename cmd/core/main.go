@@ -8,8 +8,6 @@ import (
 	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/joho/godotenv"
 )
 
 const (
@@ -22,16 +20,6 @@ func main() {
 	flag.StringVar(&envFilePath, "env", "", "Path to .env file")
 	flag.Parse()
 	printBuildInfo()
-
-	if envFilePath != "" {
-		logger.Info("load env")
-		err := godotenv.Load(envFilePath)
-		if err != nil {
-			logger.Info("Failed to load .env file, using system ones.")
-		} else {
-			logger.Infof("Loaded .env file from %s", envFilePath)
-		}
-	}
 
 	err := appinit.AppInit()
 	if err != nil {
