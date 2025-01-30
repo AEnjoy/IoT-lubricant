@@ -20,15 +20,9 @@ func AppInit() error {
 	// AppObjects witch will be registered with default option
 	once.Do(func() {
 		var objects = map[string]ioc.Object{
-			config.APP_NAME:            ioc.Controller.Get(config.APP_NAME).(*config.Config),
-			ioc.APP_NAME_CORE_DATABASE: repo.DefaultCoreClient(),
-			ioc.APP_NAME_CORE_DATABASE_STORE: func() ioc.Object {
-				c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
-				if c.RedisEnable {
-					return &data.DataStore{CacheEnable: true}
-				}
-				return &data.DataStore{}
-			}(),
+			config.APP_NAME:                         config.GetConfig(),
+			ioc.APP_NAME_CORE_DATABASE:              repo.DefaultCoreClient(),
+			ioc.APP_NAME_CORE_DATABASE_STORE:        &data.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 			ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},
 		}

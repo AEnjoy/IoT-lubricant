@@ -1,6 +1,8 @@
 package router
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 
 	v1 "github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1"
@@ -15,6 +17,9 @@ var routerGroupApp = RouterGroups()
 var middlewares = middleware.GetMiddlewares()
 
 func CoreRouter() (*gin.Engine, error) {
+	if os.Getenv("LOG_LEVEL") != "debug" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	router := gin.Default()
 	router.MaxMultipartMemory = 50 << 20 //50 Gb
 

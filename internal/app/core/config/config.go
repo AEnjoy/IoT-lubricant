@@ -1,6 +1,8 @@
 package config
 
 import (
+	"sync"
+
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/caarlos0/env/v11"
@@ -9,6 +11,8 @@ import (
 const APP_NAME = "lubricant-core-config"
 
 var _ ioc.Object = (*Config)(nil)
+
+var SystemConfig *Config
 
 type Config struct {
 	// app
@@ -27,11 +31,11 @@ type Config struct {
 	Domain  string `yaml:"domain" env:"HOSTNAME" envDefault:"localhost"`
 
 	// mysql
-	MySQLHost     string `yaml:"host" env:"DATASOURCE_HOST,required"`
-	MySQLPort     int    `yaml:"port" env:"DATASOURCE_PORT,required"`
-	MySQLDB       string `yaml:"database" env:"DATASOURCE_DB,required"`
-	MySQLUsername string `yaml:"username" env:"DATASOURCE_USERNAME,required"`
-	MySQLPassword string `yaml:"password" env:"DATASOURCE_PASSWORD,required"`
+	MySQLHost     string `yaml:"host" env:"DB_ADDRESS,required"`
+	MySQLPort     int    `yaml:"port" env:"DB_PORT,required"`
+	MySQLDB       string `yaml:"database" env:"DB_NAME,required"`
+	MySQLUsername string `yaml:"username" env:"DB_USER,required"`
+	MySQLPassword string `yaml:"password" env:"DB_PASSWORD,required"`
 	MySQLDebug    bool   `yaml:"debug" env:"DATASOURCE_DEBUG" envDefault:"false"`
 
 	// redis
@@ -43,7 +47,7 @@ type Config struct {
 }
 
 func (c *Config) Init() error {
-	return env.Parse(&c)
+	return env.Parse(c)
 }
 
 func (Config) Weight() uint16 {
@@ -54,6 +58,17 @@ func (c *Config) Version() string {
 	return c.AppVersion
 }
 
-func init() {
-	ioc.Controller.Registry(APP_NAME, &Config{})
+var _init sync.Once
+
+func GetConfig() *Config {
+	if SystemConfig == nil {
+		_init.Do(func() {
+			SystemConfig = &Config{}
+			err := SystemConfig.Init()
+			if err != nil {
+				panic(err)
+			}
+		})
+	}
+	return SystemConfig
 }
