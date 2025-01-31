@@ -12,6 +12,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
@@ -140,7 +141,7 @@ func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[core.Data, co
 }
 
 func (g *Grpc) Init() error {
-	c := ioc.Controller.Get(config.APP_NAME).(*config.Config)
+	c := config.GetConfig()
 	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 
@@ -173,6 +174,7 @@ func (g *Grpc) Init() error {
 	go func() {
 		_ = server.Serve(lis)
 	}()
+	logger.Debugf("core-grpc-server start at: %s", lis.Addr())
 	return nil
 }
 

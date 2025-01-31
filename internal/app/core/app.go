@@ -76,3 +76,9 @@ func UseCasdoor() func(*app) error {
 		return initCasdoor()
 	}
 }
+func UseSignalHandler(handler func()) func(*app) error {
+	return func(a *app) error {
+		go handler()
+		return nil
+	}
+}

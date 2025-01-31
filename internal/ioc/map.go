@@ -65,11 +65,12 @@ func (c *MapContainer) Init() error {
 
 	// Initialize objects in the order of their weights
 	for _, wObj := range weightedObjects {
+		logger.Debugf("[%s] %s init start with weight %d", c.name, wObj.name, wObj.object.Weight())
 		if err := wObj.object.Init(); err != nil {
 			return fmt.Errorf("%s init error, %s", wObj.name, err)
 		}
 		if c.showLog {
-			fmt.Printf("[%s] %s init success with weight %d\n", c.name, wObj.name, wObj.object.Weight())
+			logger.Infof("[%s] %s init success with weight %d", c.name, wObj.name, wObj.object.Weight())
 		}
 	}
 

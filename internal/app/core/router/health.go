@@ -1,13 +1,10 @@
 package router
 
 import (
-	"net/http"
-
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
 	"github.com/gin-gonic/gin"
 )
 
 func Health(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"status": "OK",
-	})
+	helper.SuccessJson("ok", ctx)
 }

@@ -32,7 +32,7 @@ spec:
               value: "lubricant"
             - name: HOSTNAME
               value: "localhost"
-            - name: LOG_LEVEL
+            - name: RUNNING_LEVEL
               value: "debug"
             - name: AUTH_MODE
               value: "casdoor"

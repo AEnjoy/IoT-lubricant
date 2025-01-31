@@ -27,6 +27,9 @@ const (
 
 var logFormat string
 
+func L() *zap.SugaredLogger {
+	return zlog
+}
 func init() {
 	once.Do(func() {
 		logFormat = os.Getenv(LogFormatStr)
@@ -37,7 +40,7 @@ func init() {
 
 func NewLogger() *zap.SugaredLogger {
 	atom := zap.NewAtomicLevel()
-	logLevel := os.Getenv("LOG_LEVEL")
+	logLevel := os.Getenv("RUNNING_LEVEL")
 	switch logLevel {
 	case "debug":
 		atom.SetLevel(zap.DebugLevel)

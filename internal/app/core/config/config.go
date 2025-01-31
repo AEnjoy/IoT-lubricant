@@ -23,7 +23,7 @@ type Config struct {
 	Tls        crypto.Tls `yaml:"tls_config" env:"TLS_CONFIG" envPrefix:"TLS_"`
 
 	// grpc
-	GrpcPort int `yaml:"port" env:"GRPC_LISTEN_PORT" envDefault:"9090"`
+	GrpcPort int `yaml:"port" env:"GRPC_LISTEN_PORT" envDefault:"5423"`
 
 	// web
 	Host    string `yaml:"host" env:"HTTP_LISTEN_HOST" envDefault:"0.0.0.0"`
@@ -59,8 +59,12 @@ func (c *Config) Version() string {
 }
 
 var _init sync.Once
+var _getConfigLock sync.Mutex
 
 func GetConfig() *Config {
+	_getConfigLock.Lock()
+	defer _getConfigLock.Unlock()
+
 	if SystemConfig == nil {
 		_init.Do(func() {
 			SystemConfig = &Config{}

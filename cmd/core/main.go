@@ -3,11 +3,14 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
+	coreConfig "github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 )
 
 const (
@@ -35,6 +38,7 @@ func main() {
 		core.UseDB(repo.DefaultCoreClient()),
 		core.UseServerKey(),
 		core.UseCasdoor(),
+		core.UseSignalHandler(utils.HandelExitSignal(nil, coreConfig.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }

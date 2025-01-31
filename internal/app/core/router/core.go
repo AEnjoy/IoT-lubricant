@@ -17,7 +17,7 @@ var routerGroupApp = RouterGroups()
 var middlewares = middleware.GetMiddlewares()
 
 func CoreRouter() (*gin.Engine, error) {
-	if os.Getenv("LOG_LEVEL") != "debug" {
+	if os.Getenv("RUNNING_LEVEL") != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	router := gin.Default()
