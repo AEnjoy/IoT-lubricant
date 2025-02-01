@@ -1,8 +1,12 @@
 package mq
 
 import (
+	"strings"
+	"time"
+
 	nats2 "github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
 	"github.com/nats-io/nats.go"
+	"github.com/segmentio/kafka-go"
 )
 
 type Mq[T any] interface {
@@ -33,4 +37,25 @@ func NewNatsMq[T any](url string) (*NatsMq[T], error) {
 		channels: make(map[string]chan T),
 		capacity: 10, // default capacity
 	}, nil
+}
+
+// NewKafkaMq creates a new instance of KafkaMq
+func NewKafkaMq[T any](address, groupID string, partition, timeout int) *KafkaMq[T] {
+	brokers := strings.Split(address, ",")
+	adminClient := &kafka.Client{
+		Addr:    kafka.TCP(brokers...),
+		Timeout: time.Duration(timeout) * time.Second,
+	}
+
+	return &KafkaMq[T]{
+		address:     brokers,
+		groupID:     groupID,
+		partition:   partition,
+		adminClient: adminClient,
+
+		writers:     make(map[string]*kafka.Writer),
+		subscribers: make(map[string][]*subscriber[T]),
+		timeout:     10 * time.Second,
+		capacity:    100,
+	}
 }
