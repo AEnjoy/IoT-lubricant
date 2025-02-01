@@ -23,27 +23,35 @@ type Config struct {
 	Tls        crypto.Tls `yaml:"tls_config" env:"TLS_CONFIG" envPrefix:"TLS_"`
 
 	// grpc
-	GrpcPort int `yaml:"port" env:"GRPC_LISTEN_PORT" envDefault:"5423"`
+	GrpcPort int `yaml:"grpc_port" env:"GRPC_LISTEN_PORT" envDefault:"5423"`
 
 	// web
 	Host    string `yaml:"host" env:"HTTP_LISTEN_HOST" envDefault:"0.0.0.0"`
-	WebPort int    `yaml:"port" env:"HTTP_LISTEN_PORT" envDefault:"8080"`
+	WebPort int    `yaml:"web_port" env:"HTTP_LISTEN_PORT" envDefault:"8080"`
 	Domain  string `yaml:"domain" env:"HOSTNAME" envDefault:"localhost"`
 
 	// mysql
-	MySQLHost     string `yaml:"host" env:"DB_ADDRESS,required"`
-	MySQLPort     int    `yaml:"port" env:"DB_PORT,required"`
-	MySQLDB       string `yaml:"database" env:"DB_NAME,required"`
-	MySQLUsername string `yaml:"username" env:"DB_USER,required"`
-	MySQLPassword string `yaml:"password" env:"DB_PASSWORD,required"`
-	MySQLDebug    bool   `yaml:"debug" env:"DATASOURCE_DEBUG" envDefault:"false"`
+	MySQLHost     string `yaml:"mysql_host" env:"DB_ADDRESS,required"`
+	MySQLPort     int    `yaml:"mysql_port" env:"DB_PORT,required"`
+	MySQLDB       string `yaml:"mysql_database" env:"DB_NAME,required"`
+	MySQLUsername string `yaml:"mysql_username" env:"DB_USER,required"`
+	MySQLPassword string `yaml:"mysql_password" env:"DB_PASSWORD,required"`
+	MySQLDebug    bool   `yaml:"mysql_debug" env:"DATASOURCE_DEBUG" envDefault:"false"`
 
 	// redis
-	RedisEnable   bool   `yaml:"enable" env:"REDIS_ENABLE" envDefault:"false"`
-	RedisHost     string `yaml:"host" env:"REDIS_HOST"`
-	RedisPort     int    `yaml:"port" env:"REDIS_PORT"`
-	RedisPassword string `yaml:"password" env:"REDIS_PASSWORD"`
-	RedisDB       int    `yaml:"db" env:"REDIS_DB"`
+	RedisEnable   bool   `yaml:"redis" env:"REDIS_ENABLE" envDefault:"false"`
+	RedisHost     string `yaml:"redis_host" env:"REDIS_HOST"`
+	RedisPort     int    `yaml:"redis_port" env:"REDIS_PORT"`
+	RedisPassword string `yaml:"redis_password" env:"REDIS_PASSWORD"`
+	RedisDB       int    `yaml:"redis_db" env:"REDIS_DB"`
+
+	// MessageQueue MQ
+	MqType      string `yaml:"type" env:"MQ_TYPE" envDefault:"internal"` // support: kafka,redis,nats,internal
+	KaBrokers   string `yaml:"kafka_brokers" env:"KAFKA_BROKERS"`
+	KaGroupID   string `yaml:"kafka_group_id" env:"KAFKA_GROUP_ID"`
+	KaPartition int    `yaml:"kafka_partition" env:"KAFKA_PARTITION"`
+	NatUrl      string `yaml:"nats_url" env:"NATS_URL"`
+	// if set MqType to `redis`,need to set RedisHost,RedisPort,RedisPassword, and RedisDB
 }
 
 func (c *Config) Init() error {

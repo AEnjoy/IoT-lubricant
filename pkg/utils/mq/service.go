@@ -1,11 +1,13 @@
 package mq
 
 import (
+	"context"
 	"strings"
 	"time"
 
 	nats2 "github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
 	"github.com/nats-io/nats.go"
+	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -41,6 +43,9 @@ func NewNatsMq[T any](url string) (*NatsMq[T], error) {
 
 // NewKafkaMq creates a new instance of KafkaMq
 func NewKafkaMq[T any](address, groupID string, partition, timeout int) *KafkaMq[T] {
+	if timeout <= 0 {
+		timeout = 10
+	}
 	brokers := strings.Split(address, ",")
 	adminClient := &kafka.Client{
 		Addr:    kafka.TCP(brokers...),
@@ -55,7 +60,39 @@ func NewKafkaMq[T any](address, groupID string, partition, timeout int) *KafkaMq
 
 		writers:     make(map[string]*kafka.Writer),
 		subscribers: make(map[string][]*subscriber[T]),
-		timeout:     10 * time.Second,
+		timeout:     time.Duration(timeout) * time.Second,
 		capacity:    100,
+	}
+}
+
+// NewRedisMQ creates a new instance of Redis MQ
+func NewRedisMQ[T any](addr string, password string, db int) (*RedisMq[T], error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	client := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: password,
+		DB:       db,
+	})
+	if err := client.Ping(ctx).Err(); err != nil {
+		cancel()
+		client.Close()
+		return nil, err
+	}
+
+	return &RedisMq[T]{
+		client:   client,
+		ctx:      ctx,
+		cancel:   cancel,
+		channels: make(map[string]chan T),
+		subs:     make(map[string]*redis.PubSub),
+		capacity: 100,
+	}, nil
+}
+
+// NewGoMq creates a new instance of Go internal datastruct implementation
+func NewGoMq[T any]() *GoMq[T] {
+	return &GoMq[T]{
+		topics:   make(map[string][]chan T),
+		capacity: 100,
 	}
 }

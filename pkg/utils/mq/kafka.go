@@ -3,9 +3,11 @@ package mq
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/bytedance/sonic"
 	"github.com/segmentio/kafka-go"
 )
@@ -27,6 +29,7 @@ type subscriber[T any] struct {
 	reader   *kafka.Reader
 	msgChan  chan T
 	stopChan chan struct{}
+	cancel   context.CancelFunc
 }
 
 func (k *KafkaMq[T]) Publish(topic string, msg T) error {
@@ -53,6 +56,7 @@ func (k *KafkaMq[T]) PublishBytes(topic string, msg []byte) error {
 }
 
 func (k *KafkaMq[T]) Subscribe(topic string) (<-chan T, error) {
+	ctx, cancel := context.WithCancel(context.Background())
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   k.address,
 		GroupID:   k.groupID,
@@ -68,13 +72,14 @@ func (k *KafkaMq[T]) Subscribe(topic string) (<-chan T, error) {
 		reader:   reader,
 		msgChan:  msgChan,
 		stopChan: stopChan,
+		cancel:   cancel,
 	}
 
 	k.subsMu.Lock()
 	k.subscribers[topic] = append(k.subscribers[topic], sub)
 	k.subsMu.Unlock()
 
-	go k.consumeMessages(sub)
+	go k.consumeMessages(ctx, sub)
 
 	return msgChan, nil
 }
@@ -91,7 +96,10 @@ func (k *KafkaMq[T]) Unsubscribe(topic string, sub <-chan T) error {
 	for i, s := range subs {
 		if s.msgChan == sub {
 			close(s.stopChan)
+			s.cancel()
+			logger.Info("subscriber closed")
 			s.reader.Close()
+			logger.Info("subscriber removed")
 			k.subscribers[topic] = append(subs[:i], subs[i+1:]...)
 			return nil
 		}
@@ -176,7 +184,7 @@ func (k *KafkaMq[T]) getWriter(topic string) (*kafka.Writer, error) {
 	return writer, nil
 }
 
-func (k *KafkaMq[T]) consumeMessages(sub *subscriber[T]) {
+func (k *KafkaMq[T]) consumeMessages(ctx context.Context, sub *subscriber[T]) {
 	defer close(sub.msgChan)
 
 	for {
@@ -184,11 +192,13 @@ func (k *KafkaMq[T]) consumeMessages(sub *subscriber[T]) {
 		case <-sub.stopChan:
 			return
 		default:
-			m, err := sub.reader.ReadMessage(context.Background())
+			m, err := sub.reader.ReadMessage(ctx)
 			if err != nil {
-				if errors.Is(err, context.Canceled) {
+				if strings.Contains(err.Error(), "context canceled") {
+					logger.Debugf("context canceled")
 					return
 				}
+				logger.Error("error reading message:", err)
 				continue
 			}
 
