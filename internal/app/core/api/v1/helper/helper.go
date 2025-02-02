@@ -6,6 +6,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model/form/response"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,4 +60,11 @@ func FailedWithJson(code int, exception *exception.Exception, c *gin.Context) {
 }
 func FailedWithError(code int, err error, c *gin.Context) {
 	c.String(code, err.Error())
+}
+func GetClaims(c *gin.Context) (*casdoorsdk.Claims, error) {
+	v, ok := c.Get("claims")
+	if !ok {
+		return nil, errors.New("claims not found")
+	}
+	return v.(*casdoorsdk.Claims), nil
 }
