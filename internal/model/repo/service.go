@@ -28,6 +28,8 @@ type CoreDbOperator interface {
 	GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error)
 	AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *model.GatewayHost) error
 	GetGatewayHostInfo(ctx context.Context, hostid string) (model.GatewayHost, error)
+	UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error
+	ListGatewayHostInfoByUserID(ctx context.Context, userID string) ([]model.GatewayHost, error)
 
 	// Agent:
 	GetAgentInfo(id string) (*model.Agent, error)

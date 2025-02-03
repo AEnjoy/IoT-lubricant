@@ -36,6 +36,8 @@ const (
 	ErrorCoreNoTask ResCode = 120001 + iota
 	ErrorCoreTaskTimeout
 	DbAddGatewayFailed
+	DbUpdateGatewayInfoFailed
+	DbGetGatewayFailed
 	LinkToGatewayFailed
 )
 

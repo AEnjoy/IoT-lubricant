@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -17,6 +18,18 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string) ([]model.GatewayHost, error) {
+	var ret []model.GatewayHost
+	var err error
+	err = d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
+	return ret, err
+}
+
+func (d *CoreDb) UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error {
+	info.UpdatedAt = time.Now().Unix()
+	return txn.WithContext(ctx).Where("host_id = ?", hostid).Save(info).Error
+}
+
 func (d *CoreDb) GetGatewayHostInfo(ctx context.Context, id string) (model.GatewayHost, error) {
 	var ret model.GatewayHost
 	var err error
@@ -28,10 +41,12 @@ func (d *CoreDb) AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *mod
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
+	info.CreatedAt = time.Now().Unix()
 	return txn.WithContext(ctx).Create(info).Error
 }
 
 func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {
+	tk.CreatedAt = time.Now().Unix()
 	return d.db.WithContext(ctx).Create(tk).Error
 }
 func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error {
@@ -41,6 +56,7 @@ func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID s
 	mToken.AccessTokenExpiredAt = tk.Expiry.Second()
 	mToken.RefreshTokenExpiredAt = tk.Expiry.Second()
 	mToken.UserId = userID
+	mToken.CreatedAt = time.Now().Unix()
 	return d.SaveToken(ctx, &mToken)
 }
 func (d *CoreDb) QueryUser(ctx context.Context, userName, uuid string) (ret model.User, err error) {
