@@ -39,6 +39,7 @@ const (
 	DbUpdateGatewayInfoFailed
 	DbGetGatewayFailed
 	LinkToGatewayFailed
+	ErrorDeployGatewayFailed
 )
 
 // gateway

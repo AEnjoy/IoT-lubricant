@@ -58,7 +58,7 @@ type Gateway struct {
 	Description string `json:"description" gorm:"column:description"`
 
 	Address           string `json:"address" gorm:"column:address"`                         // SSH: ip:port or domain:port
-	UserNameAndPasswd string `json:"username_and_passwd" gorm:"column:username_and_passwd"` //
+	UserNameAndPasswd string `json:"username_and_passwd" gorm:"column:username_and_passwd"` // replace by model.GatewayHost
 
 	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"` // grpc tls config
 

@@ -4,8 +4,12 @@ import (
 	"context"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/ssh"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/bytedance/sonic"
+	"github.com/google/uuid"
 )
 
 func (s *GatewayService) AddHost(ctx context.Context, info *model.GatewayHost) error {
@@ -73,4 +77,67 @@ func (s *GatewayService) GetHost(ctx context.Context, hostid string) (model.Gate
 }
 func (s *GatewayService) UserGetHosts(ctx context.Context, userid string) ([]model.GatewayHost, error) {
 	return s.db.ListGatewayHostInfoByUserID(ctx, userid)
+}
+
+// DeployGatewayInstance 部署网关实例，返回gatewayID,error
+func (s *GatewayService) DeployGatewayInstance(ctx context.Context,
+	hostid,description string,tls *crypto.Tls) (string, error) {
+	txn, errorCh, commit := s.txnHelper()
+	defer commit()
+
+	hostInfo, err := s.db.GetGatewayHostInfo(ctx, hostid)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbGetGatewayFailed,
+			exception.WithMsg("Failed to get gateway information from database"),
+		)
+		errorCh.Report(err, exceptionCode.DbGetGatewayFailed, "Failed to get gateway information from database", true)
+		return "", err
+	}
+
+	host, err := ssh.NewSSHClient(&hostInfo, false)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.LinkToGatewayFailed,
+			exception.WithMsg("LinkToTargetHostError:"),
+		)
+		errorCh.Report(err, exceptionCode.LinkToGatewayFailed, "LinkToTargetHostError:", true)
+		return "", err
+	}
+
+	gatewayID:=uuid.NewString()
+	err = host.DeployGateway(gatewayID)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.ErrorDeployGatewayFailed,
+			exception.WithMsg("DeployGatewayFailed"),
+		)
+		errorCh.Report(err, exceptionCode.ErrorDeployGatewayFailed, "DeployGatewayFailed", true)
+		return "", err
+	}
+	// todo:check gateway status
+
+	err = s.db.AddGateway(ctx, txn, hostInfo.UserID, model.Gateway{
+		GatewayID:   gatewayID,
+		Description: description,
+		TlsConfig: func() string {
+			if tls == nil {
+				return ""
+			}
+			marshalString, err := sonic.MarshalString(tls)
+			if err != nil {
+				return ""
+			}
+			return marshalString
+		}(),
+	})
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbAddGatewayFailed,
+			exception.WithMsg("Failed to add gateway information to database"),
+		)
+		errorCh.Report(err, exceptionCode.DbAddGatewayFailed, "Failed to add gateway information to database", true)
+		return "", err
+	}
+	return gatewayID, nil
 }

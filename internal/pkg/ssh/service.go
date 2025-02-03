@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"errors"
+	"io"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"golang.org/x/crypto/ssh"
@@ -10,6 +11,11 @@ import (
 type RemoteClient interface {
 	Close() error
 	// todo...
+	UploadFiles(paths []string, target string) error
+	IoUploadFile(reader io.ReadCloser, target string) error
+	Download(target, local string) error
+
+	DeployGateway(id string) error
 }
 
 func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, error) {

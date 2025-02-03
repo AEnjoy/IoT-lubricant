@@ -105,6 +105,7 @@ func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*model.Gateway,
 
 func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error {
 	gateway.UserId = userID
+	gateway.CreatedAt = time.Now().Unix()
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
