@@ -35,6 +35,8 @@ const (
 const (
 	ErrorCoreNoTask ResCode = 120001 + iota
 	ErrorCoreTaskTimeout
+	DbAddGatewayFailed
+	LinkToGatewayFailed
 )
 
 // gateway

@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+
 	"golang.org/x/oauth2"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
@@ -25,6 +26,8 @@ type CoreDbOperator interface {
 	UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error             // need txn
 	DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error
 	GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error)
+	AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *model.GatewayHost) error
+	GetGatewayHostInfo(ctx context.Context, hostid string) (model.GatewayHost, error)
 
 	// Agent:
 	GetAgentInfo(id string) (*model.Agent, error)

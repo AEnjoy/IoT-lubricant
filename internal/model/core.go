@@ -143,13 +143,16 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 }
 
 type GatewayHost struct {
-	Id          int    `json:"id" gorm:"column:id"`
-	UserID      string `json:"user_id" gorm:"column:user_id"` // user.userID
-	HostID      string `json:"host_id" gorm:"column:host_id"` //uuid
+	Id          int    `json:"-" gorm:"column:id"`
+	UserID      string `json:"-" gorm:"column:user_id"` // user.userID
+	HostID      string `json:"-" gorm:"column:host_id"` //uuid
 	Description string `json:"description" gorm:"column:description"`
 
 	Host       string `json:"host" gorm:"column:host"` // ip:port
 	UserName   string `json:"username" gorm:"column:username"`
-	PassWd     string `json:"password" gorm:"column:password"`
-	PrivateKey string `json:"private_key" gorm:"column:private_key"`
+	PassWd     string `json:"-" gorm:"column:password"`
+	PrivateKey string `json:"-" gorm:"column:private_key"`
+
+	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
 }

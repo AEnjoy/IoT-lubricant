@@ -13,18 +13,18 @@ Gateway manage:
 1. add gateway host: `POST /add-host`
 2. edit gateway host info: `POST /edit-host`
 3. remove gateway host: `DELETE /remove-host` -> 8.
-4. get gateway host info: `GET /get-host`
-5. list gateway hosts info: `GET /list-hosts`
+4. get gateway host info: `GET /get-host?hostid`
+5. list gateway hosts info: `GET /list-hosts?userid`
 6. deploy gateway instance: `POST /deploy-instance`
 7. update gateway instance: `POST /update-instance`
 8. uninstall gateway instance: `POST /uninstall-instance`
 
 Gateway functions:
 
-1. get gateway status: `GET /status`
-2. get error logs: `GET /error-logs`
-3. set gateway instance config: `POST /set-config`
-4. get gateway instance config: `GET /get-config`
+1. get gateway status: `GET /status?gatewayid`
+2. get error logs: `GET /error-logs?gatewayid`
+3. set gateway instance config: `POST /set-config?gatewayid`
+4. get gateway instance config: `GET /get-config?gatewayid`
 
 Gateway agent instance manage:
 

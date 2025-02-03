@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+
 	"golang.org/x/oauth2"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
@@ -14,6 +15,20 @@ var _ CoreDbOperator = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
+}
+
+func (d *CoreDb) GetGatewayHostInfo(ctx context.Context, id string) (model.GatewayHost, error) {
+	var ret model.GatewayHost
+	var err error
+	err = d.db.WithContext(ctx).Where("host_id = ?", id).First(&ret).Error
+	return ret, err
+}
+
+func (d *CoreDb) AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *model.GatewayHost) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	return txn.WithContext(ctx).Create(info).Error
 }
 
 func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {

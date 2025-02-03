@@ -12,7 +12,7 @@ type RemoteClient interface {
 	// todo...
 }
 
-func NewSSHClient(gateway *model.GatewayHost) (RemoteClient, error) {
+func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, error) {
 	if gateway.UserName == "" {
 		return nil, errors.New("ssh: target host user name is empty")
 	}
@@ -53,5 +53,8 @@ func NewSSHClient(gateway *model.GatewayHost) (RemoteClient, error) {
 
 	client.sshClient = dial
 	client.session = session
+	if onlyTestLink {
+		return nil, client.Close()
+	}
 	return client, nil
 }
