@@ -81,7 +81,7 @@ func (s *GatewayService) UserGetHosts(ctx context.Context, userid string) ([]mod
 
 // DeployGatewayInstance 部署网关实例，返回gatewayID,error
 func (s *GatewayService) DeployGatewayInstance(ctx context.Context,
-	hostid,description string,tls *crypto.Tls) (string, error) {
+	hostid, description string, tls *crypto.Tls) (string, error) {
 	txn, errorCh, commit := s.txnHelper()
 	defer commit()
 
@@ -105,8 +105,11 @@ func (s *GatewayService) DeployGatewayInstance(ctx context.Context,
 		return "", err
 	}
 
-	gatewayID:=uuid.NewString()
-	err = host.DeployGateway(gatewayID)
+	gatewayID := uuid.NewString()
+	serverInfo := s.getHostInfo()
+	serverInfo.GatewayId = gatewayID
+
+	err = host.DeployGateway(serverInfo)
 	if err != nil {
 		err = exception.ErrNewException(err,
 			exceptionCode.ErrorDeployGatewayFailed,
