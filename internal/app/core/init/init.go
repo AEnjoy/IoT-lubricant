@@ -6,6 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/service"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
@@ -25,6 +26,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_DATABASE_STORE:        &data.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 			ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},
+			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &service.GatewayService{},
 		}
 
 		ioc.Controller.LoadObject(objects)

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
@@ -45,6 +46,7 @@ func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[meta.Ping, meta.Ping]) er
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string) // 获取网关ID
 	// send core->gateway
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	go func() {
 		taskIDCh, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", taskTypes.TargetGateway, gatewayID))
 		if err != nil {

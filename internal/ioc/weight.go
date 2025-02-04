@@ -10,4 +10,5 @@ const (
 	_
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
+	CoreGatewayService
 )
