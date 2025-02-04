@@ -40,6 +40,7 @@ const (
 	DbGetGatewayFailed
 	LinkToGatewayFailed
 	ErrorDeployGatewayFailed
+	GetGatewayFailed
 )
 
 // gateway

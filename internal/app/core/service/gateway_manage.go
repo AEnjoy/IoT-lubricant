@@ -2,14 +2,18 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/ssh"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
+	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
 func (s *GatewayService) AddHost(ctx context.Context, info *model.GatewayHost) error {
@@ -143,4 +147,69 @@ func (s *GatewayService) DeployGatewayInstance(ctx context.Context,
 		return "", err
 	}
 	return gatewayID, nil
+}
+func (s *GatewayService) GetRegisterStatus(_ context.Context, gatewayid string) *status.Status {
+	taskMq := s.store.Mq
+	topic := fmt.Sprintf("/ping/%s/%s/register", taskTypes.TargetGateway, gatewayid)
+	t, err := taskMq.Subscribe(topic)
+	if err != nil {
+		err = fmt.Errorf("failed to get gateway register information: %v", err)
+		return &status.Status{
+			Code:    int32(exceptionCode.GetGatewayFailed),
+			Message: err.Error(),
+		}
+	}
+	defer taskMq.Unsubscribe(topic, t)
+
+	select {
+	case id := <-t:
+		if string(id) != gatewayid {
+			return &status.Status{
+				Code:    int32(exceptionCode.GetGatewayFailed),
+				Message: "gateway is not registered(get gatewayid is not correct)",
+			}
+		} else {
+			return &status.Status{
+				Code:    int32(exceptionCode.Success),
+				Message: "gateway is registered",
+			}
+		}
+	case <-time.After(10 * time.Second):
+		return &status.Status{
+			Code:    int32(exceptionCode.GetGatewayFailed),
+			Message: "gateway is not registered(timeout)",
+		}
+	}
+}
+
+func (s *GatewayService) GetStatus(ctx context.Context, gatewayid string) *status.Status {
+	taskMq := s.store.Mq
+
+	// 发送随机消息，如果响应同发送一致，则认为网关status正常
+	message := uuid.NewString()
+	_ = taskMq.PublishBytes(fmt.Sprintf("/monitor/%s/%s/random-message", taskTypes.TargetGateway, gatewayid),
+		[]byte(message))
+	t, err := taskMq.Subscribe(fmt.Sprintf("/monitor/%s/%s/random-message/response", taskTypes.TargetGateway, gatewayid))
+	if err != nil {
+		return &status.Status{
+			Code:    int32(exceptionCode.GetGatewayFailed),
+			Message: fmt.Sprintf("failed to get gateway status: %v", err),
+		}
+	}
+	defer taskMq.Unsubscribe(fmt.Sprintf("/monitor/%s/%s/random-message/response", taskTypes.TargetGateway, gatewayid), t)
+
+	select {
+	case id := <-t:
+		if string(id) == message {
+			return &status.Status{
+				Code:    int32(exceptionCode.Success),
+				Message: "gateway is running",
+			}
+		} else {
+			return &status.Status{
+				Code:    int32(exceptionCode.GetGatewayFailed),
+				Message: "gateway is not running",
+			}
+		}
+	}
 }

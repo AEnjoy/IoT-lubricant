@@ -40,30 +40,63 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 	return context.WithTimeout(root, timeOut*time.Second)
 }
 
-func (PbCoreServiceImpl) Ping(grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
-	return nil
+func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
+	gatewayID := s.Context().Value(types.NameGatewayID).(string)
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+	err := taskMq.Publish(fmt.Sprintf("/ping/gateway/%s/register", gatewayID), []byte(gatewayID))
+	if err != nil {
+		logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+	}
+	for {
+		_, err := s.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			logger.Errorf("grpc stream error: %s", err.Error())
+			continue
+		}
+		err = s.Send(&meta.Ping{Flag: 1})
+		if err != nil {
+			logger.Errorf("grpc stream error: %s", err.Error())
+			continue
+		}
+	}
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string) // 获取网关ID
+	cancelContext, cancel := context.WithCancel(s.Context())
+	defer cancel()
 	// send core->gateway
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	go func() {
-		taskIDCh, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", taskTypes.TargetGateway, gatewayID))
+		topic := fmt.Sprintf("/task/%s/%s", taskTypes.TargetGateway, gatewayID)
+		taskIDCh, err := taskMq.Subscribe(topic)
 		if err != nil {
 			taskSendErrorMessage(s, 500, err.Error())
 			return
 		}
-		for idData := range taskIDCh {
-			taskID := string(idData)
-			if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
-				taskSendErrorMessage(s, 500, err.Error())
-			} else {
-				var resp core.CorePushTaskRequest
-				var message core.TaskDetail
-				message.Content = taskData
-				message.TaskId = taskID
-				resp.Message = &message
-				_ = s.Send(&core.Task{ID: taskID, Task: &core.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
+		for {
+			select {
+			case <-cancelContext.Done():
+				_ = taskMq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayID),
+					[]byte(time.Now().Format("2006-01-02 15:04:05")))
+				if err := taskMq.Unsubscribe(topic, taskIDCh); err != nil {
+					logger.Error("failed to unsubscribe task topic: %s", err.Error())
+				}
+				return
+			case idData := <-taskIDCh:
+				taskID := string(idData)
+				if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
+					taskSendErrorMessage(s, 500, err.Error())
+				} else {
+					var resp core.CorePushTaskRequest
+					var message core.TaskDetail
+					message.Content = taskData
+					message.TaskId = taskID
+					resp.Message = &message
+					_ = s.Send(&core.Task{ID: taskID, Task: &core.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
+				}
 			}
 		}
 	}()

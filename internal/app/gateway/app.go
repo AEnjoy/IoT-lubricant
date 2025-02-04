@@ -108,7 +108,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		a.grpcClient = core.NewCoreServiceClient(conn)
 
 		// ping stream
-		stream, err := a.grpcClient.Ping(context.Background())
+		stream, err := a.grpcClient.Ping(a.ctrl)
 		if err != nil {
 			return err
 		}
