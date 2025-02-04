@@ -15,7 +15,7 @@ type RemoteClient interface {
 	IoUploadFile(reader io.ReadCloser, target string) error
 	Download(target, local string) error
 
-	DeployGateway(id string) error
+	DeployGateway(hostinfo *model.ServerInfo) error
 }
 
 func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, error) {
@@ -49,7 +49,7 @@ func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, 
 	}
 
 	var client = &client{
-		GatewayHost: gateway,
+		model: gateway,
 	}
 	session, err := dial.NewSession()
 	if err != nil {

@@ -60,6 +60,7 @@ type GatewayDbOperator interface {
 	Commit(txn *gorm.DB)
 	Rollback(txn *gorm.DB)
 
+	AddOrUpdateServerInfo(txn *gorm.DB, info *model.ServerInfo) error
 	GetServerInfo(_ *gorm.DB) *model.ServerInfo
 	IsAgentIdExists(_ *gorm.DB, id string) bool
 	GetAllAgentId(_ *gorm.DB) []string

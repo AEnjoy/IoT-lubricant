@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"gopkg.in/yaml.v3"
 )
 
 var _ RemoteClient = (*client)(nil)
@@ -96,19 +98,28 @@ func (c *client) Download(target, local string) error {
 	return err
 }
 
-func (c *client) DeployGateway(id string) error {
+func (c *client) DeployGateway(hostinfo *model.ServerInfo) error {
 	resp, err := http.Get(def.GatewayDeployScripts)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
+	hostInfoByte, err := yaml.Marshal(hostinfo)
+	if err != nil {
+		return err
+	}
+
+	if err = c.IoUploadFile(io.NopCloser(bytes.NewBuffer(hostInfoByte)), "/tmp/lubricant_server_config.yaml"); err != nil {
+		return err
+	}
+
 	if err = c.IoUploadFile(resp.Body, "/tmp/lubricant_gateway.sh"); err != nil {
 		return err
 	}
 	var out string
 	var exitCode int
-	out, exitCode, err = c.executeCommandAuto(fmt.Sprintf("bash /tmp/lubricant_gateway.sh %s", id))
+	out, exitCode, err = c.executeCommandAuto("bash /tmp/lubricant_gateway.sh init /tmp/lubricant_server_config.yaml")
 	if err != nil || exitCode != 0 {
 		return fmt.Errorf("failed to deploy gateway: %s, exit code: %d", out, exitCode)
 	}
