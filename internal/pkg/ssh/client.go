@@ -125,3 +125,37 @@ func (c *client) DeployGateway(hostinfo *model.ServerInfo) error {
 	}
 	return nil
 }
+func (c *client) UpdateConfig(hostinfo *model.ServerInfo) error {
+	hostInfoByte, err := yaml.Marshal(hostinfo)
+	if err != nil {
+		return err
+	}
+
+	if err = c.IoUploadFile(io.NopCloser(bytes.NewBuffer(hostInfoByte)), "/tmp/lubricant_server_config.yaml"); err != nil {
+		return err
+	}
+
+	// todo: 需要支持自定义conf路径
+	out, exitCode, err := c.executeCommandAuto("cp /tmp/lubricant_server_config.yaml /opt/lubricant/gateway/")
+	if err != nil || exitCode != 0 {
+		return fmt.Errorf("failed to update config: %s, exit code: %d", out, exitCode)
+	}
+
+	out, exitCode, err = c.executeCommandAuto("systemctl restart Lubricant-Gateway")
+	if err != nil || exitCode != 0 {
+		return fmt.Errorf("failed to restart gateway: %s, exit code: %d", out, exitCode)
+	}
+	return nil
+}
+
+func (c *client) GetConfig() (ret *model.ServerInfo, err error) {
+	ret = new(model.ServerInfo)
+	out, exitCode, err := c.executeCommandAuto("cat /opt/lubricant/gateway/lubricant_server_config.yaml")
+	if err != nil || exitCode != 0 {
+		return nil, fmt.Errorf("failed to get config: %s, exit code: %d", out, exitCode)
+	}
+	if err = yaml.Unmarshal([]byte(out), ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}

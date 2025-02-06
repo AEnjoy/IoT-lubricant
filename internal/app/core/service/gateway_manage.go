@@ -14,6 +14,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
+	"gopkg.in/yaml.v3"
 )
 
 func (s *GatewayService) AddHost(ctx context.Context, info *model.GatewayHost) error {
@@ -182,7 +183,7 @@ func (s *GatewayService) GetRegisterStatus(_ context.Context, gatewayid string) 
 	}
 }
 
-func (s *GatewayService) GetStatus(ctx context.Context, gatewayid string) *status.Status {
+func (s *GatewayService) GetStatus(_ context.Context, gatewayid string) *status.Status {
 	taskMq := s.store.Mq
 
 	// 发送随机消息，如果响应同发送一致，则认为网关status正常
@@ -223,4 +224,92 @@ func (s *GatewayService) GetErrorLogs(ctx context.Context,
 }
 func (s *GatewayService) DescriptionError(ctx context.Context, errorID string) (model.ErrorLogs, error) {
 	return s.db.GetErrorLogByErrorID(ctx, errorID)
+}
+
+func (s *GatewayService) HostGetGatewayDeployConfig(ctx context.Context, hostid string) (*model.ServerInfo, error) {
+	hostInfo, err := s.db.GetGatewayHostInfo(ctx, hostid)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbGetGatewayFailed,
+			exception.WithMsg("Failed to get gateway information from database"),
+		)
+		return nil, err
+	}
+
+	host, err := ssh.NewSSHClient(&hostInfo, false)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.LinkToGatewayFailed,
+			exception.WithMsg("LinkToTargetHostError:"),
+		)
+		return nil, err
+	}
+	defer host.Close()
+
+	return host.GetConfig()
+}
+func (s *GatewayService) GatewayGetGatewayDeployConfig(ctx context.Context, gatewayid string) (*model.ServerInfo, error) {
+	taskMq := s.store.Mq
+	topic := fmt.Sprintf("/config/%s/%s/get/deploy-config", taskTypes.TargetGateway, gatewayid)
+	_ = taskMq.Publish(topic, nil)
+	t, err := taskMq.Subscribe(fmt.Sprintf("%s/response", topic))
+	if err != nil {
+		err = fmt.Errorf("failed to get gateway deploy config: %v", err)
+		return nil, err
+	}
+	defer taskMq.Unsubscribe(fmt.Sprintf("%s/response", topic), t)
+
+	var ret model.ServerInfo
+	err = sonic.Unmarshal(<-t, &ret)
+	return &ret, err
+}
+
+func (s *GatewayService) HostSetGatewayDeployConfig(ctx context.Context, hostid string, info *model.ServerInfo) error {
+	hostInfo, err := s.db.GetGatewayHostInfo(ctx, hostid)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbGetGatewayFailed,
+			exception.WithMsg("Failed to get gateway information from database"),
+		)
+		return err
+	}
+
+	host, err := ssh.NewSSHClient(&hostInfo, false)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.LinkToGatewayFailed,
+			exception.WithMsg("LinkToTargetHostError:"),
+		)
+		return err
+	}
+	defer host.Close()
+
+	return host.UpdateConfig(info)
+}
+
+func (s *GatewayService) GatewaySetGatewayDeployConfig(ctx context.Context, gatewayid string, info *model.ServerInfo) error {
+	taskMq := s.store.Mq
+	topic := fmt.Sprintf("/config/%s/%s/set/deploy-config", taskTypes.TargetGateway, gatewayid)
+	infoBytes, err := yaml.Marshal(info)
+	if err != nil {
+		return err
+	}
+	_ = taskMq.PublishBytes(topic, infoBytes)
+	t, err := taskMq.Subscribe(fmt.Sprintf("%s/response", topic))
+	if err != nil {
+		err = fmt.Errorf("failed to set gateway deploy config: %v", err)
+		return err
+	}
+	defer taskMq.Unsubscribe(fmt.Sprintf("%s/response", topic), t)
+
+	select {
+	case resp := <-t:
+		if string(resp) != "ok" {
+			return fmt.Errorf("failed to set gateway deploy config: %s", resp)
+		} else {
+			return nil
+		}
+	case <-time.After(10 * time.Second):
+		return fmt.Errorf("failed to set gateway deploy config: timeout")
+	}
 }

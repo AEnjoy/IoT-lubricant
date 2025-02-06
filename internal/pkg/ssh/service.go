@@ -16,6 +16,8 @@ type RemoteClient interface {
 	Download(target, local string) error
 
 	DeployGateway(hostinfo *model.ServerInfo) error
+	UpdateConfig(hostinfo *model.ServerInfo) error
+	GetConfig() (*model.ServerInfo, error)
 }
 
 func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, error) {

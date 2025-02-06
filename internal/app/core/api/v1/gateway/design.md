@@ -23,8 +23,8 @@ Gateway functions:
 
 - [x]  get gateway status: `GET /status?gatewayid`
 - [x]  get error logs: `GET /error-logs?gatewayid`
-- [ ]  set gateway instance config: `POST /set-config?gatewayid`
-- [ ]  get gateway instance config: `GET /get-config?gatewayid`
+- [x]  set gateway instance config: `POST /set-config?gatewayid`
+- [x]  get gateway instance config: `GET /get-config?gatewayid`
 
 Gateway agent instance manage:
 
