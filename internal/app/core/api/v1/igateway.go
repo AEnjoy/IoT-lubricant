@@ -5,6 +5,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/service"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -13,6 +14,7 @@ var (
 )
 
 type IGateway interface {
+	AddHost(c *gin.Context)
 }
 
 func NewGateway() IGateway {

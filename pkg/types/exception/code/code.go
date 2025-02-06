@@ -10,6 +10,7 @@ const (
 	ErrorNotFound
 	ErrorInternalServerError
 	ErrorUnknown
+	ErrorIO
 )
 
 // Auth
@@ -19,6 +20,7 @@ const (
 	ErrorInvalidAuthHeader
 	ErrorInvalidAuthKey
 	ErrorForbidden
+	ErrorGetClaimsFailed
 )
 
 const (
@@ -41,6 +43,7 @@ const (
 	LinkToGatewayFailed
 	ErrorDeployGatewayFailed
 	GetGatewayFailed
+	AddGatewayHostFailed
 )
 
 // gateway
@@ -96,6 +99,11 @@ const (
 	ErrContainerNotRunning ResCode = 230001 + iota
 )
 
+// request parameters
+const (
+	ErrorGatewayHostNeedPasswdOrPrivateKey ResCode = 410001 + iota
+)
+
 var StatusMsgMap = map[ResCode]string{
 	// Common
 	Success:                  "success",
@@ -115,10 +123,13 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorInvalidAuthHeader:   "Invalid authorization header",
 	ErrorInvalidAuthKey:      "Invalid authorization key",
 	ErrorForbidden:           "Permission Denied",
+	ErrorIO:                  "IO error",
+	ErrorGetClaimsFailed:     "Get claims(user information) from context failed",
 
 	// Core
 	ErrorCoreNoTask:      "target has no task",
 	ErrorCoreTaskTimeout: "get task timeout",
+	AddGatewayHostFailed: "add gateway host failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
@@ -160,6 +171,9 @@ var StatusMsgMap = map[ResCode]string{
 
 	// Docker
 	ErrContainerNotRunning: "container is not running",
+
+	// Request parameters
+	ErrorGatewayHostNeedPasswdOrPrivateKey: "gateway host need passwd or private key for remote login(ssh)",
 }
 
 // GetMsg 返回状态码对应msg

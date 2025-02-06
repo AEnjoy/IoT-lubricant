@@ -8,6 +8,7 @@ import (
 func CommonGroups() []CommonRouter {
 	return []CommonRouter{
 		r.UserRoute{},
+		r.GatewayRoute{},
 	}
 }
 
