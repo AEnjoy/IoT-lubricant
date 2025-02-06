@@ -19,8 +19,8 @@ Gateway manage:
 - [ ]  update gateway instance: `POST /update-instance`
 - [ ]  uninstall gateway instance: `POST /uninstall-instance`
 (internal)
-- [ ]  add gateway: `POST /add-gateway`
-- [ ]  remove gateway: `POST /remove-gateway`
+- [ ]  add gateway: `POST /internal/add-gateway`
+- [ ]  remove gateway: `POST /internal/remove-gateway`
 
 Gateway functions:
 
@@ -42,6 +42,6 @@ root route: /api/v1/gateway/:gatewayId/agent
 - [ ]  update instance: `POST /update-instance`
 - [ ]  update config: `POST /update-config`
 (internal)
-- [ ]  push task: `POST /push-task`
-- [ ]  get task status: `GET /task-status`
-- [ ]  add: `POST /add`
+- [ ]  push task: `POST /internal/push-task`
+- [ ]  get task status: `GET /internal/task-status`
+- [ ]  add: `POST /internal/add`

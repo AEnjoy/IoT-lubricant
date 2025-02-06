@@ -43,6 +43,7 @@ const (
 	LinkToGatewayFailed
 	ErrorDeployGatewayFailed
 	GetGatewayFailed
+	AddGatewayFailed
 	AddGatewayHostFailed
 )
 
@@ -130,6 +131,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorCoreNoTask:      "target has no task",
 	ErrorCoreTaskTimeout: "get task timeout",
 	AddGatewayHostFailed: "add gateway host failed",
+	AddGatewayFailed:     "add gateway failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",

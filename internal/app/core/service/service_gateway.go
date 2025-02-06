@@ -37,4 +37,8 @@ type IGatewayService interface {
 
 	HostSetGatewayDeployConfig(ctx context.Context, hostid string, info *model.ServerInfo) error
 	GatewaySetGatewayDeployConfig(ctx context.Context, gatewayid string, info *model.ServerInfo) error
+
+	// internal
+	AddHostInternal(ctx context.Context, info *model.GatewayHost) error
+	AddGatewayInternal(ctx context.Context, userID, gatewayID, description string, tls *crypto.Tls) error
 }
