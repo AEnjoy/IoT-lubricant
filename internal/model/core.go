@@ -5,7 +5,9 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"time"
 
+	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"github.com/dop251/goja"
 )
 
@@ -155,4 +157,46 @@ type GatewayHost struct {
 
 	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
+}
+type ErrorLogs struct {
+	ID        int    `json:"-" gorm:"column:id"`
+	ErrID     string `json:"err_id" gorm:"column:err_id"`
+	Component string `json:"component" gorm:"column:component"` // one of core,agent,gateway
+
+	Type    int32  `json:"type" gorm:"column:type"`
+	Code    int32  `json:"code" gorm:"column:code"`
+	Message string `json:"message" gorm:"column:message"`
+	Module  string `json:"module" gorm:"column:module"`
+	Stack   string `json:"stack" gorm:"column:stack"`
+
+	CreatedAt time.Time `json:"happened" gorm:"column:created_at"`
+}
+
+func (ErrorLogs) TableName() string {
+	return "error_logs"
+}
+func PbErrorMessage2ModelErrorLogs(message *metapb.ErrorMessage) *ErrorLogs {
+	return &ErrorLogs{
+		Code: func() int32 {
+			if status := message.GetCode(); status != nil {
+				return status.GetCode()
+			}
+			return 0
+		}(),
+		Message: func() string {
+			if status := message.GetCode(); status != nil {
+				return status.GetMessage()
+			}
+			return ""
+		}(),
+		Module: message.GetModule(),
+		Stack:  message.GetStack(),
+		Type:   message.GetErrorType(),
+		CreatedAt: func() time.Time {
+			if timestamp := message.GetTime(); timestamp != nil {
+				return timestamp.AsTime()
+			}
+			return time.Now()
+		}(),
+	}
 }

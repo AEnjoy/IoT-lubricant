@@ -3,12 +3,16 @@ syntax = "proto3";
 package lubricant;
 
 import "google/rpc/status.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/AEnjoy/IoT-lubricant/protobuf/meta";
 
 message ErrorMessage {
-  google.rpc.Status code = 1;
-  optional string stack = 2;
+  optional int32 errorType = 1;
+  google.rpc.Status code = 2;
+  optional string module = 3;
+  optional string stack = 4;
+  google.protobuf.Timestamp time = 5;
 }
 
 message Ping {

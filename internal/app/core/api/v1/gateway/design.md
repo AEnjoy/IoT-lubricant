@@ -22,7 +22,7 @@ Gateway manage:
 Gateway functions:
 
 - [x]  get gateway status: `GET /status?gatewayid`
-- [ ]  get error logs: `GET /error-logs?gatewayid`
+- [x]  get error logs: `GET /error-logs?gatewayid`
 - [ ]  set gateway instance config: `POST /set-config?gatewayid`
 - [ ]  get gateway instance config: `GET /get-config?gatewayid`
 

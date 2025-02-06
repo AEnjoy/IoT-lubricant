@@ -18,6 +18,25 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error) {
+	var ret model.ErrorLogs
+	var err error
+	err = d.db.WithContext(ctx).Where("err_id = ?", errID).First(&ret).Error
+	return ret, err
+}
+
+func (d *CoreDb) GetErrorLogs(ctx context.Context, gatewayid string, from, to time.Time, limit int) ([]model.ErrorLogs, error) {
+	var ret []model.ErrorLogs
+	var err error
+	if to.IsZero() {
+		// No need to filter time
+		err = d.db.WithContext(ctx).Where("gateway_id = ?", gatewayid).Limit(limit).Find(&ret).Error
+	} else {
+		err = d.db.WithContext(ctx).Where("gateway_id = ? and created_at >= ? and created_at <= ?", gatewayid, from.Unix(), to.Unix()).Limit(limit).Find(&ret).Error
+	}
+	return ret, err
+}
+
 func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string) ([]model.GatewayHost, error) {
 	var ret []model.GatewayHost
 	var err error

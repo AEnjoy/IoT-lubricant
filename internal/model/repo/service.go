@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -47,6 +48,10 @@ type CoreDbOperator interface {
 	CreateTask(ctx context.Context, txn *gorm.DB, id string, task task.Task) error
 	TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, Type task.Operation) error
 	TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, commend string) error
+
+	// ErrorLog:
+	GetErrorLogs(ctx context.Context, gatewayid string, from, to time.Time, limit int) ([]model.ErrorLogs, error)
+	GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error)
 
 	// User:
 	QueryUser(ctx context.Context, userName, uuid string) (model.User, error)

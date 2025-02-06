@@ -213,3 +213,14 @@ func (s *GatewayService) GetStatus(ctx context.Context, gatewayid string) *statu
 		}
 	}
 }
+
+func (s *GatewayService) GetErrorLogs(ctx context.Context,
+	gatewayid string, from, to time.Time, limit int) ([]model.ErrorLogs, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	return s.db.GetErrorLogs(ctx, gatewayid, from, to, limit)
+}
+func (s *GatewayService) DescriptionError(ctx context.Context, errorID string) (model.ErrorLogs, error) {
+	return s.db.GetErrorLogByErrorID(ctx, errorID)
+}
