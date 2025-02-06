@@ -18,6 +18,9 @@ Gateway manage:
 - [x]  deploy gateway instance: `POST /deploy-instance`
 - [ ]  update gateway instance: `POST /update-instance`
 - [ ]  uninstall gateway instance: `POST /uninstall-instance`
+(internal)
+- [ ]  add gateway: `POST /add-gateway`
+- [ ]  remove gateway: `POST /remove-gateway`
 
 Gateway functions:
 
@@ -30,8 +33,8 @@ Gateway agent instance manage:
 
 root route: /api/v1/gateway/:gatewayId/agent
 
-- [ ]  add: `POST /add`
 - [ ]  create: `POST /create`
+- [ ]  remove: `DELETE /remove`
 - [ ]  start: `POST /start`
 - [ ]  stop: `POST /stop`
 - [ ]  get info: `GET /`
@@ -41,3 +44,4 @@ root route: /api/v1/gateway/:gatewayId/agent
 (internal)
 - [ ]  push task: `POST /push-task`
 - [ ]  get task status: `GET /task-status`
+- [ ]  add: `POST /add`

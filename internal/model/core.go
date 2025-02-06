@@ -55,14 +55,13 @@ func (Data) TableName() string {
 }
 
 type Gateway struct {
-	GatewayID   string `json:"id" gorm:"column:id"`
-	UserId      string `json:"user_id" gorm:"column:user_id"`
+	ID          int    `json:"-" gorm:"column:id,primary_key,autoIncrement"`
+	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
+	UserId      string `json:"-" gorm:"column:user_id"`
 	Description string `json:"description" gorm:"column:description"`
 
-	Address           string `json:"address" gorm:"column:address"`                         // SSH: ip:port or domain:port
-	UserNameAndPasswd string `json:"username_and_passwd" gorm:"column:username_and_passwd"` // replace by model.GatewayHost
-
-	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"` // grpc tls config
+	TlsConfig string `json:"tls_config" gorm:"column:tls_config,serializer:json"`
+	// host information has replaced by model.GatewayHost
 
 	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`

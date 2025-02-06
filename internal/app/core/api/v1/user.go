@@ -8,17 +8,17 @@ import (
 )
 
 var (
-	_     User = (*user.User)(nil)
-	_user User
+	_     IUser = (*user.Api)(nil)
+	_user IUser
 )
 
-type User interface {
+type IUser interface {
 	Create(c *gin.Context)
 }
 
-func NewUser() User {
+func NewUser() IUser {
 	if _user == nil {
-		_user = &user.User{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
+		_user = &user.Api{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
 	}
 	return _user
 }

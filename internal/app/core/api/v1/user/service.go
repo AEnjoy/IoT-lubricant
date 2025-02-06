@@ -2,6 +2,6 @@ package user
 
 import "github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 
-type User struct {
+type Api struct {
 	Db repo.CoreDbOperator
 }
