@@ -58,3 +58,14 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 		PrivateKey:  req.PrivateKey,
 	}
 }
+
+func (a Api) getGatewayRemoveModel(c *gin.Context) *request.RemoveGatewayRequest {
+	var req request.RemoveGatewayRequest
+	err := c.BindJSON(&req)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.ErrNewException(err, exceptCode.ErrorBind), c)
+		return nil
+	}
+	return &req
+}

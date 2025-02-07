@@ -290,3 +290,6 @@ func (s *GatewayService) GatewaySetGatewayDeployConfig(ctx context.Context, gate
 		return fmt.Errorf("failed to set gateway deploy config: timeout")
 	}
 }
+func (s *GatewayService) RemoveHost(ctx context.Context, hostid string) error {
+	panic("implement me")
+}

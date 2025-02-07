@@ -31,3 +31,15 @@ func (a Api) AddGatewayInternal(c *gin.Context) {
 	}
 	helper.SuccessJson(response.AddGatewayResponse{GatewayID: gatewayid}, c)
 }
+func (a Api) RemoveGatewayInternal(c *gin.Context) {
+	req := a.getGatewayRemoveModel(c)
+	if req == nil {
+		return
+	}
+
+	if err := a.IGatewayService.RemoveGatewayInternal(c, req.GatewayID); err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError, err.(*exception.Exception), c)
+		return
+	}
+	helper.SuccessJson(nil, c)
+}

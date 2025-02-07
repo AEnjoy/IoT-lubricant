@@ -10,17 +10,18 @@ root route: /api/v1/gateway
 
 Gateway manage:
 
-- [x]  add gateway host: `POST /add-host`
-- [x]  edit gateway host info: `POST /edit-host`
-- [ ]  remove gateway host: `DELETE /remove-host` -> uninstall.
-- [x]  get gateway host info: `GET /get-host?hostid`
-- [x]  list gateway hosts info: `GET /list-hosts?userid`
+- [x]  add gateway host: `POST /add-host` and `POST /host`
+- [x]  edit gateway host info: `POST /edit-host` and `PUT /host`
+- [ ]  remove gateway host: `DELETE /remove-host` and `DELETE /host` -> uninstall.
+- [x]  get gateway host info: `GET /get-host?hostid` and `GET /host?hostid`
+- [x]  list gateway hosts info: `GET /list-hosts?userid` and `GET /hosts?userid`
 - [x]  deploy gateway instance: `POST /deploy-instance`
 - [ ]  update gateway instance: `POST /update-instance`
 - [ ]  uninstall gateway instance: `POST /uninstall-instance`
 (internal)
-- [ ]  add gateway: `POST /internal/add-gateway`
-- [ ]  remove gateway: `POST /internal/remove-gateway`
+- [x]  add gateway: `POST /internal/add-gateway` and `POST /internal/gateway`
+- [x]  remove gateway: `POST /internal/remove-gateway` and `DELETE /internal/gateway`
+- [ ]  remove gateway host: `POST /internal/remove-gateway-host`
 
 Gateway functions:
 

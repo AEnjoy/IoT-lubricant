@@ -11,6 +11,7 @@ const (
 	ErrorInternalServerError
 	ErrorUnknown
 	ErrorIO
+	DeadLine
 )
 
 // Auth
@@ -45,6 +46,8 @@ const (
 	GetGatewayFailed
 	AddGatewayFailed
 	AddGatewayHostFailed
+	RemoveGatewayFailed
+	RemoveGatewayHostFailed
 )
 
 // gateway
@@ -100,6 +103,12 @@ const (
 	ErrContainerNotRunning ResCode = 230001 + iota
 )
 
+// mq
+const (
+	MqPublishFailed ResCode = 240001 + iota
+	MqSubscribeFailed
+)
+
 // request parameters
 const (
 	ErrorGatewayHostNeedPasswdOrPrivateKey ResCode = 410001 + iota
@@ -126,12 +135,15 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorForbidden:           "Permission Denied",
 	ErrorIO:                  "IO error",
 	ErrorGetClaimsFailed:     "Get claims(user information) from context failed",
+	DeadLine:                 "context deadline or cancel",
 
 	// Core
-	ErrorCoreNoTask:      "target has no task",
-	ErrorCoreTaskTimeout: "get task timeout",
-	AddGatewayHostFailed: "add gateway host failed",
-	AddGatewayFailed:     "add gateway failed",
+	ErrorCoreNoTask:         "target has no task",
+	ErrorCoreTaskTimeout:    "get task timeout",
+	AddGatewayHostFailed:    "add gateway host failed",
+	AddGatewayFailed:        "add gateway failed",
+	RemoveGatewayFailed:     "remove gateway failed",
+	RemoveGatewayHostFailed: "remove gateway host failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
@@ -173,6 +185,10 @@ var StatusMsgMap = map[ResCode]string{
 
 	// Docker
 	ErrContainerNotRunning: "container is not running",
+
+	// MQ
+	MqPublishFailed:   "publish message to messageQueue failed",
+	MqSubscribeFailed: "subscribe message from messageQueue failed",
 
 	// Request parameters
 	ErrorGatewayHostNeedPasswdOrPrivateKey: "gateway host need passwd or private key for remote login(ssh)",

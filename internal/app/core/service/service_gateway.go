@@ -41,4 +41,6 @@ type IGatewayService interface {
 	// internal
 	AddHostInternal(ctx context.Context, info *model.GatewayHost) error
 	AddGatewayInternal(ctx context.Context, userID, gatewayID, description string, tls *crypto.Tls) error
+	RemoveGatewayInternal(ctx context.Context, gatewayid string) error
+	//RemoveGatewayHostInternal(ctx context.Context, hostid string) error
 }

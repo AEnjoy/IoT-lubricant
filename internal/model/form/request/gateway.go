@@ -15,3 +15,8 @@ type AddGatewayRequest struct {
 	AddGatewayHostRequest
 	TlsConfig *crypto.Tls `json:"tls_config"`
 }
+type RemoveGatewayRequest struct {
+	GatewayID      string `json:"gateway_id"`
+	RemoveAgents   bool   `json:"remove_agents"`
+	RemoveHostInfo bool   `json:"remove_host_info"`
+}

@@ -18,6 +18,10 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) DeleteGatewayHostInfo(ctx context.Context, txn *gorm.DB, id string) error {
+	return txn.WithContext(ctx).Where("host_id = ?", id).Delete(&model.GatewayHost{}).Error
+}
+
 func (d *CoreDb) GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error) {
 	var ret model.ErrorLogs
 	var err error

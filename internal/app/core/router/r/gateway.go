@@ -9,8 +9,14 @@ type GatewayRoute struct {
 }
 
 func (GatewayRoute) InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc) {
-	user := router.Group("/gateway", mids...)
+	gateway := router.Group("/gateway", mids...)
 	controller := v1.NewGateway()
 
-	user.POST("/add-host", controller.AddHost)
+	gateway.POST("/add-host", controller.AddHost)
+	gateway.POST("/host", controller.AddHost)
+
+	gateway.POST("/internal/add-gateway", controller.AddGatewayInternal)
+	gateway.POST("/internal/gateway", controller.AddGatewayInternal)
+	gateway.POST("/internal/remove-gateway", controller.RemoveGatewayInternal)
+	gateway.DELETE("/internal/gateway", controller.RemoveGatewayInternal)
 }

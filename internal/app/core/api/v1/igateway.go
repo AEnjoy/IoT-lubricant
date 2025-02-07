@@ -15,6 +15,9 @@ var (
 
 type IGateway interface {
 	AddHost(c *gin.Context)
+
+	AddGatewayInternal(c *gin.Context)
+	RemoveGatewayInternal(c *gin.Context)
 }
 
 func NewGateway() IGateway {
