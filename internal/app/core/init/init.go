@@ -27,6 +27,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},
 			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &service.GatewayService{},
+			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &service.AgentService{},
 		}
 
 		ioc.Controller.LoadObject(objects)

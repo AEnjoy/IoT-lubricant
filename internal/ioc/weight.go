@@ -8,7 +8,9 @@ const (
 	CacheCli
 	DataStore
 	_
+
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
 	CoreGatewayService
+	CoreGatewayAgentService
 )

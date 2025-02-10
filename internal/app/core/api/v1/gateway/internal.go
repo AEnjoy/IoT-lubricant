@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"encoding/base64"
 	"net/http"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
@@ -42,4 +43,36 @@ func (a Api) RemoveGatewayInternal(c *gin.Context) {
 		return
 	}
 	helper.SuccessJson(nil, c)
+}
+
+func (a Api) AddAgentInternal(c *gin.Context) {
+	req := a.getAddAgentModel(c)
+	if req == nil {
+		return
+	}
+	var (
+		openapidoc []byte
+		enableFile []byte
+
+		err error
+	)
+	if req.OpenApiDoc != "" {
+		openapidoc, err = base64.StdEncoding.DecodeString(req.OpenApiDoc)
+		if err != nil {
+			helper.FailedWithJson(http.StatusInternalServerError,
+				exception.ErrNewException(err, exceptCode.ErrorDecodeFailed,
+					exception.WithMsg("error in openapi doc file")), c)
+			return
+		}
+	}
+	if req.EnableConf != "" {
+		enableFile, err = base64.StdEncoding.DecodeString(req.EnableConf)
+		if err != nil {
+			helper.FailedWithJson(http.StatusInternalServerError,
+				exception.ErrNewException(err, exceptCode.ErrorDecodeFailed,
+					exception.WithMsg("error in openapi enable config file")), c)
+			return
+		}
+	}
+
 }

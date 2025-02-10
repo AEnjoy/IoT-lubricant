@@ -4,20 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
-	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
-	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
-
-var _ ioc.Object = (*GatewayService)(nil)
-
-type GatewayService struct {
-	db    repo.CoreDbOperator
-	store *datastore.DataStore
-}
 
 type IGatewayService interface {
 	AddHost(ctx context.Context, info *model.GatewayHost) error
@@ -43,4 +33,7 @@ type IGatewayService interface {
 	AddGatewayInternal(ctx context.Context, userID, gatewayID, description string, tls *crypto.Tls) error
 	RemoveGatewayInternal(ctx context.Context, gatewayid string) error
 	//RemoveGatewayHostInternal(ctx context.Context, hostid string) error
+}
+
+type IAgentService interface {
 }

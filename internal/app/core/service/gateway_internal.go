@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/bytedance/sonic"
 )
+
+type GatewayService struct {
+	db    repo.CoreDbOperator
+	store *datastore.DataStore
+}
 
 func (s *GatewayService) AddHostInternal(ctx context.Context, info *model.GatewayHost) error {
 	txn, _, commit := s.txnHelper()
