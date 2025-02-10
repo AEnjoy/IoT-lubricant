@@ -43,6 +43,6 @@ root route: /api/v1/gateway/:gatewayId/agent
 - [ ]  update instance: `POST /update-instance`
 - [ ]  update config: `POST /update-config`
 (internal)
-- [ ]  push task: `POST /internal/push-task`
+- [x]  push task: `POST /internal/push-task` and `POST /internal/task`
 - [ ]  get task status: `GET /internal/task-status`
 - [ ]  add: `POST /internal/add`

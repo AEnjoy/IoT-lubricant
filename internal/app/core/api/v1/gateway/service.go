@@ -8,4 +8,5 @@ import (
 type Api struct {
 	*datastore.DataStore
 	service.IGatewayService
+	service.IAgentService
 }

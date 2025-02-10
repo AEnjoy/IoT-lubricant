@@ -18,6 +18,8 @@ type IGateway interface {
 
 	AddGatewayInternal(c *gin.Context)
 	RemoveGatewayInternal(c *gin.Context)
+
+	AgentPushTask(c *gin.Context)
 }
 
 func NewGateway() IGateway {
@@ -25,6 +27,7 @@ func NewGateway() IGateway {
 		_gateway = gateway.Api{
 			DataStore:       ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore),
 			IGatewayService: ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_SERVICE).(service.IGatewayService),
+			IAgentService:   ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(service.IAgentService),
 		}
 	}
 	return _gateway

@@ -55,7 +55,7 @@ func (Data) TableName() string {
 }
 
 type Gateway struct {
-	ID          int    `json:"-" gorm:"column:id,primary_key,autoIncrement"`
+	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
 	UserId      string `json:"-" gorm:"column:user_id"` //;foreignKey:UserID
 	Description string `json:"description" gorm:"column:description"`
@@ -73,7 +73,7 @@ func (Gateway) TableName() string {
 }
 
 type Clean struct {
-	ID          int    `json:"id" gorm:"column:id"`
+	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
 	Description string `json:"description" gorm:"column:description"`
 
@@ -145,7 +145,7 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 }
 
 type GatewayHost struct {
-	Id          int    `json:"-" gorm:"column:id,primary_key,autoIncrement"`
+	Id          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	UserID      string `json:"-" gorm:"column:user_id"` // user.userID
 	HostID      string `json:"-" gorm:"column:host_id"` //uuid
 	Description string `json:"description" gorm:"column:description"`
@@ -159,7 +159,7 @@ type GatewayHost struct {
 	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
 }
 type ErrorLogs struct {
-	ID        int    `json:"-" gorm:"column:id"`
+	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	ErrID     string `json:"err_id" gorm:"column:err_id"`
 	Component string `json:"component" gorm:"column:component"` // one of core,agent,gateway
 
@@ -199,4 +199,21 @@ func PbErrorMessage2ModelErrorLogs(message *metapb.ErrorMessage) *ErrorLogs {
 			return time.Now()
 		}(),
 	}
+}
+
+type AsyncJob struct {
+	ID        int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	Name      string `gorm:"type:varchar(255);not null;column:name" json:"name"`
+	RequestID string `gorm:"type:varchar(255);not null;unique;column:request_id" json:"requestId"`
+	Status    string `gorm:"column:status;type:enum('completed', 'failed', 'pending', 'retried', 'retrying', 'started');not null" json:"status"`
+	Data      string `gorm:"column:data;type:json;not null" json:"data"`
+
+	CreatedAt time.Time `gorm:"type:datetime;not null" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"type:datetime;not null" json:"updatedAt"`
+	ExpiredAt time.Time `gorm:"type:datetime;not null" json:"expiredAt"`
+	//Meta      string    `gorm:"column:meta;type:json;not null" json:"meta"`
+}
+
+func (AsyncJob) TableName() string {
+	return "async_job"
 }

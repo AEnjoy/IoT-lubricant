@@ -18,6 +18,35 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error {
+	task.CreatedAt = time.Now()
+	task.UpdatedAt = time.Now()
+	if task.ExpiredAt.IsZero() {
+		task.ExpiredAt = task.CreatedAt.Add(time.Hour * 2)
+	}
+	return txn.WithContext(ctx).Create(task).Error
+}
+
+func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error) {
+	var ret model.AsyncJob
+	var err error
+	err = d.db.WithContext(ctx).Where("request_id = ?", requestId).First(&ret).Error
+	if ret.ExpiredAt.Before(time.Now()) && ret.Status != "completed" {
+		ret.Status = "failed"
+		// update
+		d.db.WithContext(ctx).Where("request_id = ?", requestId).Save(&model.AsyncJob{
+			Status: "failed",
+		})
+	}
+	return ret, err
+}
+
+func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error {
+	return txn.WithContext(ctx).Where("request_id = ?", requestId).Save(&model.AsyncJob{
+		Status: status,
+	}).Error
+}
+
 func (d *CoreDb) DeleteGatewayHostInfo(ctx context.Context, txn *gorm.DB, id string) error {
 	return txn.WithContext(ctx).Where("host_id = ?", id).Delete(&model.GatewayHost{}).Error
 }

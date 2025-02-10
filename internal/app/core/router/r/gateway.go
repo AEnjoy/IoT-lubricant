@@ -19,4 +19,7 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc)
 	gateway.POST("/internal/gateway", controller.AddGatewayInternal)
 	gateway.POST("/internal/remove-gateway", controller.RemoveGatewayInternal)
 	gateway.DELETE("/internal/gateway", controller.RemoveGatewayInternal)
+
+	gateway.POST("/:gatewayid/agent/internal/push-task", controller.AgentPushTask)
+	gateway.POST("/:gatewayid/agent/internal/task", controller.AgentPushTask)
 }

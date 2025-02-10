@@ -36,4 +36,8 @@ type IGatewayService interface {
 }
 
 type IAgentService interface {
+	// PushTask send task(the marshalled result) to agent,
+	//  return task-topic, taskID and error
+	// if taskid is "", system will create a random taskid
+	PushTask(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
 }
