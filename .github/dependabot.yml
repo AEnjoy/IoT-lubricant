@@ -3,24 +3,24 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "daily"
-      time: "09:00"
+      interval: "weekly"
+      day: sunday
       timezone: "Asia/Shanghai"
   - package-ecosystem: "pip"
     directory: "/test/mock_driver/clock"
     schedule:
-      interval: "daily"
-      time: "09:00"
+      interval: "monthly"
+      day: 1
       timezone: "Asia/Shanghai"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
-      time: "09:00"
+      interval: "monthly"
+      day: "1"
       timezone: "Asia/Shanghai"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
-      time: "09:00"
+      interval: "monthly"
+      day: "1"
       timezone: "Asia/Shanghai"
