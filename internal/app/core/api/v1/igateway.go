@@ -20,6 +20,7 @@ type IGateway interface {
 	RemoveGatewayInternal(c *gin.Context)
 
 	AgentPushTask(c *gin.Context)
+	AddAgentInternal(c *gin.Context)
 }
 
 func NewGateway() IGateway {

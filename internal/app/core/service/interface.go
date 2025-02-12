@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/form/request"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -31,13 +32,22 @@ type IGatewayService interface {
 	// internal
 	AddHostInternal(ctx context.Context, info *model.GatewayHost) error
 	AddGatewayInternal(ctx context.Context, userID, gatewayID, description string, tls *crypto.Tls) error
+	// AddAgentInternal add an agent to gateway(for internal called or debug), return agentID, and error
+	AddAgentInternal(ctx context.Context, taskid *string, gatewayid string, req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error)
 	RemoveGatewayInternal(ctx context.Context, gatewayid string) error
 	//RemoveGatewayHostInternal(ctx context.Context, hostid string) error
+
+	// Task (for internal called or debug)
+
+	// PushTask send task(the marshalled result) to gateway，
+	//  return task-topic, taskID and error
+	// if taskid is "", system will create a random taskid
+	PushTask(ctx context.Context, taskID *string, gatewayID string, bin []byte) (string, string, error)
 }
 
 type IAgentService interface {
-	// PushTask send task(the marshalled result) to agent,
+	// PushTaskAgent send task(the marshalled result) to agent,
 	//  return task-topic, taskID and error
 	// if taskid is "", system will create a random taskid
-	PushTask(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
+	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
 }

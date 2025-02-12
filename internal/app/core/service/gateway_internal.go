@@ -7,12 +7,17 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/form/request"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 	"github.com/bytedance/sonic"
+	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
 )
 
 type GatewayService struct {
@@ -117,4 +122,50 @@ func (s *GatewayService) RemoveGatewayInternal(ctx context.Context, gatewayid st
 }
 func (s *GatewayService) RemoveGatewayHostInternal(ctx context.Context, hostid string) error {
 	panic("implement me")
+}
+
+func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, gatewayid string,
+	req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error) {
+	agentID := uuid.NewString()
+
+	var conf = model.CreateAgentConf{AgentContainerInfo: req.AgentContainerInfo, DriverContainerInfo: req.DriverContainerInfo}
+	confData, err := sonic.Marshal(&conf)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.ErrorEncodeJSON,
+			exception.WithMsg("Failed to marshal agent information"),
+		)
+		return "", err
+	}
+	var pb proxypb.CreateAgentRequest
+	pb.Info = &agentpb.AgentInfo{
+		AgentID:     agentID,
+		GatewayID:   &gatewayid,
+		Description: &req.Description,
+		GatherCycle: &req.GatherCycle,
+		Algorithm:   &req.DataCompressAlgorithm,
+		DataSource: &agentpb.OpenapiDoc{
+			OriginalFile: openapidoc,
+			EnableFile:   enableFile,
+		},
+		Stream: &req.EnableStreamAbility,
+	}
+	pb.Conf = confData
+	pbData, err := proto.Marshal(&pb)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.ErrorEncodeJSON,
+			exception.WithMsg("Failed to marshal agent information by proto"),
+		)
+		return "", err
+	}
+	_, _, err = s.PushTask(ctx, taskid, gatewayid, pbData)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.ErrorPushTaskFailed,
+			exception.WithMsg("Failed to push agent information to gateway"),
+		)
+		return "", err
+	}
+	return agentID, nil
 }

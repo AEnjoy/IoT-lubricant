@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
+	"github.com/AEnjoy/IoT-lubricant/internal/model/form/request"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/form/response"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
@@ -46,10 +47,12 @@ func (a Api) RemoveGatewayInternal(c *gin.Context) {
 }
 
 func (a Api) AddAgentInternal(c *gin.Context) {
-	req := a.getAddAgentModel(c)
+	req := helper.RequestBind[request.AddAgentRequest](c)
 	if req == nil {
 		return
 	}
+	gatewayID := c.Param("gatewayid")
+
 	var (
 		openapidoc []byte
 		enableFile []byte
@@ -75,4 +78,13 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 		}
 	}
 
+	var taskID *string
+	agentID, err := a.IGatewayService.AddAgentInternal(c, taskID, gatewayID, req, openapidoc, enableFile)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError, err.(*exception.Exception), c)
+		return
+	}
+	helper.SuccessJson(response.AddAgentResponse{AgentID: agentID,
+		PushAgentTaskResponse: response.PushAgentTaskResponse{TaskID: *taskID},
+	}, c)
 }

@@ -22,4 +22,5 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc)
 
 	gateway.POST("/:gatewayid/agent/internal/push-task", controller.AgentPushTask)
 	gateway.POST("/:gatewayid/agent/internal/task", controller.AgentPushTask)
+	gateway.POST("/:gatewayid/agent/internal/add", controller.AddAgentInternal)
 }

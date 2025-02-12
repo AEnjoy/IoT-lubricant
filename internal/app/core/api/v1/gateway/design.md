@@ -45,4 +45,4 @@ root route: /api/v1/gateway/:gatewayId/agent
 (internal)
 - [x]  push task: `POST /internal/push-task` and `POST /internal/task`
 - [ ]  get task status: `GET /internal/task-status`
-- [ ]  add: `POST /internal/add`
+- [x]  add: `POST /internal/add`
