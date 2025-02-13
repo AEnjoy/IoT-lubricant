@@ -43,24 +43,60 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string)
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
-	err := taskMq.Publish(fmt.Sprintf("/ping/gateway/%s/register", gatewayID), []byte(gatewayID))
-	if err != nil {
-		logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
-	}
+
+	topic := fmt.Sprintf("/ping/%s/%s/register", taskTypes.TargetGateway, gatewayID)
+	var (
+		recSig  = make(chan struct{})
+		exitSig = make(chan struct{})
+		tryPing = false
+	)
+	defer func() {
+		// clean
+		close(recSig)
+		close(exitSig)
+		// todo: if tryPing=true: send exception offline message to mq
+		//  else send stand offline message to mq
+	}()
+	go func() {
+		for {
+			resp, err := s.Recv()
+			if err == io.EOF {
+				exitSig <- struct{}{}
+				return
+			}
+			if err != nil {
+				logger.Errorf("grpc stream error: %s", err.Error())
+				continue
+			}
+			if tryPing && resp.Flag == 1 {
+				tryPing = false
+			}
+			recSig <- struct{}{}
+		}
+	}()
 	for {
-		_, err := s.Recv()
-		if err == io.EOF {
+		select {
+		case <-s.Context().Done():
 			return nil
+		case <-recSig:
+			if err := s.Send(&meta.Ping{Flag: 1}); err != nil {
+				logger.Errorf("grpc stream error: %s", err.Error())
+				continue
+			}
+		case <-time.After(10 * time.Second):
+			if !tryPing {
+				tryPing = true
+			} else {
+				// time out
+				return errors.New("gateway offline")
+			}
 		}
+
+		err := taskMq.Publish(topic, []byte(gatewayID))
 		if err != nil {
-			logger.Errorf("grpc stream error: %s", err.Error())
-			continue
+			logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 		}
-		err = s.Send(&meta.Ping{Flag: 1})
-		if err != nil {
-			logger.Errorf("grpc stream error: %s", err.Error())
-			continue
-		}
+
 	}
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
