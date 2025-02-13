@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/cmd/core/internal"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
 	coreConfig "github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
-	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 	printBuildInfo()
 
-	err := appinit.AppInit()
+	err := internal.AppInit()
 	if err != nil {
 		panic(err)
 	}
