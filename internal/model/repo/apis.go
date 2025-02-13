@@ -36,7 +36,7 @@ func Core(database *gorm.DB) *CoreDb {
 	}
 
 	err = db.AutoMigrate(&taskTypes.Task{}, &model.Clean{}, &model.GatewayHost{}, &model.ErrorLogs{},
-		&model.User{}, &model.AsyncJob{}, &model.Gateway{})
+		&model.User{}, &model.AsyncJob{}, &model.Gateway{}, &model.Token{})
 	if err != nil {
 		logger.Fatalf("failed to migrate database: %v", err)
 	}
