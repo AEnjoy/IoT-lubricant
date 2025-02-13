@@ -3,10 +3,11 @@ package cache
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -17,13 +18,30 @@ var (
 
 type RedisCli[T any] struct {
 	rdb *redis.Client
+
+	addr, password string
+	port           int
+	db             int
+	tlsConfig      *tls.Config
 }
 
 func (i *RedisCli[T]) Init() error {
-	if i.rdb == nil {
-		return errs.ErrNeedInit
+	if i.addr == "" || i.password == "" || i.port == 0 {
+		conf := config.GetConfig()
+		i.addr = conf.RedisHost
+		i.port = conf.RedisPort
+		i.password = conf.RedisPassword
+		i.db = conf.RedisDB
 	}
-	return nil
+
+	i.rdb = redis.NewClient(&redis.Options{
+		Addr:      fmt.Sprintf("%s:%d", i.addr, i.port),
+		Password:  i.password,
+		DB:        i.db,
+		TLSConfig: i.tlsConfig,
+	})
+	_, err := i.rdb.Ping(context.Background()).Result()
+	return err
 }
 
 func (i *RedisCli[T]) Weight() uint16 {
@@ -97,23 +115,6 @@ func (r *RedisCli[T]) Close(ctx context.Context) error {
 }
 
 // NewRedisCli 创建新的 Redis 客户端实例
-func NewRedisCli[T any](addr, password string, db int, tlsConfig *tls.Config) (*RedisCli[T], error) {
-	return &RedisCli[T]{
-		rdb: redis.NewClient(&redis.Options{
-			Addr:      addr,
-			Password:  password,
-			DB:        db,
-			TLSConfig: tlsConfig,
-		}),
-	}, nil
-}
-
-// NewRedisCliIoC 创建新的 Redis 客户端实例 给ioc托管
-func NewRedisCliIoC[T any](addr, password string, db int, tlsConfig *tls.Config) error {
-	cli, err := NewRedisCli[T](addr, password, db, tlsConfig)
-	if err != nil {
-		return err
-	}
-	ioc.Controller.Registry(APP_NAME, cli)
-	return nil
+func NewRedisCli[T any](addr, password string, db int, tlsConfig *tls.Config) *RedisCli[T] {
+	return &RedisCli[T]{addr: addr, password: password, db: db, tlsConfig: tlsConfig}
 }

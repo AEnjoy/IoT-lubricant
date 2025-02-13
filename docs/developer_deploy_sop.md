@@ -18,7 +18,7 @@ docker run -d --name myredis -p 6379:6379 redis --requirepass "123456"
 
 3. deploy nats:
 ```bash
-docker run --name nats --rm -p 4222:4222 -p 8222:8222 nats --http_port 8222
+docker run --name nats --rm -d -p 4222:4222 -p 8222:8222 nats --http_port 8222
 ```
 
 4. deploy casdoor:
@@ -27,7 +27,7 @@ docker run --name=casdoor -d -p 8000:8000 casbin/casdoor-all-in-one
 curl "127.0.0.1:8000/api/add-application?username=built-in/admin&password=123" \
  -H "Content-Type: application/json" -d '@scripts/k8s/create_app.json'
  
- curl -s "127.0.0.1:8000/api/get-cert?id=admin/cert-built-in&username=built-in/admin&password=123" | jq -r '.data.certificate' > ./crt.pem
+curl -s "127.0.0.1:8000/api/get-cert?id=admin/cert-built-in&username=built-in/admin&password=123" | jq -r '.data.certificate' > ./crt.pem
 ```
 
 5. start Core - server

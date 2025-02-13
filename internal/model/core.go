@@ -77,9 +77,9 @@ type Clean struct {
 	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
 	Description string `json:"description" gorm:"column:description"`
 
-	Interpreter string   `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
-	Script      string   `json:"script" gorm:"column:script"`           // 脚本代码
-	Command     []string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
+	Interpreter string `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
+	Script      string `json:"script" gorm:"column:script"`           // 脚本代码
+	Command     string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
 
 	CreatedAt int64 `json:"-" gorm:"column:created_at"`
 	UpdatedAt int64 `json:"-" gorm:"column:updated_at"`
@@ -105,7 +105,7 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 			return data, err
 		}
 
-		processData, ok := goja.AssertFunction(rt.Get(c.Command[0]))
+		processData, ok := goja.AssertFunction(rt.Get(c.Command))
 		if !ok {
 			return data, errors.New("not a function")
 		}
@@ -127,7 +127,7 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 
 		var newCommand []string
 		newCommand = append(newCommand, "script")
-		newCommand = append(newCommand, c.Command...)
+		newCommand = append(newCommand, c.Command)
 		cmd := exec.Command(c.Interpreter, newCommand...)
 		cmd.Stdin = bytes.NewReader(data)
 

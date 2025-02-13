@@ -7,6 +7,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/service"
+	"github.com/AEnjoy/IoT-lubricant/internal/cache"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
@@ -22,7 +23,8 @@ func AppInit() error {
 	once.Do(func() {
 		var objects = map[string]ioc.Object{
 			config.APP_NAME:                         config.GetConfig(),
-			ioc.APP_NAME_CORE_DATABASE:              repo.DefaultCoreClient(),
+			ioc.APP_NAME_CORE_CACHE:                 &cache.RedisCli[string]{},
+			ioc.APP_NAME_CORE_DATABASE:              &repo.CoreDb{},
 			ioc.APP_NAME_CORE_DATABASE_STORE:        &data.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 			ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},

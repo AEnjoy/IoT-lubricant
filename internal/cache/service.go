@@ -3,9 +3,11 @@ package cache
 import (
 	"context"
 	"time"
+
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 )
 
-const APP_NAME = "cache-client"
+const APP_NAME = ioc.APP_NAME_CORE_CACHE
 
 var NeverExpired = time.Unix(0, 0)
 

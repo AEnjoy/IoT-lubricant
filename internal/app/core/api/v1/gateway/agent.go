@@ -28,7 +28,7 @@ func (a Api) AgentPushTask(c *gin.Context) {
 				exception.WithMsg("error in task file")), c)
 		return
 	}
-	_, _, err = a.IAgentService.PushTask(c, taskid, gatewayID, req.AgentID, task)
+	_, _, err = a.IAgentService.PushTaskAgent(c, taskid, gatewayID, req.AgentID, task)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
 			exception.ErrNewException(err, exceptCode.ErrorPushTaskFailed), c,
