@@ -3,6 +3,8 @@ package core
 import (
 	"fmt"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/gin-gonic/gin"
@@ -49,12 +51,9 @@ func UseDB(dbClient *repo.CoreDb) func(*app) error {
 	}
 }
 
-func UseGinEngine(engine *gin.Engine, err error) func(*app) error {
+func UseGinEngine() func(*app) error {
 	return func(s *app) error {
-		if err != nil {
-			return err
-		}
-		s.httpServer = engine
+		s.httpServer = ioc.Controller.Get(ioc.APP_NAME_CORE_WEB_SERVER).(*router.WebService).Engine
 		return nil
 	}
 }

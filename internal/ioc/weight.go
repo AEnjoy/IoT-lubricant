@@ -13,4 +13,6 @@ const (
 	CoreGrpcServer
 	CoreGatewayService
 	CoreGatewayAgentService
+
+	CoreWebServer
 )

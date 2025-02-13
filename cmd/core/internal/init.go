@@ -6,6 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/service"
 	"github.com/AEnjoy/IoT-lubricant/internal/cache"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
@@ -30,6 +31,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &core.Grpc{},
 			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &service.GatewayService{},
 			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &service.AgentService{},
+			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
 		}
 
 		ioc.Controller.LoadObject(objects)
