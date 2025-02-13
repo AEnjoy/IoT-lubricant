@@ -14,6 +14,7 @@ var (
 
 type IUser interface {
 	Create(c *gin.Context)
+	GetUserInfo(c *gin.Context)
 }
 
 func NewUser() IUser {

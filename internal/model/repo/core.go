@@ -18,6 +18,13 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string, error) {
+	var token model.Token
+	var err error
+	err = d.db.WithContext(ctx).Where("user_id = ?", userID).Order("created_at desc").First(&token).Error
+	return token.RefreshToken, err
+}
+
 func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error {
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()

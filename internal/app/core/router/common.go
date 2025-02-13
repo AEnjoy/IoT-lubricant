@@ -1,17 +1,15 @@
 package router
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/r"
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/groups"
 	"github.com/gin-gonic/gin"
 )
 
-func CommonGroups() []CommonRouter {
-	return []CommonRouter{
-		r.UserRoute{},
-		r.GatewayRoute{},
-	}
+var CommonGroups = []CommonRouter{
+	groups.UserRoute{},
+	groups.GatewayRoute{},
 }
 
 type CommonRouter interface {
-	InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc)
+	InitRouter(router *gin.RouterGroup)
 }

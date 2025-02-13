@@ -5,8 +5,10 @@ import (
 	"encoding/pem"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1/helper"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/global"
@@ -16,6 +18,8 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
+	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
 )
@@ -65,12 +69,15 @@ func (a Auth) Signin(c *gin.Context) {
 	state, _ := c.GetQuery("state")
 	token, err := casdoorsdk.GetOAuthToken(code, state)
 	if err != nil {
-		logger.Errorln(err)
-		helper.FailedByServer(err, c)
+		logger.Errorln(err.Error())
+		helper.FailedWithJson(http.StatusUnauthorized, exception.ErrNewException(
+			err, exceptCode.ErrorInvalidAuthKey), c)
 		return
 	}
 	c.SetCookie(model.COOKIE_TOKEY_KEY,
-		token.AccessToken, token.Expiry.Second(), "/", "",
+		token.AccessToken, int(token.Expiry.Unix()-time.Now().Unix()), "/", "",
+		//token.AccessToken, token.Expiry.Second(), "/", "",
+		//token.AccessToken, int(24*time.Hour), "/", "",
 		false, true)
 	u, err := casdoorsdk.ParseJwtToken(token.AccessToken)
 	if err != nil {

@@ -1,4 +1,4 @@
-package r
+package groups
 
 import (
 	v1 "github.com/AEnjoy/IoT-lubricant/internal/app/core/api/v1"
@@ -8,8 +8,8 @@ import (
 type GatewayRoute struct {
 }
 
-func (GatewayRoute) InitRouter(router *gin.RouterGroup, mids ...gin.HandlerFunc) {
-	gateway := router.Group("/gateway", mids...)
+func (GatewayRoute) InitRouter(router *gin.RouterGroup) {
+	gateway := router.Group("/gateway")
 	controller := v1.NewGateway()
 
 	gateway.POST("/add-host", controller.AddHost)

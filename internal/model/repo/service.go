@@ -60,6 +60,7 @@ type CoreDbOperator interface {
 	// Auth:
 	SaveToken(ctx context.Context, tk *model.Token) error
 	SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error
+	GetUserRefreshToken(ctx context.Context, userID string) (string, error)
 
 	// Async Job
 	AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error

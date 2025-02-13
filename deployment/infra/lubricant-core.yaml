@@ -34,7 +34,7 @@ spec:
               value: "localhost"
             - name: RUNNING_LEVEL
               value: "debug"
-            - name: AUTH_MODE
+            - name: AUTH_PROVIDER
               value: "casdoor"
             - name: AUTH_ENDPOINT
               value: "http://casdoor.auth-core.svc.cluster.local:8000"

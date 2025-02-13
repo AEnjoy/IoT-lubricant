@@ -9,11 +9,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router/middleware"
 )
 
-func RouterGroups() []CommonRouter {
-	return CommonGroups()
-}
-
-var routerGroupApp = RouterGroups()
 var middlewares = middleware.GetMiddlewares()
 
 func CoreRouter() (*gin.Engine, error) {
@@ -37,9 +32,10 @@ func CoreRouter() (*gin.Engine, error) {
 	v1Route.GET("/signin", signinController.Signin)       // /api/v1/signin
 	v1Route.POST("/set-crt", signinController.SetAuthCrt) // /api/v1/set-crt
 
-	routerGroupApp = CommonGroups()
+	v1Route.Use(middleware.Auth())
+	routerGroupApp := CommonGroups
 	for _, r := range routerGroupApp {
-		r.InitRouter(v1Route, middleware.Auth())
+		r.InitRouter(v1Route)
 	}
 
 	// Static
