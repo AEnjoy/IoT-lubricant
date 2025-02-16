@@ -6,6 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	data "github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
+	mqService "github.com/AEnjoy/IoT-lubricant/internal/app/core/mq"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/router"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/service"
 	"github.com/AEnjoy/IoT-lubricant/internal/cache"
@@ -23,7 +24,8 @@ func AppInit() error {
 	// AppObjects witch will be registered with default option
 	once.Do(func() {
 		var objects = map[string]ioc.Object{
-			config.APP_NAME:                         config.GetConfig(),
+			config.APP_NAME: config.GetConfig(),
+
 			ioc.APP_NAME_CORE_CACHE:                 &cache.RedisCli[string]{},
 			ioc.APP_NAME_CORE_DATABASE:              &repo.CoreDb{},
 			ioc.APP_NAME_CORE_DATABASE_STORE:        &data.DataStore{CacheEnable: config.GetConfig().RedisEnable},
@@ -32,6 +34,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &service.GatewayService{},
 			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &service.AgentService{},
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
+			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:   &mqService.MqService{},
 		}
 
 		ioc.Controller.LoadObject(objects)

@@ -18,6 +18,12 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error {
+	return txn.WithContext(ctx).Where("gateway_id = ?", gatewayID).Save(&model.Gateway{
+		Status: status,
+	}).Error
+}
+
 func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string, error) {
 	var token model.Token
 	var err error

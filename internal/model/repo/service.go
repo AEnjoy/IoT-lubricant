@@ -66,6 +66,9 @@ type CoreDbOperator interface {
 	AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error
 	GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
 	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error
+
+	// internal
+	SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error
 }
 type GatewayDbOperator interface {
 	Begin() *gorm.DB

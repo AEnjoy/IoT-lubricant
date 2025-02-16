@@ -9,6 +9,7 @@ const (
 	DataStore
 	_
 
+	CoreMqService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
 	CoreGatewayService
