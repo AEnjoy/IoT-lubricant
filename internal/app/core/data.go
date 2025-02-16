@@ -15,6 +15,7 @@ var dataCli = func() *datastore.DataStore {
 }
 
 func HandelRecvData(data *core.Data) {
+	// todo: use mq to handel data
 	dataCli := dataCli()
 	cleaner, err := dataCli.GetDataCleaner(data.GetAgentID())
 	if err == nil {

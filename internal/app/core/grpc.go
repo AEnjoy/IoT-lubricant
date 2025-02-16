@@ -17,8 +17,9 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
+	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 )
@@ -32,7 +33,7 @@ type Grpc struct {
 }
 
 type PbCoreServiceImpl struct {
-	core.UnimplementedCoreServiceServer
+	corepb.UnimplementedCoreServiceServer
 }
 
 const timeOut = 1 // second
@@ -40,7 +41,7 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 	return context.WithTimeout(root, timeOut*time.Second)
 }
 
-func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) error {
+func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string)
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 
@@ -56,6 +57,17 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) 
 		close(exitSig)
 		// todo: if tryPing=true: send exception offline message to mq
 		//  else send stand offline message to mq
+		if tryPing {
+			err := taskMq.Publish(fmt.Sprintf("/monitor/%s/%s/offline/error", taskTypes.TargetGateway, gatewayID), []byte(time.Now().Format("2006-01-02 15:04:05")))
+			if err != nil {
+				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+			}
+		} else {
+			err := gatewayOffline(taskMq, gatewayID)
+			if err != nil {
+				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+			}
+		}
 	}()
 	go func() {
 		for {
@@ -79,7 +91,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) 
 		case <-s.Context().Done():
 			return nil
 		case <-recSig:
-			if err := s.Send(&meta.Ping{Flag: 1}); err != nil {
+			if err := s.Send(&metapb.Ping{Flag: 1}); err != nil {
 				logger.Errorf("grpc stream error: %s", err.Error())
 				continue
 			}
@@ -99,7 +111,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[meta.Ping, meta.Ping]) 
 
 	}
 }
-func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task]) error {
+func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
 	gatewayID := s.Context().Value(types.NameGatewayID).(string) // 获取网关ID
 	cancelContext, cancel := context.WithCancel(s.Context())
 	defer cancel()
@@ -126,12 +138,12 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 				if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
 					taskSendErrorMessage(s, 500, err.Error())
 				} else {
-					var resp core.CorePushTaskRequest
-					var message core.TaskDetail
+					var resp corepb.CorePushTaskRequest
+					var message corepb.TaskDetail
 					message.Content = taskData
 					message.TaskId = taskID
 					resp.Message = &message
-					_ = s.Send(&core.Task{ID: taskID, Task: &core.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
+					_ = s.Send(&corepb.Task{ID: taskID, Task: &corepb.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
 				}
 			}
 		}
@@ -141,15 +153,19 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 	for {
 		taskReq, err := s.Recv()
 		if err == io.EOF {
+			_ = gatewayOffline(taskMq, gatewayID)
 			return nil
 		}
 		if err != nil {
+			// todo: handel error message more detail
 			return err
 		}
 
 		// HandelRecvGetTask(task) [Gateway->Core]
 		switch taskReq.GetTask().(type) {
-		case *core.Task_GatewayTryGetTaskRequest:
+		case *corepb.Task_GatewayTryGetTaskRequest:
+			// todo: 其实感觉没有必要，因为任务是由core主动获取并推送到gateway的，所以这里其实可以不用处理，直接返回即可
+			//  clean needed
 			targetID := gatewayID //task.GatewayTryGetTaskRequest.GetGatewayID()
 			ctx, cf := createTimeOutContext(s.Context())
 			defer cf()
@@ -164,21 +180,21 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 				if taskData, err := getTask(ctx, taskTypes.TargetGateway, targetID, taskID); err != nil {
 					if errors.Is(err, errs.ErrTargetNoTask) {
 						//taskSendErrorMessage(s, 404, ErrTargetNoTask.Error())
-						var resp core.NoTaskResponse
-						var message core.TaskDetail
+						var resp corepb.NoTaskResponse
+						var message corepb.TaskDetail
 						message.TaskId = taskID
 						//resp.Message = &message
-						_ = s.Send(&core.Task{ID: taskReq.ID, Task: &core.Task_NoTaskResponse{NoTaskResponse: &resp}})
+						_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &resp}})
 					} else {
 						taskSendErrorMessage(s, 500, err.Error())
 					}
 				} else {
-					var resp core.GatewayGetTaskResponse
-					var message core.TaskDetail
+					var resp corepb.GatewayGetTaskResponse
+					var message corepb.TaskDetail
 					message.Content = taskData
 					message.TaskId = taskID
 					//resp.Message = &message
-					_ = s.Send(&core.Task{ID: taskReq.ID, Task: &core.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
+					_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
 				}
 			} else {
 				// 超时意味着没有创建过任务ch (任务不存在)
@@ -187,26 +203,31 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[core.Task, core.Task
 		}
 	}
 }
-func (PbCoreServiceImpl) PushMessageId(context.Context, *core.MessageIdInfo) (*core.MessageIdInfo, error) {
+func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (*corepb.MessageIdInfo, error) {
 	return nil, nil
 }
-func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[core.Data, core.Data]) error {
+func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
+	gatewayid := d.Context().Value(types.NameGatewayID).(string)
+	mq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	for {
 		data, err := d.Recv()
 		if err == io.EOF {
+			_ = gatewayOffline(mq, gatewayid)
 			return nil
 		}
 		if err != nil {
+			// todo: handel error message more detail
 			return err
 		}
 		// 由于数据处理需要消耗一定时间，所以使用goroutine处理
 		go HandelRecvData(data)
 
-		err = d.Send(&core.Data{
+		err = d.Send(&corepb.Data{
 			MessageId: data.MessageId,
 		})
 		if err != nil {
-			return err
+			logger.Errorf("grpc stream error: %s", err.Error())
+			continue
 		}
 	}
 }
@@ -236,7 +257,7 @@ func (g *Grpc) Init() error {
 			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)
 	}
-	core.RegisterCoreServiceServer(server, g)
+	corepb.RegisterCoreServiceServer(server, g)
 	g.Server = server
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", c.GrpcPort))
 	if err != nil {
@@ -257,10 +278,14 @@ func (Grpc) Version() string {
 	return "dev"
 }
 
-func taskSendErrorMessage(s grpc.BidiStreamingServer[core.Task, core.Task], code int, message string) {
-	var out core.Task
-	var errorResp core.Task_ErrorMessage
-	errorResp.ErrorMessage = &meta.ErrorMessage{Code: &status.Status{Code: int32(code), Message: message}}
+func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], code int, message string) {
+	var out corepb.Task
+	var errorResp corepb.Task_ErrorMessage
+	errorResp.ErrorMessage = &metapb.ErrorMessage{Code: &status.Status{Code: int32(code), Message: message}}
 	out.Task = &errorResp
 	_ = s.Send(&out)
+}
+func gatewayOffline(mq mq.Mq[[]byte], gatewayid string) error {
+	return mq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayid),
+		[]byte(time.Now().Format("2006-01-02 15:04:05")))
 }
