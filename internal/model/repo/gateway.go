@@ -16,12 +16,12 @@ type GatewayDb struct {
 
 func (d *GatewayDb) AddOrUpdateServerInfo(txn *gorm.DB, info *model.ServerInfo) error {
 	info.UpdatedAt = time.Now()
-	result := txn.First(&model.ServerInfo{}, info.GatewayId)
+	result := txn.First(&model.ServerInfo{}, info.Id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		info.CreatedAt = time.Now()
 		return txn.Create(info).Error
 	} else {
-		return txn.Model(info).Updates(info).Error
+		return txn.Model(info).Where("gateway_id = ?", info.Id).Updates(info).Error
 	}
 }
 

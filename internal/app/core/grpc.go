@@ -11,7 +11,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
-	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
@@ -22,6 +21,7 @@ import (
 	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 var _ ioc.Object = (*Grpc)(nil)
@@ -42,7 +42,8 @@ func createTimeOutContext(root context.Context) (context.Context, context.Cancel
 }
 
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
-	gatewayID := s.Context().Value(types.NameGatewayID).(string)
+	gatewayID, _ := getGatewayID(s.Context())
+
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 
 	topic := fmt.Sprintf("/ping/%s/%s/register", taskTypes.TargetGateway, gatewayID)
@@ -76,6 +77,11 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 				exitSig <- struct{}{}
 				return
 			}
+			if s.Context().Err() == context.Canceled {
+				//exitSig <- struct{}{}
+				return
+			}
+
 			if err != nil {
 				logger.Errorf("grpc stream error: %s", err.Error())
 				continue
@@ -112,7 +118,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 	}
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
-	gatewayID := s.Context().Value(types.NameGatewayID).(string) // 获取网关ID
+	gatewayID, _ := getGatewayID(s.Context()) // 获取网关ID
 	cancelContext, cancel := context.WithCancel(s.Context())
 	defer cancel()
 	// send core->gateway
@@ -207,7 +213,7 @@ func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (
 	return nil, nil
 }
 func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
-	gatewayid := d.Context().Value(types.NameGatewayID).(string)
+	gatewayid, _ := getGatewayID(d.Context())
 	mq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	for {
 		data, err := d.Recv()
@@ -234,7 +240,7 @@ func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, 
 
 func (g *Grpc) Init() error {
 	c := config.GetConfig()
-	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
+	//middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 
 	if c.Tls.Enable {
@@ -244,17 +250,17 @@ func (g *Grpc) Init() error {
 		}
 		server = grpc.NewServer(
 			grpcTlsOption,
-			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
+			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
-				middlewares.UnaryServerInterceptor,
+				//middlewares.UnaryServerInterceptor,
 				middleware.GetLoggerInterceptor(),
 				middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
 			),
 		)
 	} else {
 		server = grpc.NewServer(
-			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
-			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
+			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
+			//grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)
 	}
 	corepb.RegisterCoreServiceServer(server, g)
@@ -288,4 +294,18 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 func gatewayOffline(mq mq.Mq[[]byte], gatewayid string) error {
 	return mq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayid),
 		[]byte(time.Now().Format("2006-01-02 15:04:05")))
+}
+func getGatewayID(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", fmt.Errorf("metadata not found")
+	}
+
+	gatewayIDs := md.Get(string(types.NameGatewayID))
+	if len(gatewayIDs) == 0 {
+		return "", fmt.Errorf("gatewayid not found in metadata")
+	}
+
+	gatewayID := gatewayIDs[0]
+	return gatewayID, nil
 }

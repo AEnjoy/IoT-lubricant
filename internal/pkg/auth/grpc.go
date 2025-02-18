@@ -79,14 +79,17 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 ) (resp any, err error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
+		logger.Errorf("get auth failed")
 		return nil, fmt.Errorf("get auth failed")
 	}
 	ul := md.Get("gateway_id")
 	if len(ul) == 0 {
+		logger.Errorf("gateway_id not present")
 		return nil, fmt.Errorf("gateway_id not present")
 	}
 
 	if !i.db.IsGatewayIdExists(ul[0]) {
+		logger.Errorf("error gateway client:%s", ul[0])
 		return nil, fmt.Errorf("error gateway client")
 	}
 

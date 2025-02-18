@@ -70,7 +70,7 @@ func main() {
 		} else {
 			logger.Infof("Loaded .yaml file from: %s", confFilePath)
 		}
-		id = config.GatewayId
+		id = config.GatewayID
 	}
 
 	app := gateway.NewApp(

@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/metadata"
 )
 
 var gatewayId string
@@ -59,7 +60,8 @@ func (a *app) Run() error {
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
-		s.ctrl = context.WithValue(context.Background(), types.NameGatewayID, id)
+		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
+		s.ctrl = metadata.NewOutgoingContext(context.Background(), md)
 		return nil
 	}
 }
@@ -94,6 +96,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 			if err != nil {
 				return err
 			}
+
 			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(config), grpc.WithKeepaliveParams(kacp))
 			if err != nil {
 				return err
@@ -110,13 +113,17 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		// ping stream
 		stream, err := a.grpcClient.Ping(a.ctrl)
 		if err != nil {
+			logger.Errorf("Failed to send ping request to server: %v", err)
 			return err
 		}
+
 		if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
+			logger.Errorf("Failed to send ping request to server: %v", err)
 			return err
 		}
 		resp, err := stream.Recv()
 		if err != nil {
+			logger.Errorf("Failed to receive response from server: %v", err)
 			return err
 		}
 		if resp.GetFlag() != 1 {
@@ -137,18 +144,21 @@ func LinkCoreServer() func(*app) error {
 		}
 
 		local := func(info *model.ServerInfo) error {
+			logger.Debugf("Use local config to start")
 			return linkToGrpcServer(fmt.Sprintf("%s:%d", info.Host, info.Port), &info.TlsConfig)(a)
 		}
 		env := func(address, port string) error {
 			portI, _ := strconv.Atoi(port)
 			info = &model.ServerInfo{
-				GatewayId: gatewayId,
+				GatewayID: gatewayId,
 				Host:      address,
 				Port:      portI,
 			}
 			if port == "" {
+				logger.Debugf("Use environment variable to start")
 				return linkToGrpcServer(address, nil)(a)
 			}
+			logger.Debugf("Use environment variable to start")
 			return linkToGrpcServer(fmt.Sprintf("%s:%s", address, port), nil)(a)
 		}
 

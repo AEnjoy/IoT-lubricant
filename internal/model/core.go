@@ -63,7 +63,7 @@ type Gateway struct {
 	TlsConfig string `json:"tls_config" gorm:"column:tls_config,serializer:json"`
 	// host information has replaced by model.GatewayHost
 
-	Status    string `json:"status" gorm:"column:status;type:enum('offline','online','error','created');default:'created'"`
+	Status    string `json:"status" gorm:"column:status;default:'created'"`
 	CreatedAt int64  `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt int64  `json:"updated_at" gorm:"column:updated_at"`
 }

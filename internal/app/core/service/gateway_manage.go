@@ -108,7 +108,7 @@ func (s *GatewayService) DeployGatewayInstance(ctx context.Context,
 
 	gatewayID := uuid.NewString()
 	serverInfo := s.getHostInfo()
-	serverInfo.GatewayId = gatewayID
+	serverInfo.GatewayID = gatewayID
 
 	err = host.DeployGateway(serverInfo)
 	if err != nil {

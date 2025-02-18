@@ -40,11 +40,12 @@ func (Agent) TableName() string {
 }
 
 type ServerInfo struct { // Gateway system config
-	GatewayId string     `json:"id" gorm:"column:id,primary_key" yaml:"gatewayId"` // uuid and token
+	Id        int        `json:"id" gorm:"column:id,primary_key" yaml:"-"` // uuid and token
+	GatewayID string     `json:"gateway_id" gorm:"column:gateway_id" yaml:"gateway_id"`
 	Host      string     `json:"host" gorm:"column:host" yaml:"host"`
 	Port      int        `json:"port" gorm:"column:port" yaml:"port"`
 	Tls       bool       `json:"tls" gorm:"column:tls" yaml:"tls"`
-	TlsConfig crypto.Tls `json:"tls_config" gorm:"column:tls_config;type:json" yaml:"tlsConfig"`
+	TlsConfig crypto.Tls `json:"tls_config" gorm:"column:tls_config;type:text;serializer:json" yaml:"tlsConfig"`
 
 	CreatedAt time.Time `json:"-" gorm:"column:created_at" yaml:"-"`
 	UpdatedAt time.Time `json:"-" gorm:"column:updated_at" yaml:"-"`
