@@ -2,6 +2,8 @@ module github.com/AEnjoy/IoT-lubricant
 
 go 1.23.1
 
+toolchain go1.24.0
+
 require (
 	github.com/DataDog/zstd v1.5.6
 	github.com/bytedance/sonic v1.12.8
@@ -102,6 +104,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 // indirect
