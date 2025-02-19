@@ -49,34 +49,81 @@ func CreateTask(taskID string, targetType task.Target, targetDeviceID string, ta
 
 	return nil
 }
-func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, error) {
+
+var taskChMap sync.Map
+
+func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, func(), error) {
+	topic := fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID)
+
+	if val, exists := taskChMap.Load(topic); exists {
+		entry := val.(struct {
+			ch     chan string
+			cancel func()
+		})
+		return entry.ch, entry.cancel, nil
+	}
+
+	var closeOnce sync.Once
 	ch := make(chan string)
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
-	subscribe, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID))
+
+	subscribe, err := taskMq.Subscribe(topic)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	_clean := func() {
+		_ = taskMq.Unsubscribe(topic, subscribe)
+		taskChMap.Delete(topic)
+		close(ch)
+	}
+	cancel := func() {
+		closeOnce.Do(_clean)
+	}
+
+	// 存储到map（使用匿名结构体存储组合值）
+	taskChMap.Store(topic, struct {
+		ch     chan string
+		cancel func()
+	}{ch, cancel})
+
+	go func() {
+		defer closeOnce.Do(_clean)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case taskID := <-subscribe:
+				ch <- string(taskID)
+				//if id := string(taskID); id != "" {
+				//	ch <- id
+				//}
+			}
+		}
+	}()
+
+	return ch, cancel, nil
+}
+
+func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
+	// cache
+	if _, ok := hasTask.Load(targetDeviceID); !ok {
+		return nil, errs.ErrTargetNoTask
+	}
+
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+	topic := fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID)
+	t, err := taskMq.Subscribe(topic)
 	if err != nil {
 		return nil, err
 	}
 
-	go func() {
-		select {
-		case <-ctx.Done():
-			break
-		case taskID := <-subscribe:
-			ch <- string(taskID)
-		}
-		close(ch)
+	ctx, cancel := createTimeOutContext(ctx)
+	defer func() {
+		cancel()
+		_ = taskMq.Unsubscribe(topic, t)
 	}()
-	return ch, nil
-}
-func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
-	if _, ok := hasTask.Load(targetDeviceID); !ok {
-		return nil, errs.ErrTargetNoTask
-	}
-	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
-	t, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID))
-	if err != nil {
-		return nil, err
-	}
+
 	select {
 	case <-ctx.Done():
 		return nil, errs.ErrTimeout

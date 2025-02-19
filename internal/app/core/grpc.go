@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
@@ -21,6 +22,7 @@ import (
 	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -51,11 +53,16 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 		recSig  = make(chan struct{})
 		exitSig = make(chan struct{})
 		tryPing = false
+
+		closeOnce sync.Once
 	)
 	defer func() {
 		// clean
-		close(recSig)
-		close(exitSig)
+		closeOnce.Do(func() {
+			close(exitSig)
+			close(recSig)
+		})
+
 		// todo: if tryPing=true: send exception offline message to mq
 		//  else send stand offline message to mq
 		if tryPing {
@@ -71,10 +78,18 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 		}
 	}()
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				logger.Errorf("recover error: %v", err)
+			}
+		}()
 		for {
 			resp, err := s.Recv()
 			if err == io.EOF {
-				exitSig <- struct{}{}
+				closeOnce.Do(func() {
+					close(exitSig)
+					close(recSig)
+				})
 				return
 			}
 			if s.Context().Err() == context.Canceled {
@@ -89,7 +104,9 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 			if tryPing && resp.Flag == 1 {
 				tryPing = false
 			}
+			logger.Debugf("Recv: Pong from Gateway: ID:%s", gatewayID)
 			recSig <- struct{}{}
+			time.Sleep(5 * time.Second)
 		}
 	}()
 	for {
@@ -98,6 +115,10 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 			return nil
 		case <-recSig:
 			if err := s.Send(&metapb.Ping{Flag: 1}); err != nil {
+				if s.Context().Err() == context.Canceled {
+					//exitSig <- struct{}{}
+					return nil
+				}
 				logger.Errorf("grpc stream error: %s", err.Error())
 				continue
 			}
@@ -121,28 +142,33 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 	gatewayID, _ := getGatewayID(s.Context()) // 获取网关ID
 	cancelContext, cancel := context.WithCancel(s.Context())
 	defer cancel()
-	// send core->gateway
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+
+	ch, cancel2, err := getTaskIDCh(s.Context(), taskTypes.TargetGateway, gatewayID)
+	if err != nil {
+		logger.Errorf("failed to get task id: %s", err.Error())
+		taskSendErrorMessage(s, 500, err.Error())
+		return err
+	}
+	defer cancel2()
+
+	// send core->gateway
 	go func() {
-		topic := fmt.Sprintf("/task/%s/%s", taskTypes.TargetGateway, gatewayID)
-		taskIDCh, err := taskMq.Subscribe(topic)
-		if err != nil {
-			taskSendErrorMessage(s, 500, err.Error())
-			return
-		}
 		for {
 			select {
 			case <-cancelContext.Done():
 				_ = taskMq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayID),
 					[]byte(time.Now().Format("2006-01-02 15:04:05")))
-				if err := taskMq.Unsubscribe(topic, taskIDCh); err != nil {
-					logger.Error("failed to unsubscribe task topic: %s", err.Error())
-				}
+				cancel2()
 				return
-			case idData := <-taskIDCh:
-				taskID := string(idData)
+			case idData := <-ch:
+				taskID := idData
+				logger.Debugf("taskID:%s", taskID)
 				if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
-					taskSendErrorMessage(s, 500, err.Error())
+					if err != errs.ErrTargetNoTask {
+						logger.Errorf("failed to get task id: %v", err)
+						taskSendErrorMessage(s, 500, err.Error())
+					}
 				} else {
 					var resp corepb.CorePushTaskRequest
 					var message corepb.TaskDetail
@@ -166,6 +192,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			// todo: handel error message more detail
 			return err
 		}
+		logger.Debugf("Recv: %v", taskReq)
 
 		// HandelRecvGetTask(task) [Gateway->Core]
 		switch taskReq.GetTask().(type) {
@@ -173,39 +200,44 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			// todo: 其实感觉没有必要，因为任务是由core主动获取并推送到gateway的，所以这里其实可以不用处理，直接返回即可
 			//  clean needed
 			targetID := gatewayID //task.GatewayTryGetTaskRequest.GetGatewayID()
-			ctx, cf := createTimeOutContext(s.Context())
-			defer cf()
 
-			ch, err := getTaskIDCh(ctx, taskTypes.TargetGateway, targetID)
-			if err != nil {
-				taskSendErrorMessage(s, 500, err.Error())
-				continue
-			}
-
-			if taskID, ok := <-ch; ok {
-				if taskData, err := getTask(ctx, taskTypes.TargetGateway, targetID, taskID); err != nil {
-					if errors.Is(err, errs.ErrTargetNoTask) {
-						//taskSendErrorMessage(s, 404, ErrTargetNoTask.Error())
-						var resp corepb.NoTaskResponse
+			select {
+			case taskID, ok := <-ch:
+				if ok {
+					logger.Debugf("taskID:%s", taskID)
+					if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, targetID, taskID); err != nil {
+						if err == errs.ErrTargetNoTask {
+							//taskSendErrorMessage(s, 404, ErrTargetNoTask.Error())
+							var resp corepb.NoTaskResponse
+							var message corepb.TaskDetail
+							message.TaskId = taskID
+							//resp.Message = &message
+							_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &resp}})
+							continue
+						} else {
+							logger.Errorf("failed to get task data: %s", err.Error())
+							taskSendErrorMessage(s, 500, err.Error())
+							continue
+						}
+					} else {
+						var resp corepb.GatewayGetTaskResponse
 						var message corepb.TaskDetail
+						message.Content = taskData
 						message.TaskId = taskID
 						//resp.Message = &message
-						_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &resp}})
-					} else {
-						taskSendErrorMessage(s, 500, err.Error())
+						logger.Debugf("send task to gateway: %s", taskID)
+						_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
+						continue
 					}
-				} else {
-					var resp corepb.GatewayGetTaskResponse
-					var message corepb.TaskDetail
-					message.Content = taskData
-					message.TaskId = taskID
-					//resp.Message = &message
-					_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
 				}
-			} else {
-				// 超时意味着没有创建过任务ch (任务不存在)
-				taskSendErrorMessage(s, 500, errs.ErrTimeout.Error())
+			case <-time.After(1500 * time.Millisecond):
 			}
+			// 超时意味着没有创建过任务ch (任务不存在)
+			logger.Debugf("task not found")
+			_ = s.Send(&corepb.Task{ID: taskReq.ID,
+				Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &corepb.NoTaskResponse{}},
+			})
+			//taskSendErrorMessage(s, 404, errs.ErrTimeout.Error())
 		}
 	}
 }
@@ -243,6 +275,18 @@ func (g *Grpc) Init() error {
 	//middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 
+	kasp := keepalive.ServerParameters{
+		MaxConnectionIdle:     time.Minute * 10, // 连接空闲超过 10 分钟则关闭
+		MaxConnectionAge:      time.Hour * 2,    // 连接存活超过 2 小时则关闭
+		MaxConnectionAgeGrace: time.Minute * 5,  // 连接关闭前的宽限期
+		Time:                  time.Minute * 1,  // 每隔 1 分钟发送一次 ping
+		Timeout:               time.Second * 20, // ping 超时时间为 20 秒
+	}
+	kaep := keepalive.EnforcementPolicy{
+		MinTime:             time.Minute * 5, // 连接建立后至少 5 分钟才能发送 ping
+		PermitWithoutStream: true,            // 允许在没有流的情况下发送 ping
+	}
+
 	if c.Tls.Enable {
 		grpcTlsOption, err := c.Tls.GetServerTlsConfig()
 		if err != nil {
@@ -250,6 +294,8 @@ func (g *Grpc) Init() error {
 		}
 		server = grpc.NewServer(
 			grpcTlsOption,
+			grpc.KeepaliveParams(kasp),
+			grpc.KeepaliveEnforcementPolicy(kaep),
 			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
 				//middlewares.UnaryServerInterceptor,
@@ -259,6 +305,8 @@ func (g *Grpc) Init() error {
 		)
 	} else {
 		server = grpc.NewServer(
+			grpc.KeepaliveParams(kasp),
+			grpc.KeepaliveEnforcementPolicy(kaep),
 			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			//grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)

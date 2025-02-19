@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/agent"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/async"
@@ -20,7 +19,6 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -54,6 +52,9 @@ func (a *app) Run() error {
 	go func() {
 		_ = a.grpcDataApp()
 	}()
+	go func() {
+		_ = a.grpcPingApp()
+	}()
 	return a.grpcTaskApp() // gateway <--> core
 }
 
@@ -86,23 +87,29 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 	return func(a *app) error {
 		var conn *grpc.ClientConn
 		var err error
-		kacp := keepalive.ClientParameters{
-			Time:                10 * time.Second, // 每隔 10 秒发送一次心跳
-			Timeout:             3 * time.Second,  // 心跳超时时间为 3 秒
-			PermitWithoutStream: true,             // 允许在没有流的情况下发送心跳
-		}
+		//kacp := keepalive.ClientParameters{
+		//	Time:                30 * time.Second, // 每隔 10 秒发送一次心跳
+		//	Timeout:             5 * time.Second,
+		//	PermitWithoutStream: true, // 允许在没有流的情况下发送心跳
+		//}
 		if tls != nil && tls.Enable {
 			config, err := tls.GetTLSLinkConfig()
 			if err != nil {
 				return err
 			}
 
-			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(config), grpc.WithKeepaliveParams(kacp))
+			conn, err = grpc.NewClient(address,
+				grpc.WithTransportCredentials(config),
+				//grpc.WithKeepaliveParams(kacp),
+			)
 			if err != nil {
 				return err
 			}
 		} else {
-			conn, err = grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(kacp))
+			conn, err = grpc.NewClient(address,
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				//grpc.WithKeepaliveParams(kacp),
+			)
 			if err != nil {
 				return err
 			}
@@ -130,7 +137,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 			return errors.New("lubricant server not ready")
 		}
 
-		return nil
+		return stream.CloseSend()
 	}
 }
 
