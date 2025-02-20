@@ -81,11 +81,13 @@ func (a Auth) Signin(c *gin.Context) {
 		false, true)
 	u, err := casdoorsdk.ParseJwtToken(token.AccessToken)
 	if err != nil {
+		logger.Errorf("parse token error: %v", err)
 		helper.FailedByServer(err, c)
 		return
 	}
 	err = a.Db.SaveTokenOauth2(c, token, u.User.Id)
 	if err != nil {
+		logger.Errorf("save token error: %v", err)
 		helper.FailedByServer(err, c)
 		return
 	}
