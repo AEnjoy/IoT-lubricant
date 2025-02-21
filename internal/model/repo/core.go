@@ -12,22 +12,25 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ CoreDbOperator = (*CoreDb)(nil)
+var _ ICoreDb = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetGatewayStatus(ctx context.Context, gatewayID string) (string, error) {
+	var ret model.Gateway
+	return ret.Status, d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).First(&ret).Error
+}
+
 func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error {
-	return txn.WithContext(ctx).Where("gateway_id = ?", gatewayID).Save(&model.Gateway{
-		Status: status,
-	}).Error
+	return txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gatewayID).Update("status", status).Error
 }
 
 func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string, error) {
 	var token model.Token
 	var err error
-	err = d.db.WithContext(ctx).Where("user_id = ?", userID).Order("created_at desc").First(&token).Error
+	err = d.db.WithContext(ctx).Model(model.Token{}).Where("user_id = ?", userID).Order("created_at desc").First(&token).Error
 	return token.RefreshToken, err
 }
 
@@ -37,13 +40,13 @@ func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.Asyn
 	if task.ExpiredAt.IsZero() {
 		task.ExpiredAt = task.CreatedAt.Add(time.Hour * 2)
 	}
-	return txn.WithContext(ctx).Create(task).Error
+	return txn.WithContext(ctx).Model(model.AsyncJob{}).Create(task).Error
 }
 
 func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error) {
 	var ret model.AsyncJob
 	var err error
-	err = d.db.WithContext(ctx).Where("request_id = ?", requestId).First(&ret).Error
+	err = d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).First(&ret).Error
 	if ret.ExpiredAt.Before(time.Now()) && ret.Status != "completed" {
 		ret.Status = "failed"
 		// update
@@ -55,7 +58,7 @@ func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.Async
 }
 
 func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error {
-	return txn.WithContext(ctx).Where("request_id = ?", requestId).Save(&model.AsyncJob{
+	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).Save(&model.AsyncJob{
 		Status: status,
 	}).Error
 }
@@ -229,7 +232,7 @@ func (d *CoreDb) Version() string {
 }
 
 func (d *CoreDb) IsGatewayIdExists(id string) bool {
-	return d.db.Where("id = ?", id).First(&model.Gateway{}).Error == nil
+	return d.db.Where("gateway_id = ?", id).First(&model.Gateway{}).Error == nil
 }
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
 	data := &model.Data{AgentID: id, Content: content}

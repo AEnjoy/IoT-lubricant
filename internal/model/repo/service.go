@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type CoreDbOperator interface {
+type ICoreDb interface {
 	Begin() *gorm.DB
 	Commit(txn *gorm.DB)
 	Rollback(txn *gorm.DB)
@@ -69,6 +69,7 @@ type CoreDbOperator interface {
 
 	// internal
 	SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error
+	GetGatewayStatus(ctx context.Context, gatewayID string) (string, error)
 }
 type GatewayDbOperator interface {
 	Begin() *gorm.DB

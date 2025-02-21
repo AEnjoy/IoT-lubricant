@@ -12,6 +12,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/internal/pkg/auth"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/grpc/middleware"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types"
@@ -272,7 +273,7 @@ func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, 
 
 func (g *Grpc) Init() error {
 	c := config.GetConfig()
-	//middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
+	middlewares := ioc.Controller.Get(ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR).(*auth.InterceptorImpl)
 	var server *grpc.Server
 
 	kasp := keepalive.ServerParameters{
@@ -296,7 +297,7 @@ func (g *Grpc) Init() error {
 			grpcTlsOption,
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
-			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
+			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
 				//middlewares.UnaryServerInterceptor,
 				middleware.GetLoggerInterceptor(),
@@ -307,8 +308,8 @@ func (g *Grpc) Init() error {
 		server = grpc.NewServer(
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
-			//grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
-			//grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
+			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
+			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)
 	}
 	corepb.RegisterCoreServiceServer(server, g)

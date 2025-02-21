@@ -16,7 +16,7 @@ var _ ioc.Object = (*DataStore)(nil)
 type DataStore struct {
 	CacheEnable bool
 	cache.CacheCli[string]
-	repo.CoreDbOperator
+	repo.ICoreDb
 	mq.Mq[[]byte]
 }
 

@@ -21,7 +21,7 @@ import (
 )
 
 type GatewayService struct {
-	db    repo.CoreDbOperator
+	db    repo.ICoreDb
 	store *datastore.DataStore
 }
 

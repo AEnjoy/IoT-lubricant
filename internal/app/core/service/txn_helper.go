@@ -15,7 +15,7 @@ func (s *GatewayService) txnHelper() (txn *gorm.DB, errorCh *errCh.ErrorChan, f 
 func (s *AgentService) txnHelper() (txn *gorm.DB, errorCh *errCh.ErrorChan, f func()) {
 	return _txnHelper(s.db)
 }
-func _txnHelper(db repo.CoreDbOperator) (txn *gorm.DB, errorCh *errCh.ErrorChan, f func()) {
+func _txnHelper(db repo.ICoreDb) (txn *gorm.DB, errorCh *errCh.ErrorChan, f func()) {
 	txn = db.Begin()
 	errorCh = errCh.NewErrorChan()
 	f = errCh.HandleErrorCh(errorCh).

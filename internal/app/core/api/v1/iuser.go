@@ -19,7 +19,7 @@ type IUser interface {
 
 func NewUser() IUser {
 	if _user == nil {
-		_user = &user.Api{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
+		_user = &user.Api{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)}
 	}
 	return _user
 }

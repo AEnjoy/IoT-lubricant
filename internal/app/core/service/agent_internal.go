@@ -6,6 +6,6 @@ import (
 )
 
 type AgentService struct {
-	db    repo.CoreDbOperator
+	db    repo.ICoreDb
 	store *datastore.DataStore
 }

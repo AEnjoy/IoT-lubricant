@@ -11,9 +11,9 @@ import (
 // GatewayOfflineSignal: 监听网关下线信号, 如果 err != nil 则表示网关是异常下线
 func (m *MqService) GatewayOfflineSignal(ctx context.Context, gatewayID string, err error) error {
 	defer func() {
-		txn := m.DataStore.CoreDbOperator.Begin()
-		_ = m.DataStore.CoreDbOperator.SetGatewayStatus(ctx, txn, gatewayID, "offline")
-		m.DataStore.CoreDbOperator.Commit(txn)
+		txn := m.DataStore.ICoreDb.Begin()
+		_ = m.DataStore.ICoreDb.SetGatewayStatus(ctx, txn, gatewayID, "offline")
+		m.DataStore.ICoreDb.Commit(txn)
 	}()
 
 	if err != nil {

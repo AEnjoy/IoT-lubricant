@@ -40,7 +40,7 @@ func (Agent) TableName() string {
 }
 
 type ServerInfo struct { // Gateway system config
-	Id        int        `json:"id" gorm:"column:id,primary_key" yaml:"-"` // uuid and token
+	Id        int        `json:"id" gorm:"column:id;primary_key" yaml:"-"` // uuid and token
 	GatewayID string     `json:"gateway_id" gorm:"column:gateway_id" yaml:"gateway_id"`
 	Host      string     `json:"host" gorm:"column:host" yaml:"host"`
 	Port      int        `json:"port" gorm:"column:port" yaml:"port"`

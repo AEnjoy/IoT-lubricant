@@ -28,7 +28,7 @@ func noneAuth() gin.HandlerFunc {
 	}
 }
 
-var db repo.CoreDbOperator
+var db repo.ICoreDb
 
 func casdoorAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -95,7 +95,7 @@ var _o sync.Once
 
 func Auth() gin.HandlerFunc {
 	_o.Do(func() {
-		db = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)
+		db = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
 	})
 	switch os.Getenv(def.ENV_CORE_AUTH_PROVIDE) {
 	case "casdoor":

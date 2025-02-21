@@ -29,7 +29,7 @@ var (
 )
 
 type Auth struct {
-	Db repo.CoreDbOperator
+	Db repo.ICoreDb
 }
 
 func (a Auth) Register(c *gin.Context) {
@@ -169,7 +169,7 @@ func isValidCertificate(fileBytes []byte) bool {
 
 func NewAuth() *Auth {
 	if _auth == nil {
-		_auth = &Auth{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)}
+		_auth = &Auth{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)}
 	}
 	return _auth
 }
