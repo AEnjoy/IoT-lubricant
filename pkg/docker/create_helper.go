@@ -107,7 +107,7 @@ func convertPortBindings(port map[string]int) nat.PortMap {
 
 func convertExposePort(exposePort map[string]int) nat.PortSet {
 	portSet := make(nat.PortSet)
-	for containerPort, _ := range exposePort {
+	for containerPort := range exposePort {
 		portSet[nat.Port(containerPort)] = struct{}{}
 	}
 	return portSet

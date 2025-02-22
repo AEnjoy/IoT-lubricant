@@ -232,7 +232,7 @@ func (api *ApiInfo) SendPOSTMethod(path string, body RequestBody) ([]byte, error
 	cli := http.Client{}
 
 	var ct string
-	for c, _ := range body.GetContent() {
+	for c := range body.GetContent() {
 		ct = c
 	}
 
