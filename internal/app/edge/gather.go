@@ -35,12 +35,15 @@ func (a *app) StartGather(ctx context.Context) error { // Get
 	enable := config.Config.Config.GetEnable()
 	cycle := time.Duration(int64(a.config.Cycle) * int64(time.Second))
 
+	ticker := time.NewTicker(cycle)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			logger.Info("gather worker routine canceled")
 			return nil
-		case <-time.Tick(cycle):
+		case <-ticker.C:
 			for slot := range enable.Slot {
 				method, path := enable.SlotGetEnable(slot)
 				logger.Debugln("进行了一次采集")
