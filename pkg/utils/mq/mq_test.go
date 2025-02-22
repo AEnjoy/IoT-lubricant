@@ -85,7 +85,8 @@ func TestMq_Unsubscribe(t *testing.T) {
 	// 取消订阅
 	err = mq.Unsubscribe("topic1", sub)
 	assert.NoError(t, err)
-	for _ = range sub {
+	for range sub {
+		<-sub
 		// drain the channel
 	}
 
