@@ -11,32 +11,32 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type Mq[T any] interface {
-	Publish(topic string, msg T) error
+type Mq interface {
+	Publish(topic string, msg any) error
 	PublishBytes(topic string, msg []byte) error
-	Subscribe(topic string) (<-chan T, error)
-	Unsubscribe(topic string, sub <-chan T) error
+	Subscribe(topic string) (<-chan any, error)
+	Unsubscribe(topic string, sub <-chan any) error
 	Close()
-	GetPayLoad(sub <-chan T) T
+	GetPayLoad(sub <-chan any) any
 	SetConditions(capacity int)
 }
 
-func NewMq[T any]() Mq[T] {
-	return &MessageQueue[T]{
+func NewMq() Mq {
+	return &MessageQueue[any]{
 		closeCh: make(chan struct{}),
 	}
 }
 
 // NewNatsMq creates a new instance of NatsMq
-func NewNatsMq[T any](url string) (*NatsMq[T], error) {
+func NewNatsMq[T any](url string) (*NatsMq, error) {
 	nc, err := nats2.NewNatsClient(url)
 	if err != nil {
 		return nil, err
 	}
-	return &NatsMq[T]{
+	return &NatsMq{
 		nc:       nc,
 		subs:     make(map[string]*nats.Subscription),
-		channels: make(map[string]chan T),
+		channels: make(map[string]chan any),
 		capacity: 10, // default capacity
 	}, nil
 }

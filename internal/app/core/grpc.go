@@ -340,7 +340,7 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 	out.Task = &errorResp
 	_ = s.Send(&out)
 }
-func gatewayOffline(mq mq.Mq[[]byte], gatewayid string) error {
+func gatewayOffline(mq mq.Mq, gatewayid string) error {
 	return mq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayid),
 		[]byte(time.Now().Format("2006-01-02 15:04:05")))
 }

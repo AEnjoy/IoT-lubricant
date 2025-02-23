@@ -141,7 +141,7 @@ func (s *GatewayService) GetRegisterStatus(_ context.Context, gatewayid string) 
 
 	select {
 	case id := <-t:
-		if string(id) != gatewayid {
+		if string(id.([]byte)) != gatewayid {
 			return &status.Status{
 				Code:    int32(exceptionCode.GetGatewayFailed),
 				Message: "gateway is not registered(get gatewayid is not correct)",
@@ -178,7 +178,7 @@ func (s *GatewayService) GetStatus(_ context.Context, gatewayid string) *status.
 
 	select {
 	case id := <-t:
-		if string(id) == message {
+		if string(id.([]byte)) == message {
 			return &status.Status{
 				Code:    int32(exceptionCode.Success),
 				Message: "gateway is running",
@@ -237,7 +237,7 @@ func (s *GatewayService) GatewayGetGatewayDeployConfig(ctx context.Context, gate
 	defer taskMq.Unsubscribe(fmt.Sprintf("%s/response", topic), t)
 
 	var ret model.ServerInfo
-	err = sonic.Unmarshal(<-t, &ret)
+	err = sonic.Unmarshal((<-t).([]byte), &ret)
 	return &ret, err
 }
 
@@ -281,7 +281,7 @@ func (s *GatewayService) GatewaySetGatewayDeployConfig(ctx context.Context, gate
 
 	select {
 	case resp := <-t:
-		if string(resp) != "ok" {
+		if string(resp.([]byte)) != "ok" {
 			return fmt.Errorf("failed to set gateway deploy config: %s", resp)
 		} else {
 			return nil

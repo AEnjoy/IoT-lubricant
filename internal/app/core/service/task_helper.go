@@ -7,6 +7,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	errCh "github.com/AEnjoy/IoT-lubricant/pkg/error"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/user"
@@ -19,7 +20,7 @@ import (
 func _taskHelper(
 	ctx context.Context,
 	txnHelper func() (*gorm.DB, *errCh.ErrorChan, func()),
-	storeMq mq.Mq[[]byte],
+	storeMq mq.Mq,
 	dbAddAsyncJob func(context.Context, *gorm.DB, *model.AsyncJob) error,
 	taskID *string,
 	executorType user.Role,
@@ -58,6 +59,7 @@ func _taskHelper(
 	}
 
 	topic := fmt.Sprintf("%s/%s", topicPrefix, executorID)
+	logger.Debugf("send task %s to %s", taskId, topic)
 	err = errors.Join(
 		storeMq.PublishBytes(fmt.Sprintf("%s", topic), []byte(taskId)),
 		storeMq.PublishBytes(fmt.Sprintf("%s/%s", topic, taskId), bin))

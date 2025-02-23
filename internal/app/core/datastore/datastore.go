@@ -17,7 +17,7 @@ type DataStore struct {
 	CacheEnable bool
 	cache.CacheCli[string]
 	repo.ICoreDb
-	mq.Mq[[]byte]
+	mq.Mq
 }
 
 func (d *DataStore) Init() error {
@@ -39,16 +39,16 @@ func (d *DataStore) Init() error {
 			return err
 		}
 		d.Mq = natsMq
-	case "redis":
-		redisMq, err := mq.NewRedisMQ[[]byte](fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort), c.RedisPassword, c.RedisDB)
-		if err != nil {
-			return err
-		}
-		d.Mq = redisMq
-	case "kafka":
-		d.Mq = mq.NewKafkaMq[[]byte](c.KaBrokers, c.KaGroupID, c.KaPartition, 10)
-	case "internal":
-		d.Mq = mq.NewGoMq[[]byte]()
+	//case "redis":
+	//	redisMq, err := mq.NewRedisMQ[[]byte](fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort), c.RedisPassword, c.RedisDB)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	d.Mq = redisMq
+	//case "kafka":
+	//	d.Mq = mq.NewKafkaMq(c.KaBrokers, c.KaGroupID, c.KaPartition, 10)
+	//case "internal":
+	//	d.Mq = mq.NewGoMq[[]byte]()
 	default:
 		return fmt.Errorf("mq type error")
 	}

@@ -6,6 +6,6 @@ import (
 )
 
 type MqService struct {
-	mq.Mq[[]byte]
+	mq.Mq
 	*datastore.DataStore
 }

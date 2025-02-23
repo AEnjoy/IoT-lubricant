@@ -95,7 +95,7 @@ func (s *GatewayService) RemoveGatewayInternal(ctx context.Context, gatewayid st
 			exception.WithMsg("user request cancel"),
 			exception.WithMsg("database not changed"))
 	case m := <-t:
-		if string(m) != "ok" {
+		if string(m.([]byte)) != "ok" {
 			return exception.ErrNewException(err,
 				exceptionCode.RemoveGatewayFailed,
 				exception.WithMsg("gateway monitor failed to unregister this gateway"),

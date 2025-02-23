@@ -8,6 +8,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/user"
@@ -51,6 +52,7 @@ var taskChMap sync.Map
 
 func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, func(), error) {
 	topic := fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID)
+	logger.Debugf("get task id chan topic： %s", topic)
 
 	if val, exists := taskChMap.Load(topic); exists {
 		entry := val.(struct {
@@ -91,7 +93,7 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 			case <-ctx.Done():
 				return
 			case taskID := <-subscribe:
-				ch <- string(taskID)
+				ch <- string(taskID.([]byte))
 				//if id := string(taskID); id != "" {
 				//	ch <- id
 				//}
@@ -120,6 +122,6 @@ func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID
 	case <-ctx.Done():
 		return nil, errs.ErrTargetNoTask
 	case task := <-t:
-		return task, nil
+		return task.([]byte), nil
 	}
 }

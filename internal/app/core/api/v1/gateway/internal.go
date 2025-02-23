@@ -78,7 +78,9 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 		}
 	}
 
-	var taskID *string
+	_id := uuid.NewString()
+	var taskID = &_id
+
 	agentID, err := a.IGatewayService.AddAgentInternal(c, taskID, gatewayID, req, openapidoc, enableFile)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError, err.(*exception.Exception), c)

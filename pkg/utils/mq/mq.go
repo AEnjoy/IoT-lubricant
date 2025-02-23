@@ -6,7 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 )
 
-var _ Mq[any] = (*MessageQueue[any])(nil)
+var _ Mq = (*MessageQueue[any])(nil)
 
 type MessageQueue[T any] struct {
 	topics      sync.Map       // 存储topic对应的订阅者列表
