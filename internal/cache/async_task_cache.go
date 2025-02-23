@@ -5,6 +5,7 @@ import (
 	"time"
 
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 )
 
 // MemoryCache todo:适配 CacheCli
@@ -25,19 +26,28 @@ func (m *MemoryCache[T]) cleanExpired() {
 func (m *MemoryCache[T]) Set(reqToken, mutationToken string, value *Result[T]) {
 	if value.expiredAt.IsZero() {
 		value.expiredAt = def.DefaultCacheExpired()
-	} else if value.expiredAt.Before(time.Now()) {
+	} else if value.expiredAt != NeverExpired && value.expiredAt.Before(time.Now()) {
+		logger.Errorf("cache expired at: %v", value.expiredAt)
 		return
 	}
 
 	if reqToken != "-" {
+		logger.Debugf("store %s to cache: %v", reqToken, value)
 		m.cacheMap.Store(reqToken, value)
 	}
-	m.cacheMap.Store(mutationToken, value)
+	if mutationToken != "-" {
+		logger.Debugf("store %s to cache: %v", mutationToken, value)
+		m.cacheMap.Store(mutationToken, value)
+	}
 }
 
 // GetCache 获取缓存,返回 value 和 exist_state
 func (m *MemoryCache[T]) GetCache(key string) (T, bool) {
 	v, ok := m.cacheMap.Load(key)
+	logger.Debugf("load %s from cache: %v", key, v)
+	if !ok {
+		return *new(T), false
+	}
 	if ok && v.(*Result[T]).expiredAt.Before(time.Now()) {
 		m.cacheMap.Delete(key)
 		return v.(*Result[T]).value, false

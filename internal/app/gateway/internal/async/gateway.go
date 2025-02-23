@@ -71,7 +71,8 @@ func (r *task) AddTask(task *core.TaskDetail, notice bool) {
 	if notice {
 		task.MessageId = "notice"
 	}
-	r.result.Set(task.TaskId, "", result)
+	logger.Debugf("Add task result cache: id: %s", task.TaskId)
+	r.result.Set(task.TaskId, "-", result)
 	r.queue <- task
 }
 func (r *task) Query(id string) *core.QueryTaskResultResponse {

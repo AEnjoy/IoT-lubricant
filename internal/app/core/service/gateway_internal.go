@@ -14,6 +14,7 @@ import (
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
@@ -137,6 +138,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		)
 		return "", err
 	}
+	var td corepb.TaskDetail
 	var pb proxypb.CreateAgentRequest
 	pb.Info = &agentpb.AgentInfo{
 		AgentID:     agentID,
@@ -151,6 +153,12 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		Stream: &req.EnableStreamAbility,
 	}
 	pb.Conf = confData
+
+	td.TaskId = *taskid
+	td.Task = &corepb.TaskDetail_CreateAgentRequest{
+		CreateAgentRequest: &pb,
+	}
+
 	pbData, err := proto.Marshal(&pb)
 	if err != nil {
 		err = exception.ErrNewException(err,

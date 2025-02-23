@@ -15,6 +15,8 @@ type Mq interface {
 	Publish(topic string, msg any) error
 	PublishBytes(topic string, msg []byte) error
 	Subscribe(topic string) (<-chan any, error)
+	// SubscribeBytes any is []byte
+	SubscribeBytes(topic string) (<-chan any, error)
 	Unsubscribe(topic string, sub <-chan any) error
 	Close()
 	GetPayLoad(sub <-chan any) any

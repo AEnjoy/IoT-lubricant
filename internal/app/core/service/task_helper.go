@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	errCh "github.com/AEnjoy/IoT-lubricant/pkg/error"
@@ -60,9 +60,16 @@ func _taskHelper(
 
 	topic := fmt.Sprintf("%s/%s", topicPrefix, executorID)
 	logger.Debugf("send task %s to %s", taskId, topic)
-	err = errors.Join(
-		storeMq.PublishBytes(fmt.Sprintf("%s", topic), []byte(taskId)),
-		storeMq.PublishBytes(fmt.Sprintf("%s/%s", topic, taskId), bin))
+
+	go func() {
+		// 任务数据发送需要异步操作(在其它线程订阅这个topic后)，否则可能会导致获取任务失败
+		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
+		logger.Debugf("send task data to %s", pbTopic)
+		time.Sleep(1 * time.Second)
+		_ = storeMq.PublishBytes(pbTopic, bin)
+	}()
+
+	err = storeMq.PublishBytes(fmt.Sprintf("%s", topic), []byte(taskId))
 	if err != nil {
 		errorCh.Report(err, exceptCode.MqPublishFailed, "failed to publish new task message to internal message queue", true)
 		return "", "", err

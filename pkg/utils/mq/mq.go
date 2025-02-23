@@ -17,6 +17,11 @@ type MessageQueue[T any] struct {
 	closeOnce   sync.Once      // 确保队列只关闭一次
 }
 
+func (mq *MessageQueue[T]) SubscribeBytes(topic string) (<-chan any, error) {
+	// todo: implement
+	panic("not implemented")
+}
+
 // SetConditions 设置队列的容量
 func (mq *MessageQueue[T]) SetConditions(capacity int) {
 	mq.capacity = capacity

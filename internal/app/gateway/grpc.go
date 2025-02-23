@@ -9,7 +9,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,12 +39,13 @@ func (a *app) grpcTaskApp() error {
 		// send - async task result
 		go func() {
 			for taskId := range a.task.GetNotifyCh() {
-				err := task.Send(&core.Task{
+				result := a.task.Query(taskId).GetResult()
+				err := task.Send(&corepb.Task{
 					ID: taskId,
-					Task: &core.Task_CoreQueryTaskResultResponse{
-						CoreQueryTaskResultResponse: &core.QueryTaskResultResponse{
+					Task: &corepb.Task_CoreQueryTaskResultResponse{
+						CoreQueryTaskResultResponse: &corepb.QueryTaskResultResponse{
 							TaskId: taskId,
-							Result: a.task.Query(taskId).GetResult(),
+							Result: result,
 						},
 					},
 				})
@@ -70,7 +71,10 @@ func (a *app) grpcTaskApp() error {
 					}
 					return
 				}
-				a.task.RemoveResult(taskId)
+				if _, ok := result.(*corepb.QueryTaskResultResponse_Finish); ok {
+					logger.Debugf("Task %s finish", taskId)
+					a.task.RemoveResult(taskId)
+				}
 			}
 		}()
 
@@ -81,9 +85,9 @@ func (a *app) grpcTaskApp() error {
 				case <-a.ctrl.Done():
 					return
 				case <-time.After(5 * time.Second):
-					err := task.Send(&core.Task{
-						Task: &core.Task_GatewayTryGetTaskRequest{
-							GatewayTryGetTaskRequest: &core.GatewayTryGetTaskRequest{
+					err := task.Send(&corepb.Task{
+						Task: &corepb.Task_GatewayTryGetTaskRequest{
+							GatewayTryGetTaskRequest: &corepb.GatewayTryGetTaskRequest{
 								GatewayID: gatewayId,
 							},
 						},
@@ -127,15 +131,19 @@ func (a *app) grpcTaskApp() error {
 					return fmt.Errorf("recv failed: %w", err)
 				}
 			}
-			logger.Debugf("Recv: %v", resp)
+			if resp.ID != "" {
+				logger.Debugf("RecvTask %s:", resp.ID)
+			}
 
 			switch t := resp.GetTask().(type) {
-			case *core.Task_GatewayGetTaskResponse:
+			case *corepb.Task_GatewayGetTaskResponse:
+				logger.Debug("Task Type is:", "GatewayGetTaskResponse")
 				a.handelGatewayGetTaskResponse(t)
-			case *core.Task_CorePushTaskRequest:
+			case *corepb.Task_CorePushTaskRequest:
+				logger.Debug("Task Type is:", "CorePushTaskRequest")
 				resp := a.handelCorePushTaskAsync(t)
-				err := task.Send(&core.Task{ID: resp.TaskId,
-					Task: &core.Task_CorePushTaskResponse{
+				err := task.Send(&corepb.Task{ID: resp.TaskId,
+					Task: &corepb.Task_CorePushTaskResponse{
 						CorePushTaskResponse: resp,
 					},
 				})
@@ -161,11 +169,10 @@ func (a *app) grpcTaskApp() error {
 					}
 					continue
 				}
-				a.task.RemoveResult(resp.GetTaskId())
-			case *core.Task_CoreQueryTaskResultRequest:
+			case *corepb.Task_CoreQueryTaskResultRequest:
 				resp := a.task.Query(t.CoreQueryTaskResultRequest.GetTaskId())
-				err := task.Send(&core.Task{ID: resp.TaskId,
-					Task: &core.Task_CoreQueryTaskResultResponse{
+				err := task.Send(&corepb.Task{ID: resp.TaskId,
+					Task: &corepb.Task_CoreQueryTaskResultResponse{
 						CoreQueryTaskResultResponse: resp,
 					},
 				})
@@ -192,13 +199,14 @@ func (a *app) grpcTaskApp() error {
 					continue
 				}
 				if resp.GetFinish() != nil {
+					logger.Debugf("Task %s finish", resp.GetTaskId())
 					a.task.RemoveResult(resp.GetTaskId())
 				}
-			case *core.Task_GatewayQueryTaskResultResponse:
+			case *corepb.Task_GatewayQueryTaskResultResponse:
 			// todo:
-			case *core.Task_NoTaskResponse:
+			case *corepb.Task_NoTaskResponse:
 				logger.Infoln("gateway get task request success, and no task need to execute")
-			case *core.Task_ErrorMessage:
+			case *corepb.Task_ErrorMessage:
 				logger.Errorf("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
 			}
 		}
@@ -239,7 +247,7 @@ func (a *app) grpcDataApp() error {
 	}
 	return nil
 }
-func (a *app) _checkPushDataStatus(resp *core.PushDataResponse) {
+func (a *app) _checkPushDataStatus(resp *corepb.PushDataResponse) {
 	// todo:
 }
 func (a *app) grpcPingApp() error {

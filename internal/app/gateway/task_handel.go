@@ -14,6 +14,7 @@ import (
 )
 
 func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.QueryTaskResultResponse]) {
+	logger.Debugf("running task ID:%s Message:%s Type:%v", task.TaskId, task.MessageId, task.GetTask())
 	// todo:impl me
 	working := new(corepb.QueryTaskResultResponse_Working)
 	finish := new(corepb.QueryTaskResultResponse_Finish)

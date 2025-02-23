@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ ioc.Object = (*Grpc)(nil)
@@ -164,17 +165,27 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 				return
 			case idData := <-ch:
 				taskID := idData
+				if taskID == "" {
+					continue
+				}
+
 				logger.Debugf("taskID:%s", taskID)
 				if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
+					logger.Debugf("Error at get task: %v", err)
 					if err != errs.ErrTargetNoTask {
 						logger.Errorf("failed to get task id: %v", err)
 						taskSendErrorMessage(s, 500, err.Error())
 					}
 				} else {
+					logger.Debugf("send task %s to gateway %s", taskID, gatewayID)
 					var resp corepb.CorePushTaskRequest
 					var message corepb.TaskDetail
-					message.Content = taskData
-					message.TaskId = taskID
+					err := proto.Unmarshal(taskData, &message)
+					if err != nil {
+						logger.Errorf("failed to unmarshal task data: %v", err)
+						continue
+					}
+
 					resp.Message = &message
 					_ = s.Send(&corepb.Task{ID: taskID, Task: &corepb.Task_CorePushTaskRequest{CorePushTaskRequest: &resp}})
 				}

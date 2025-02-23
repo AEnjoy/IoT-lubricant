@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
@@ -66,7 +67,7 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 	ch := make(chan string)
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 
-	subscribe, err := taskMq.Subscribe(topic)
+	subscribe, err := taskMq.SubscribeBytes(topic)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,7 +94,13 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 			case <-ctx.Done():
 				return
 			case taskID := <-subscribe:
-				ch <- string(taskID.([]byte))
+				if taskID == nil {
+					logger.Error("failed to get taskid from mq", "taskID is nil")
+				} else {
+					logger.Debugf("%v", taskID)
+					ch <- string(taskID.([]byte))
+				}
+
 				//if id := string(taskID); id != "" {
 				//	ch <- id
 				//}
@@ -104,22 +111,21 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 	return ch, cancel, nil
 }
 
-func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
+func getTask(_ context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	topic := fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID)
-	t, err := taskMq.Subscribe(topic)
+	logger.Debugf("get task topic： %s", topic)
+	t, err := taskMq.SubscribeBytes(topic)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := createTimeOutContext(ctx)
 	defer func() {
-		cancel()
 		_ = taskMq.Unsubscribe(topic, t)
 	}()
 
 	select {
-	case <-ctx.Done():
+	case <-time.After(3 * time.Second):
 		return nil, errs.ErrTargetNoTask
 	case task := <-t:
 		return task.([]byte), nil
