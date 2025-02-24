@@ -31,7 +31,6 @@ spec:
             - name: redisEndpoint
               value: "redis.database.svc.cluster.local:6379,3,123456"
 ---
-# 定义 Service
 apiVersion: v1
 kind: Service
 metadata:
