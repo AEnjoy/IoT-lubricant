@@ -34,7 +34,8 @@ build-agent:
 	docker build -t hub.iotroom.top/aenjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
 
 build-gateway:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
+	echo "Gateway is not running at container"
+	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
 
 build-core:
 	docker build -t hub.iotroom.top/aenjoy/lubricant-core:nightly -f cmd/core/Dockerfile .

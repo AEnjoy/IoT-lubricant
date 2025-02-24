@@ -13,9 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
       - uses: engineerd/setup-kind@v0.6.0
         with:
           version: v0.24.0
