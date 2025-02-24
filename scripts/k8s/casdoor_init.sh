@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-CASDOOR_URL='http://casdoor.auth-core.svc.cluster.local:8000'
+apt-get update && apt-get install -y jq
+
+CASDOOR_URL='http://casdoor-service.auth-core.svc.cluster.local:8000'
 
 # 创建应用
 curl -X POST "$CASDOOR_URL/api/add-application?username=built-in/admin&password=123" \

@@ -12,7 +12,7 @@ bash scripts/function/wait_pod.sh "$POD_NAME" "default"
 echo "Found Nginx Pod: $POD_NAME"
 
 kubectl exec "$POD_NAME" -- mkdir -p /root/k8s
-kubectl cp ./k8s "$POD_NAME:/root/k8s"
+kubectl cp scripts/k8s "$POD_NAME:/root"
 
 if [ $? -eq 0 ]; then
   echo "Files successfully copied to $POD_NAME:/root/k8s"

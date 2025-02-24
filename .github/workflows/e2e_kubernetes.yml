@@ -45,7 +45,7 @@ jobs:
         run: |
           set -e
           bash scripts/push_files_to_nginx_pod.sh
-          kubectl exec nginx -- 'cd /root/k8s && bash ./casdoor_init.sh'
+          kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           mkdir -p /etc/casdoor
           echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /etc/casdoor/public.pem
 
@@ -54,3 +54,11 @@ jobs:
           set -e 
           bash deployment/infra/secret.sh
           kubectl apply -f deployment/infra/lubricant-core.yaml
+
+      - name: Wait for Lubricant-Core to be ready
+        run: |
+          set -e 
+          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
+          bash scripts/function/wait_pod.sh $lubricant_pod lubricant
+          apt-get update && apt-get install -y jq
+          kubectl exec nginx -- bash /root/k8s/core-test.sh
