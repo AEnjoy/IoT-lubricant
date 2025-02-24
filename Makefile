@@ -49,4 +49,4 @@ load-to-kind-gateway: build-gateway
 load-to-kind-core: build-core
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
 
-load-to-kind: load-to-kind-agent load-to-kind-gateway load-to-kind-core
+load-to-kind: load-to-kind-agent load-to-kind-core

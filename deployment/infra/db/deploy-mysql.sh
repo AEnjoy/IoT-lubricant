@@ -12,7 +12,7 @@ kubectl create secret generic -n database mysql-secret \
   --from-literal=lubricant-password=${lubricant_MYSQL_CUSTOM_PASSWORD} \
   --from-literal=casdoor-password=${lubricant_MYSQL_CUSTOM_PASSWORD}
 
-kubectl apply -f mysql.yaml
+kubectl apply -f deployment/infra/db/mysql.yaml
 
 sleep 3
 mysql_pod=$(sudo kubectl get pods -n database | awk '/mysql/ {print $1}')
