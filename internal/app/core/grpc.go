@@ -40,11 +40,6 @@ type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 }
 
-const timeOut = 1 // second
-func createTimeOutContext(root context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(root, timeOut*time.Second)
-}
-
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := getGatewayID(s.Context())
 

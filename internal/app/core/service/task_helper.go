@@ -69,7 +69,7 @@ func _taskHelper(
 		_ = storeMq.PublishBytes(pbTopic, bin)
 	}()
 
-	err = storeMq.PublishBytes(fmt.Sprintf("%s", topic), []byte(taskId))
+	err = storeMq.PublishBytes(topic, []byte(taskId))
 	if err != nil {
 		errorCh.Report(err, exceptCode.MqPublishFailed, "failed to publish new task message to internal message queue", true)
 		return "", "", err

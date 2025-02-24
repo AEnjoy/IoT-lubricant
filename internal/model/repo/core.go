@@ -29,8 +29,7 @@ func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, 
 
 func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string, error) {
 	var token model.Token
-	var err error
-	err = d.db.WithContext(ctx).Model(model.Token{}).Where("user_id = ?", userID).Order("created_at desc").First(&token).Error
+	err := d.db.WithContext(ctx).Model(model.Token{}).Where("user_id = ?", userID).Order("created_at desc").First(&token).Error
 	return token.RefreshToken, err
 }
 
@@ -45,8 +44,7 @@ func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.Asyn
 
 func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error) {
 	var ret model.AsyncJob
-	var err error
-	err = d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).First(&ret).Error
+	err := d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).First(&ret).Error
 	if ret.ExpiredAt.Before(time.Now()) && ret.Status != "completed" {
 		ret.Status = "failed"
 		// update
@@ -69,8 +67,7 @@ func (d *CoreDb) DeleteGatewayHostInfo(ctx context.Context, txn *gorm.DB, id str
 
 func (d *CoreDb) GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error) {
 	var ret model.ErrorLogs
-	var err error
-	err = d.db.WithContext(ctx).Where("err_id = ?", errID).First(&ret).Error
+	err := d.db.WithContext(ctx).Where("err_id = ?", errID).First(&ret).Error
 	return ret, err
 }
 
@@ -88,8 +85,7 @@ func (d *CoreDb) GetErrorLogs(ctx context.Context, gatewayid string, from, to ti
 
 func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string) ([]model.GatewayHost, error) {
 	var ret []model.GatewayHost
-	var err error
-	err = d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
+	err := d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
 	return ret, err
 }
 
@@ -100,8 +96,7 @@ func (d *CoreDb) UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid
 
 func (d *CoreDb) GetGatewayHostInfo(ctx context.Context, id string) (model.GatewayHost, error) {
 	var ret model.GatewayHost
-	var err error
-	err = d.db.WithContext(ctx).Where("host_id = ?", id).First(&ret).Error
+	err := d.db.WithContext(ctx).Where("host_id = ?", id).First(&ret).Error
 	return ret, err
 }
 

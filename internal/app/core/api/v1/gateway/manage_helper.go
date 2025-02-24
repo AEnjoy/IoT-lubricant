@@ -62,6 +62,3 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 func (a Api) getGatewayRemoveModel(c *gin.Context) *request.RemoveGatewayRequest {
 	return helper.RequestBind[request.RemoveGatewayRequest](c)
 }
-func (a Api) getAddAgentModel(c *gin.Context) *request.AddAgentRequest {
-	return helper.RequestBind[request.AddAgentRequest](c)
-}

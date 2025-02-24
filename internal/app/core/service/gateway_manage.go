@@ -7,10 +7,12 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/internal/pkg/ssh"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
 	exceptionCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -137,7 +139,12 @@ func (s *GatewayService) GetRegisterStatus(_ context.Context, gatewayid string) 
 			Message: err.Error(),
 		}
 	}
-	defer taskMq.Unsubscribe(topic, t)
+	defer func(taskMq mq.Mq, topic string, sub <-chan any) {
+		err := taskMq.Unsubscribe(topic, sub)
+		if err != nil {
+			logger.Errorln("failed to unsubscribe from message queue: %v", err)
+		}
+	}(taskMq, topic, t)
 
 	select {
 	case id := <-t:
@@ -174,20 +181,23 @@ func (s *GatewayService) GetStatus(_ context.Context, gatewayid string) *status.
 			Message: fmt.Sprintf("failed to get gateway status: %v", err),
 		}
 	}
-	defer taskMq.Unsubscribe(fmt.Sprintf("/monitor/%s/%s/random-message/response", taskTypes.TargetGateway, gatewayid), t)
+	defer func(taskMq mq.Mq, topic string, sub <-chan any) {
+		err := taskMq.Unsubscribe(topic, sub)
+		if err != nil {
+			logger.Errorln("failed to unsubscribe from message queue: %v", err)
+		}
+	}(taskMq, fmt.Sprintf("/monitor/%s/%s/random-message/response", taskTypes.TargetGateway, gatewayid), t)
 
-	select {
-	case id := <-t:
-		if string(id.([]byte)) == message {
-			return &status.Status{
-				Code:    int32(exceptionCode.Success),
-				Message: "gateway is running",
-			}
-		} else {
-			return &status.Status{
-				Code:    int32(exceptionCode.GetGatewayFailed),
-				Message: "gateway is not running",
-			}
+	id := <-t
+	if string(id.([]byte)) == message {
+		return &status.Status{
+			Code:    int32(exceptionCode.Success),
+			Message: "gateway is running",
+		}
+	} else {
+		return &status.Status{
+			Code:    int32(exceptionCode.GetGatewayFailed),
+			Message: "gateway is not running",
 		}
 	}
 }
@@ -221,7 +231,12 @@ func (s *GatewayService) HostGetGatewayDeployConfig(ctx context.Context, hostid 
 		)
 		return nil, err
 	}
-	defer host.Close()
+	defer func(host ssh.RemoteClient) {
+		err := host.Close()
+		if err != nil {
+			logger.Errorln("failed to close ssh client: %v", err)
+		}
+	}(host)
 
 	return host.GetConfig()
 }
@@ -234,7 +249,12 @@ func (s *GatewayService) GatewayGetGatewayDeployConfig(ctx context.Context, gate
 		err = fmt.Errorf("failed to get gateway deploy config: %v", err)
 		return nil, err
 	}
-	defer taskMq.Unsubscribe(fmt.Sprintf("%s/response", topic), t)
+	defer func(taskMq mq.Mq, topic string, sub <-chan any) {
+		err := taskMq.Unsubscribe(topic, sub)
+		if err != nil {
+			logger.Errorf("failed to unsubscribe from message queue: %v", err)
+		}
+	}(taskMq, fmt.Sprintf("%s/response", topic), t)
 
 	var ret model.ServerInfo
 	err = sonic.Unmarshal((<-t).([]byte), &ret)
@@ -277,7 +297,12 @@ func (s *GatewayService) GatewaySetGatewayDeployConfig(ctx context.Context, gate
 		err = fmt.Errorf("failed to set gateway deploy config: %v", err)
 		return err
 	}
-	defer taskMq.Unsubscribe(fmt.Sprintf("%s/response", topic), t)
+	defer func(taskMq mq.Mq, topic string, sub <-chan any) {
+		err := taskMq.Unsubscribe(topic, sub)
+		if err != nil {
+			logger.Errorf("failed to unsubscribe from message queue: %v", err)
+		}
+	}(taskMq, fmt.Sprintf("%s/response", topic), t)
 
 	select {
 	case resp := <-t:
