@@ -29,9 +29,9 @@ jobs:
       - name: Prepare Kubernetes Environment
         run: |
           set -e
-          deployment/infra/nsinit.sh
+          bash deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
-          kubectl run nginx --image=nginx:1.25
+          kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
           bash deployment/infra/db/deploy-mysql.sh
           bash deployment/infra/auth/casdoor.sh
