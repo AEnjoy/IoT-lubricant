@@ -57,8 +57,8 @@ func (d *GatewayDb) GetAgentInstance(txn *gorm.DB, id string) model.AgentInstanc
 	txn.Where("agent_id = ?", id).First(&ret)
 	return ret
 }
-func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error {
-	return txn.Create(ins).Error
+func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins *model.AgentInstance) error {
+	return txn.Model(model.AgentInstance{}).Create(ins).Error
 }
 
 func (*GatewayDb) Name() string {

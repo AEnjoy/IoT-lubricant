@@ -151,6 +151,9 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 			EnableFile:   enableFile,
 		},
 		Stream: &req.EnableStreamAbility,
+
+		ReportCycle: &req.ReportCycle,
+		Address:     &req.Address,
 	}
 	pb.Conf = confData
 
@@ -159,7 +162,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		CreateAgentRequest: &pb,
 	}
 
-	pbData, err := proto.Marshal(&pb)
+	pbData, err := proto.Marshal(&td)
 	if err != nil {
 		err = exception.ErrNewException(err,
 			exceptionCode.ErrorEncodeJSON,
@@ -167,6 +170,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		)
 		return "", err
 	}
+
 	_, _, err = s.PushTask(ctx, taskid, gatewayid, pbData)
 	if err != nil {
 		err = exception.ErrNewException(err,

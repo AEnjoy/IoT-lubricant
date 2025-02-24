@@ -53,7 +53,7 @@ func (DeviceAPI) TableName() string {
 }
 
 type CreateAgentRequest struct { // CreateDriverAgentRequest
-	AgentInfo Agent `json:"agent_info"`
+	AgentInfo *Agent `json:"agent_info"`
 	*CreateAgentConf
 }
 type CreateAgentConf struct {
@@ -63,14 +63,16 @@ type CreateAgentConf struct {
 }
 
 func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *proxy.CreateAgentRequest) *CreateAgentRequest {
-	var retVal = new(CreateAgentRequest)
+	logger.Debugf("%+v", pbreq)
+	var retVal = &CreateAgentRequest{AgentInfo: &Agent{}, CreateAgentConf: &CreateAgentConf{}}
 	retVal.AgentInfo.GatewayId = pbreq.GetInfo().GetGatewayID()
 	retVal.AgentInfo.AgentId = pbreq.GetInfo().GetAgentID()
 	retVal.AgentInfo.Description = pbreq.GetInfo().GetDescription()
 	retVal.AgentInfo.Algorithm = pbreq.GetInfo().GetAlgorithm()
 	retVal.AgentInfo.GatherCycle = int(pbreq.GetInfo().GetGatherCycle())
-	// retVal.AgentInfo.Cycle = int(pbreq.GetInfo().GetReportCycle())
-	// retVal.AgentInfo.Address = int(pbreq.GetInfo().GetAddress())
+	retVal.AgentInfo.Cycle = int(pbreq.GetInfo().GetReportCycle())
+	retVal.AgentInfo.Address = pbreq.GetInfo().GetAddress()
+
 	var conf CreateAgentConf
 	if c := pbreq.GetConf(); len(c) > 0 {
 		err := sonic.Unmarshal(c, &conf)
@@ -121,11 +123,12 @@ var AgentContainer = container.Container{
 // AgentInstance 记录agent 如何启动的信息
 
 type AgentInstance struct {
+	ID      int    `gorm:"column:id;primary_key"`
 	AgentId string `gorm:"column:agent_id"`
 
-	CreateConf  string `gorm:"column:conf,type:json"` // CreateAgentConf
-	ContainerID string `gorm:"column:container_id"`   // AgentContainerID
-	DriverID    string `gorm:"column:driver_id"`      // DriverContainerID
+	CreateConf  string `gorm:"column:conf"`         // CreateAgentConf
+	ContainerID string `gorm:"column:container_id"` // AgentContainerID
+	DriverID    string `gorm:"column:driver_id"`    // DriverContainerID
 	IP          string `gorm:"column:ip"`
 	Local       bool   `gorm:"column:local"` // 是否与 agent-proxy 在同一台机器上
 	Online      bool   `gorm:"column:online"`

@@ -34,7 +34,7 @@ func casdoorAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var token string
 		cookie, _ := c.Cookie(model.COOKIE_TOKEY_KEY)
-		logger.Debugf("cookie: %s", cookie)
+		//logger.Debugf("cookie: %s", cookie)
 		if cookie != "" {
 			token = cookie
 		} else {

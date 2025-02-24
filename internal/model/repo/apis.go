@@ -55,7 +55,7 @@ func NewGatewayDb(database *gorm.DB) *GatewayDb {
 	if err != nil {
 		logger.Fatal("failed to connect database")
 	}
-	err = db.AutoMigrate(&model.Agent{}, &model.ServerInfo{}, &model.Gateway{})
+	err = db.AutoMigrate(&model.Agent{}, &model.ServerInfo{}, &model.Gateway{}, &model.AgentInstance{})
 	if err != nil {
 		logger.Fatalf("failed to migrate database: %v", err)
 	}

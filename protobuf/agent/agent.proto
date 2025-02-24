@@ -37,6 +37,9 @@ message AgentInfo{
   optional string algorithm= 5; //数据压缩算法 默认不压缩
   optional openapiDoc dataSource = 6;
   optional bool stream = 7; // 采集的数据为流式数据，默认为false
+
+  optional int32 reportCycle = 8;
+  optional string address = 9;
 }
 
 message SetAgentRequest {

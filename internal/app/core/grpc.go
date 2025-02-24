@@ -170,7 +170,9 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 				}
 
 				logger.Debugf("taskID:%s", taskID)
-				if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID); err != nil {
+
+				taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID)
+				if err != nil {
 					logger.Debugf("Error at get task: %v", err)
 					if err != errs.ErrTargetNoTask {
 						logger.Errorf("failed to get task id: %v", err)

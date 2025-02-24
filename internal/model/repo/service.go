@@ -87,6 +87,6 @@ type GatewayDbOperator interface {
 	GetAgentReportCycle(_ *gorm.DB, id string) int
 	GetAgentGatherCycle(_ *gorm.DB, id string) int
 	GetAgentInstance(optionalTxn *gorm.DB, id string) model.AgentInstance
-	AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error
+	AddAgentInstance(txn *gorm.DB, ins *model.AgentInstance) error
 	UpdateAgentInstance(txn *gorm.DB, id string, ins model.AgentInstance) error
 }

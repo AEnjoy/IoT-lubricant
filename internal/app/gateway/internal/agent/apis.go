@@ -147,7 +147,7 @@ func (a *agentApis) UpdateAgent(id string, conf *model.CreateAgentRequest) error
 			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
 		}
 	}(a.db, txn, id, ins)
-	originCreateConf := &model.CreateAgentRequest{CreateAgentConf: new(model.CreateAgentConf)}
+	originCreateConf := &model.CreateAgentRequest{CreateAgentConf: new(model.CreateAgentConf), AgentInfo: new(model.Agent)}
 	if err := sonic.Unmarshal([]byte(ins.CreateConf), originCreateConf.CreateAgentConf); err != nil {
 		errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
 		return err
@@ -210,7 +210,7 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 	ctrl := a.pool.GetAgentControl(req.GetAgentId())
 	m := model.ProxypbEditAgentRequest2Agent(req)
 	if len(req.GetConf()) > 0 {
-		createConf := model.CreateAgentRequest{}
+		createConf := model.CreateAgentRequest{AgentInfo: &model.Agent{}}
 		if err := sonic.Unmarshal(req.GetConf(), &createConf); err != nil {
 			errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
 			return err
@@ -274,6 +274,7 @@ func (a *agentApis) AddAgent(req *model.CreateAgentRequest) error {
 	return a.CreateAgent(req)
 }
 func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
+	logger.Debugf("%+v,%+v", req.AgentInfo, req.CreateAgentConf)
 	txn := a.db.Begin()
 	errorCh := errCh.NewErrorChan()
 	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
@@ -324,12 +325,13 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		}
 	}
 
-	err := a.db.AddAgentInstance(txn, instance)
+	logger.Debugf("Instance： %+v", instance)
+	err := a.db.AddAgentInstance(txn, &instance)
 	if err != nil {
 		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
-	err = a.pool.JoinAgent(context.Background(), newAgentControl(&req.AgentInfo))
+	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo))
 	if err != nil {
 		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
 		return err
