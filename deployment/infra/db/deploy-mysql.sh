@@ -15,7 +15,7 @@ kubectl create secret generic -n database mysql-secret \
 kubectl apply -f deployment/infra/db/mysql.yaml
 
 sleep 3
-mysql_pod=$(sudo kubectl get pods -n database | awk '/mysql/ {print $1}')
+mysql_pod=$(kubectl get pods -n database | awk '/mysql/ {print $1}')
 bash scripts/function/wait_pod.sh $mysql_pod database
 
 echo "Database initialization..."
