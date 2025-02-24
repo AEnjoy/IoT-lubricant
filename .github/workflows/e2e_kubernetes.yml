@@ -13,10 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: engineerd/setup-kind@v0.6.0
-        with:
-          version: v0.24.0
-          config: scripts/kind.yaml
+      - name: Install Kind and Kubernetes
+        run: |
+          set -e
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/bin/kind
+          kind create cluster --config=scripts/kind.yaml
 
       - name: Verify Kubernetes cluster
         run: |
@@ -26,7 +29,7 @@ jobs:
       - name: Prepare Kubernetes Environment
         run: |
           set -e
-          bash deployment/infra/nsinit.sh
+          deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.25
           bash deployment/infra/db/redis.sh
