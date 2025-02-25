@@ -45,7 +45,7 @@ spec:
             - name: AUTH_PROVIDER
               value: "casdoor"
             - name: AUTH_ENDPOINT
-              value: "http://casdoor.auth-core.svc.cluster.local:8000"
+              value: "http://casdoor-service.auth-core.svc.cluster.local:8000"
             - name: AUTH_CLIENT_ID
               value: "6551a3584403d5264584"
             - name: AUTH_ORGANIZATION

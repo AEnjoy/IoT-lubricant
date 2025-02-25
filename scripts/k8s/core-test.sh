@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-LOGIN_URL="http://casdoor-service.auth-core.svc.cluster.local:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2F127.0.0.1%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor&nonce=&code_challenge_method=&code_challenge="
+LOGIN_URL="http://casdoor-service.auth-core.svc.cluster.local:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor&nonce=&code_challenge_method=&code_challenge="
 CALLBACK_URL="http://lubricant-core.lubricant.svc.cluster.local:8080/api/v1/signin"
 USER_INFO_URL="http://lubricant-core.lubricant.svc.cluster.local:8080/api/v1/user/info"
 COOKIE_FILE="cookie.txt"
