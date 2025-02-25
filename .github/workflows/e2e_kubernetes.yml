@@ -75,10 +75,10 @@ jobs:
 
       - name: Start Lubricant Test
         run: |
-          # set -e 
-          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
-          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
+          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
+          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
           sleep 15
           bash scripts/core-test.sh $lubricant_pod
