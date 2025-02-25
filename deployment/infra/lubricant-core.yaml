@@ -26,6 +26,8 @@ spec:
               protocol: TCP
               hostPort: 5423
           env:
+            - name: GRPC_LISTEN_PORT
+              value: "5423"
             - name: HTTP_LISTEN_PORT
               value: "8080"
             - name: DB_USER
@@ -47,7 +49,7 @@ spec:
             - name: AUTH_CLIENT_ID
               value: "6551a3584403d5264584"
             - name: AUTH_ORGANIZATION
-              value: "default"
+              value: "built-in"
             - name: AUTH_PUBLICKEYFILE
               value: "/etc/casdoor/public.pem"
             - name: DB_PASSWORD
@@ -60,6 +62,23 @@ spec:
                 secretKeyRef:
                   name: lubricant-secrets
                   key: AUTH_CLIENT_SECRET
+            - name: REDIS_ENABLE
+              value: "true"
+            - name: REDIS_HOST
+              value: "redis.database.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: redis-password
+            - name: REDIS_DB
+              value: "0"
+            - name: MQ_TYPE
+              value: "nats"
+            - name: NATS_URL
+              value: "nats://nats.database.svc.cluster.local:4222"
           volumeMounts:
             - name: casdoor-publickey
               mountPath: /etc/casdoor
