@@ -2,9 +2,10 @@ package core
 
 import (
 	"errors"
+	"os"
+
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
-	"os"
 )
 
 func initCasdoor() error {
