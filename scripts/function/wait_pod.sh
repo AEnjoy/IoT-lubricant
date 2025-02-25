@@ -3,7 +3,7 @@ set -e
 
 pod_name=$1
 namespace=$2
-timeout=120
+timeout=30
 attempts=3
 
 echo "Waiting for pod '$pod_name' to be ready..."

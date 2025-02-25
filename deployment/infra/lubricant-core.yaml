@@ -71,7 +71,7 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: redis-secret
+                  name: lubricant-secrets
                   key: redis-password
             - name: REDIS_DB
               value: "0"
