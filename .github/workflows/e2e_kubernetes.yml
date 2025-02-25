@@ -3,9 +3,20 @@ name: Kubernetes CI
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
   pull_request:
     branches: [ "main" ]
-
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
 jobs:
   test:
     runs-on: ubuntu-latest
