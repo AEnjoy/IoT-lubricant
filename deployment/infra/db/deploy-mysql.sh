@@ -25,10 +25,9 @@ mysql_pod=$(kubectl get pods -n database | awk '/mysql/ {print $1}')
 bash scripts/function/wait_pod.sh $mysql_pod database
 
 sleep 5
-kubectl logs -n database -l app=mysql
-kubectl exec $mysql_pod -n database -- bash -c 'mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD'
+kubectl exec $mysql_pod -n database -- bash -c 'mysqladmin ping -uroot -p123456'
 
 echo "Database initialization..."
 kubectl cp deployment/infra/database.sql $mysql_pod:/tmp/database.sql -n database
-kubectl exec $mysql_pod -n database -- bash -c 'mysql -uroot -p$MYSQL_ROOT_PASSWORD < /tmp/database.sql'
+kubectl exec $mysql_pod -n database -- bash -c 'mysql -uroot -p132456 < /tmp/database.sql'
 kubectl logs -n database -l app=mysql
