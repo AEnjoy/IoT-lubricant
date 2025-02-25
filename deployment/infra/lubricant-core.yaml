@@ -18,7 +18,13 @@ spec:
           image: hub.iotroom.top/aenjoy/lubricant-core:nightly
           ports:
             - containerPort: 8080
+              name: http
+              protocol: TCP
+              hostPort: 8080
             - containerPort: 5423
+              name: grpc
+              protocol: TCP
+              hostPort: 5423
           env:
             - name: HTTP_LISTEN_PORT
               value: "8080"
@@ -71,8 +77,10 @@ metadata:
 spec:
   ports:
     - port: 8080
+      name: http
       targetPort: 8080
     - port: 5423
+      name: grpc
       targetPort: 5423
   selector:
     app: lubricant-core

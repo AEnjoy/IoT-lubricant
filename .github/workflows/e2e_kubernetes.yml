@@ -30,6 +30,7 @@ jobs:
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
           chmod +x ./kind
           sudo mv ./kind /usr/bin/kind
+          sudo mkdir -p /etc/casdoor
           kind create cluster --config=scripts/kind.yaml
           echo "Installing Helm..."
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
@@ -42,12 +43,10 @@ jobs:
           kubectl version
           kubectl label nodes kind-control-plane ingress-ready=true
           sleep 3
-          # kubectl create serviceaccount default -n default
 
       - name: Prepare Kubernetes Environment
         run: |
           set -e
-          mkdir -p /etc/casdoor
           bash deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
@@ -66,7 +65,7 @@ jobs:
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
-          cp /tmp/public.pem /etc/casdoor/public.pem
+          sudo cp /tmp/public.pem /etc/casdoor/public.pem
 
       - name: Deploy Lubricant
         run: |
