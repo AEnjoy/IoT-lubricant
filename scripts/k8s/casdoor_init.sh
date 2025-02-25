@@ -11,4 +11,6 @@ curl -X POST "$CASDOOR_URL/api/add-application?username=built-in/admin&password=
  -H "Content-Type: application/json" -d '@create_app.json'
 
 # Get Cert
-curl -s "$CASDOOR_URL/api/get-cert?id=admin/cert-built-in&username=built-in/admin&password=123" | jq -r '.data.certificate' > ./crt.pem
+curl -s "$CASDOOR_URL/api/get-cert?id=admin/cert-built-in&username=built-in/admin&password=123" \
+  | jq -r '.data.certificate'| echo -e "$(cat)" > ./crt.pem
+openssl x509 -in crt.pem -text -noout
