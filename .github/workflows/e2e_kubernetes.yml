@@ -54,18 +54,19 @@ jobs:
           bash deployment/infra/db/deploy-mysql.sh
           bash deployment/infra/auth/casdoor.sh
 
-      - name: Build And Load Containers To Kubernetes
-        run: |
-          set -e
-          make load-to-kind
-
       - name: Prepare Lubricant Resources
         run: |
           set -e
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           mkdir -p /etc/casdoor
-          echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /etc/casdoor/public.pem
+          echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
+          cp /tmp/public.pem /etc/casdoor/public.pem
+
+      - name: Build And Load Containers To Kubernetes
+        run: |
+          set -e
+          make load-to-kind
 
       - name: Deploy Lubricant
         run: |
@@ -73,7 +74,7 @@ jobs:
           bash deployment/infra/secret.sh
           kubectl apply -f deployment/infra/lubricant-core.yaml
 
-      - name: Wait for Lubricant-Core to be ready
+      - name: Start Lubricant Test
         run: |
           set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
