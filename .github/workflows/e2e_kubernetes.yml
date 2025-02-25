@@ -54,6 +54,11 @@ jobs:
           bash deployment/infra/db/deploy-mysql.sh
           bash deployment/infra/auth/casdoor.sh
 
+      - name: Build And Load Containers To Kubernetes
+        run: |
+          set -e
+          make load-to-kind -j2
+
       - name: Prepare Lubricant Resources
         run: |
           set -e
@@ -62,11 +67,6 @@ jobs:
           mkdir -p /etc/casdoor
           echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
           cp /tmp/public.pem /etc/casdoor/public.pem
-
-      - name: Build And Load Containers To Kubernetes
-        run: |
-          set -e
-          make load-to-kind
 
       - name: Deploy Lubricant
         run: |
