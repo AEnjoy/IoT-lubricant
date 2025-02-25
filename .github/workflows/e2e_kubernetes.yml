@@ -30,7 +30,8 @@ jobs:
           kubectl cluster-info
           kubectl version
           kubectl label nodes kind-control-plane ingress-ready=true
-          kubectl create serviceaccount default -n default
+          sleep 3
+          # kubectl create serviceaccount default -n default
 
       - name: Prepare Kubernetes Environment
         run: |
