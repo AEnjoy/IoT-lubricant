@@ -6,3 +6,8 @@ nodes:
     extraMounts:
       - hostPath: /etc/casdoor/public.pem
         containerPath: /etc/casdoor/public.pem
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 30080
+      - containerPort: 443
+        hostPort: 30443

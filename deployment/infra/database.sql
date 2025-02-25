@@ -1,7 +1,9 @@
+DROP DATABASE IF EXISTS lubricant;
 CREATE DATABASE lubricant;
 CREATE USER 'lubricant'@'%' IDENTIFIED BY '123456';
 GRANT ALL PRIVILEGES ON lubricant.* TO 'lubricant'@'%';
 
+DROP DATABASE IF EXISTS casdoor;
 CREATE DATABASE casdoor;
 CREATE USER 'casdoor'@'%' IDENTIFIED BY '123456';
 GRANT ALL PRIVILEGES ON casdoor.* TO 'casdoor'@'%';

@@ -1,0 +1,12 @@
+# https://artifacthub.io/packages/helm/bitnami/mysql
+auth:
+  database: "lubricant"
+  username: "lubricant"
+  existingSecret: "mysql-secret"
+primary:
+  persistence:
+    enabled: true
+    size: 1Gi
+  service:
+    type: ClusterIP
+    annotations:
