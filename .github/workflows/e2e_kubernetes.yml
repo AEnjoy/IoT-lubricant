@@ -80,5 +80,5 @@ jobs:
           kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
-          sleep 8
+          sleep 15
           bash scripts/core-test.sh $lubricant_pod
