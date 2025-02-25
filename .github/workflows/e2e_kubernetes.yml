@@ -65,6 +65,7 @@ jobs:
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
+          cat /tmp/public.pem
           sudo cp /tmp/public.pem /etc/casdoor/public.pem
 
       - name: Deploy Lubricant
