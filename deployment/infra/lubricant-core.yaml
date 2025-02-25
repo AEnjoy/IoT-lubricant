@@ -57,12 +57,11 @@ spec:
           volumeMounts:
             - name: casdoor-publickey
               mountPath: /etc/casdoor
-              readOnly: true
       volumes:
         - name: casdoor-publickey
           hostPath:
-            path: /etc/casdoor/public.pem
-            type: File
+            path: /etc/casdoor
+            type: Directory
 ---
 apiVersion: v1
 kind: Service

@@ -47,6 +47,7 @@ jobs:
       - name: Prepare Kubernetes Environment
         run: |
           set -e
+          mkdir -p /etc/casdoor
           bash deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
@@ -64,7 +65,6 @@ jobs:
           set -e
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
-          mkdir -p /etc/casdoor
           echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
           cp /tmp/public.pem /etc/casdoor/public.pem
 
