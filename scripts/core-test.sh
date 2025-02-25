@@ -2,9 +2,9 @@
 
 pod_name=$1
 
-LOGIN_URL="http://casdoor-service.auth-core.svc.cluster.local:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor&nonce=&code_challenge_method=&code_challenge="
-CALLBACK_URL="http://lubricant-core.lubricant.svc.cluster.local:8080/api/v1/signin"
-USER_INFO_URL="http://lubricant-core.lubricant.svc.cluster.local:8080/api/v1/user/info"
+LOGIN_URL="http://127.0.0.1:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor&nonce=&code_challenge_method=&code_challenge="
+CALLBACK_URL="http://127.0.0.1:8080/api/v1/signin"
+USER_INFO_URL="http://127.0.0.1:8080/api/v1/user/info"
 COOKIE_FILE="cookie.txt"
 
 echo "Logging in..."
@@ -32,9 +32,11 @@ fi
 echo "Getting cookie..."
 response=$(curl -s -X GET -c "$COOKIE_FILE" \
   "$CALLBACK_URL?code=$code&state=casdoor")
-if [ $? -ne 0 ]; then
+code=$?
+if [ $code -ne 0 ]; then
   echo "Error: Failed to get cookie curl request failed"
   echo "Response: $response"
+  echo "Code: $code"
   kubectl logs "$pod_name" -n lubricant
   exit 1
 fi
