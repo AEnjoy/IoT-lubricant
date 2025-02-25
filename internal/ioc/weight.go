@@ -8,6 +8,12 @@ const (
 	CacheCli
 	DataStore
 	_
+
+	CoreMqService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
+	CoreGatewayService
+	CoreGatewayAgentService
+
+	CoreWebServer
 )

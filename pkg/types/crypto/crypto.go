@@ -3,9 +3,11 @@ package crypto
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"database/sql/driver"
 	"errors"
 	"os"
 
+	"github.com/bytedance/sonic"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -21,6 +23,18 @@ type Tls struct {
 	Key        string `json:"key" yaml:"key" env:"TLS_KEY" `   // server.key
 	Cert       string `json:"cert" yaml:"cert" env:"TLS_CERT"` // client.crt
 	CA         string `json:"ca" yaml:"ca" env:"TLS_CA"`       // server.crt
+}
+
+func (t *Tls) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return sonic.Unmarshal(bytes, t)
+}
+
+func (t Tls) Value() (driver.Value, error) {
+	return sonic.MarshalString(t)
 }
 
 // GetTLSLinkConfig for client

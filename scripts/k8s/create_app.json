@@ -1,0 +1,652 @@
+{
+  "owner": "admin",
+  "name": "application_lubricant",
+  "displayName": "Lubricant",
+  "logo": "https://cdn.casbin.org/img/casdoor-logo_1185x256.png",
+  "homepageUrl": "",
+  "description": "",
+  "organization": "built-in",
+  "cert": "cert-built-in",
+  "headerHtml": "",
+  "enablePassword": true,
+  "enableSignUp": true,
+  "enableSigninSession": false,
+  "enableAutoSignin": false,
+  "enableCodeSignin": false,
+  "enableSamlCompress": false,
+  "enableSamlC14n10": false,
+  "enableSamlPostBinding": false,
+  "useEmailAsSamlNameId": false,
+  "enableWebAuthn": false,
+  "enableLinkWithEmail": false,
+  "orgChoiceMode": "",
+  "samlReplyUrl": "",
+  "providers": [
+    {
+      "owner": "",
+      "name": "provider_captcha_default",
+      "canSignUp": false,
+      "canSignIn": false,
+      "canUnlink": false,
+      "countryCodes": null,
+      "prompted": false,
+      "signupGroup": "",
+      "rule": "",
+      "provider": {
+        "owner": "admin",
+        "name": "provider_captcha_default",
+        "createdTime": "2025-01-29T15:45:14Z",
+        "displayName": "Captcha Default",
+        "category": "Captcha",
+        "type": "Default",
+        "subType": "",
+        "method": "",
+        "clientId": "",
+        "clientSecret": "",
+        "clientId2": "",
+        "clientSecret2": "",
+        "cert": "",
+        "customAuthUrl": "",
+        "customTokenUrl": "",
+        "customUserInfoUrl": "",
+        "customLogo": "",
+        "scopes": "",
+        "userMapping": null,
+        "host": "",
+        "port": 0,
+        "disableSsl": false,
+        "title": "",
+        "content": "",
+        "receiver": "",
+        "regionId": "",
+        "signName": "",
+        "templateCode": "",
+        "appId": "",
+        "endpoint": "",
+        "intranetEndpoint": "",
+        "domain": "",
+        "bucket": "",
+        "pathPrefix": "",
+        "metadata": "",
+        "idP": "",
+        "issuerUrl": "",
+        "enableSignAuthnRequest": false,
+        "emailRegex": "",
+        "providerUrl": ""
+      }
+    }
+  ],
+  "signinMethods": [
+    {
+      "name": "Password",
+      "displayName": "Password",
+      "rule": "All"
+    },
+    {
+      "name": "Verification code",
+      "displayName": "Verification code",
+      "rule": "All"
+    },
+    {
+      "name": "WebAuthn",
+      "displayName": "WebAuthn",
+      "rule": "None"
+    },
+    {
+      "name": "Face ID",
+      "displayName": "Face ID",
+      "rule": "None"
+    }
+  ],
+  "signupItems": [
+    {
+      "name": "ID",
+      "visible": false,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "Random"
+    },
+    {
+      "name": "Username",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Display name",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Password",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Confirm password",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Email",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "Normal"
+    },
+    {
+      "name": "Phone",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Agreement",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Signup button",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": "",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "None"
+    },
+    {
+      "name": "Providers",
+      "visible": true,
+      "required": true,
+      "prompted": false,
+      "type": "",
+      "customCss": ".provider-img {\n width: 30px;\n margin: 5px;\n }\n .provider-big-img {\n margin-bottom: 10px;\n }\n ",
+      "label": "",
+      "placeholder": "",
+      "options": null,
+      "regex": "",
+      "rule": "small"
+    }
+  ],
+  "signinItems": [
+    {
+      "name": "Back button",
+      "visible": true,
+      "label": "",
+      "customCss": ".back-button {\n      top: 65px;\n      left: 15px;\n      position: absolute;\n}\n.back-inner-button{}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Languages",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-languages {\n    top: 55px;\n    right: 5px;\n    position: absolute;\n}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Logo",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-logo-box {}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Signin methods",
+      "visible": true,
+      "label": "",
+      "customCss": ".signin-methods {}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Username",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-username {}\n.login-username-input{}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Password",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-password {}\n.login-password-input{}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Agreement",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-agreement {}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Forgot password?",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-forget-password {\n    display: inline-flex;\n    justify-content: space-between;\n    width: 320px;\n    margin-bottom: 25px;\n}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Login button",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-button-box {\n    margin-bottom: 5px;\n}\n.login-button {\n    width: 100%;\n}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Signup link",
+      "visible": true,
+      "label": "",
+      "customCss": ".login-signup-link {\n    margin-bottom: 24px;\n    display: flex;\n    justify-content: end;\n}",
+      "placeholder": "",
+      "rule": "None",
+      "isCustom": false
+    },
+    {
+      "name": "Providers",
+      "visible": true,
+      "label": "",
+      "customCss": ".provider-img {\n      width: 30px;\n      margin: 5px;\n}\n.provider-big-img {\n      margin-bottom: 10px;\n}",
+      "placeholder": "",
+      "rule": "small",
+      "isCustom": false
+    }
+  ],
+  "grantTypes": [
+    "authorization_code",
+    "password",
+    "client_credentials",
+    "token",
+    "id_token",
+    "refresh_token"
+  ],
+  "organizationObj": {
+    "owner": "admin",
+    "name": "built-in",
+    "createdTime": "2025-01-29T15:45:14Z",
+    "displayName": "Built-in Organization",
+    "websiteUrl": "https://example.com",
+    "logo": "",
+    "logoDark": "",
+    "favicon": "https://cdn.casbin.org/img/casbin/favicon.ico",
+    "passwordType": "plain",
+    "passwordSalt": "",
+    "passwordOptions": [
+      "AtLeast6"
+    ],
+    "passwordObfuscatorType": "",
+    "passwordObfuscatorKey": "",
+    "passwordExpireDays": 0,
+    "countryCodes": [
+      "US",
+      "ES",
+      "FR",
+      "DE",
+      "GB",
+      "CN",
+      "JP",
+      "KR",
+      "VN",
+      "ID",
+      "SG",
+      "IN"
+    ],
+    "defaultAvatar": "https://cdn.casbin.org/img/casbin.svg",
+    "defaultApplication": "",
+    "tags": [
+
+    ],
+    "languages": [
+      "en",
+      "zh",
+      "es",
+      "fr",
+      "de",
+      "id",
+      "ja",
+      "ko",
+      "ru",
+      "vi",
+      "pt"
+    ],
+    "themeData": null,
+    "masterPassword": "",
+    "defaultPassword": "",
+    "masterVerificationCode": "",
+    "ipWhitelist": "",
+    "initScore": 2000,
+    "enableSoftDeletion": false,
+    "isProfilePublic": false,
+    "useEmailAsUsername": false,
+    "enableTour": true,
+    "ipRestriction": "",
+    "mfaItems": null,
+    "accountItems": [
+      {
+        "name": "Organization",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "ID",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Immutable",
+        "regex": ""
+      },
+      {
+        "name": "Name",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Display name",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Avatar",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "User type",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Password",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Email",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Phone",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Country code",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Country/Region",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Location",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Affiliation",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Title",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Homepage",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Bio",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Tag",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Signup application",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Roles",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Immutable",
+        "regex": ""
+      },
+      {
+        "name": "Permissions",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Immutable",
+        "regex": ""
+      },
+      {
+        "name": "Groups",
+        "visible": true,
+        "viewRule": "Public",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "3rd-party logins",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Properties",
+        "visible": true,
+        "viewRule": "Admin",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Is admin",
+        "visible": true,
+        "viewRule": "Admin",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Is forbidden",
+        "visible": true,
+        "viewRule": "Admin",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Is deleted",
+        "visible": true,
+        "viewRule": "Admin",
+        "modifyRule": "Admin",
+        "regex": ""
+      },
+      {
+        "name": "Multi-factor authentication",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "WebAuthn credentials",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "Managed accounts",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      },
+      {
+        "name": "MFA accounts",
+        "visible": true,
+        "viewRule": "Self",
+        "modifyRule": "Self",
+        "regex": ""
+      }
+    ]
+  },
+  "certPublicKey": "",
+  "tags": [
+
+  ],
+  "samlAttributes": null,
+  "isShared": false,
+  "ipRestriction": "",
+  "clientId": "6551a3584403d5264584",
+  "clientSecret": "dd9657c7b8cc10a72f77b283253b3a0a31b91175",
+  "redirectUris": [
+    "http://lubricant-core.lubricant.svc.cluster.local:8080/api/v1/signin"
+  ],
+  "tokenFormat": "JWT",
+  "tokenSigningMethod": "",
+  "tokenFields": [
+
+  ],
+  "expireInHours": 168,
+  "refreshExpireInHours": 168,
+  "signupUrl": "",
+  "signinUrl": "",
+  "forgetUrl": "",
+  "affiliationUrl": "",
+  "ipWhitelist": "",
+  "termsOfUse": "",
+  "signupHtml": "",
+  "signinHtml": "",
+  "themeData": null,
+  "footerHtml": "",
+  "formCss": "",
+  "formCssMobile": "",
+  "formOffset": 2,
+  "formSideHtml": "",
+  "formBackgroundUrl": "",
+  "failedSigninLimit": 5,
+  "failedSigninFrozenTime": 15
+}

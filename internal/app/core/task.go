@@ -5,21 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/internal/app/core/datastore"
+	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/user"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/mq"
 )
 
 // taskID -> task([]bytes)
-var (
-	taskMq  = mq.NewMq[[]byte]()
-	hasTask = sync.Map{} // targetID -> struct{} cache for get task
-)
 
 func CreateTask(taskID string, targetType task.Target, targetDeviceID string, taskBin []byte) error {
-	hasTask.Store(targetDeviceID, struct{}{})
+	dataCli := dataCli()
+
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	e1 := taskMq.Publish(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID), []byte(taskID))     // 创建任务
 	e2 := taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID), taskBin) // 发送任务
 	if errors.Join(e1, e2) != nil {
@@ -47,38 +48,86 @@ func CreateTask(taskID string, targetType task.Target, targetDeviceID string, ta
 
 	return nil
 }
-func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, error) {
-	ch := make(chan string)
-	subscribe, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID))
-	if err != nil {
-		return nil, err
+
+var taskChMap sync.Map
+
+func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, func(), error) {
+	topic := fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID)
+	logger.Debugf("get task id chan topic： %s", topic)
+
+	if val, exists := taskChMap.Load(topic); exists {
+		entry := val.(struct {
+			ch     chan string
+			cancel func()
+		})
+		return entry.ch, entry.cancel, nil
 	}
+
+	var closeOnce sync.Once
+	ch := make(chan string)
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+
+	subscribe, err := taskMq.SubscribeBytes(topic)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	_clean := func() {
+		_ = taskMq.Unsubscribe(topic, subscribe)
+		taskChMap.Delete(topic)
+		close(ch)
+	}
+	cancel := func() {
+		closeOnce.Do(_clean)
+	}
+
+	// 存储到map（使用匿名结构体存储组合值）
+	taskChMap.Store(topic, struct {
+		ch     chan string
+		cancel func()
+	}{ch, cancel})
 
 	go func() {
-		select {
-		case <-ctx.Done():
-			break
-		case taskID := <-subscribe:
-			ch <- string(taskID)
-		}
-		close(ch)
-	}()
-	return ch, nil
-}
-func getTask(ctx context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
-	if _, ok := hasTask.Load(targetDeviceID); !ok {
-		return nil, errs.ErrTargetNoTask
-	}
+		defer closeOnce.Do(_clean)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case taskID := <-subscribe:
+				if taskID == nil {
+					logger.Error("failed to get taskid from mq", "taskID is nil")
+				} else {
+					logger.Debugf("%v", taskID)
+					ch <- string(taskID.([]byte))
+				}
 
-	t, err := taskMq.Subscribe(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID))
+				//if id := string(taskID); id != "" {
+				//	ch <- id
+				//}
+			}
+		}
+	}()
+
+	return ch, cancel, nil
+}
+
+func getTask(_ context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+	topic := fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID)
+	logger.Debugf("get task topic： %s", topic)
+	t, err := taskMq.SubscribeBytes(topic)
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		_ = taskMq.Unsubscribe(topic, t)
+	}()
+
 	select {
-	case <-ctx.Done():
-		return nil, errs.ErrTimeout
+	case <-time.After(3 * time.Second):
+		return nil, errs.ErrTargetNoTask
 	case task := <-t:
-		hasTask.Delete(targetDeviceID)
-		return task, nil
+		return task.([]byte), nil
 	}
 }

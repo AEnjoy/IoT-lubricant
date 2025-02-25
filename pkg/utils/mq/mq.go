@@ -6,7 +6,7 @@ import (
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 )
 
-var _ Mq[any] = (*MessageQueue[any])(nil)
+var _ Mq = (*MessageQueue[any])(nil)
 
 type MessageQueue[T any] struct {
 	topics      sync.Map       // 存储topic对应的订阅者列表
@@ -15,6 +15,11 @@ type MessageQueue[T any] struct {
 	closeCh     chan struct{}  // 用于关闭队列
 	wg          sync.WaitGroup // 等待所有goroutine结束
 	closeOnce   sync.Once      // 确保队列只关闭一次
+}
+
+func (mq *MessageQueue[T]) SubscribeBytes(topic string) (<-chan any, error) {
+	// todo: implement
+	panic("not implemented")
 }
 
 // SetConditions 设置队列的容量

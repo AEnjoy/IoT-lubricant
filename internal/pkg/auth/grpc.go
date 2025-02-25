@@ -18,11 +18,11 @@ import (
 var _ ioc.Object = (*InterceptorImpl)(nil)
 
 type InterceptorImpl struct {
-	db repo.CoreDbOperator
+	db repo.ICoreDb
 }
 
 func (i *InterceptorImpl) Init() error {
-	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.CoreDbOperator)
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
 	i.db = cli
 	return nil
 }
@@ -79,14 +79,17 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 ) (resp any, err error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
+		logger.Errorf("get auth failed")
 		return nil, fmt.Errorf("get auth failed")
 	}
 	ul := md.Get("gateway_id")
 	if len(ul) == 0 {
+		logger.Errorf("gateway_id not present")
 		return nil, fmt.Errorf("gateway_id not present")
 	}
 
 	if !i.db.IsGatewayIdExists(ul[0]) {
+		logger.Errorf("error gateway client:%s", ul[0])
 		return nil, fmt.Errorf("error gateway client")
 	}
 
@@ -96,5 +99,31 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 
 func (i *InterceptorImpl) StreamServerInterceptor(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	logger.Info(metadata.FromIncomingContext(ss.Context()))
-	return nil
+	md, ok := metadata.FromIncomingContext(ss.Context())
+	if !ok {
+		logger.Errorf("get auth failed")
+		return fmt.Errorf("get auth failed")
+	}
+	ul := md.Get("gatewayid")
+	if len(ul) == 0 {
+		logger.Errorf("gateway_id not present")
+		return fmt.Errorf("gateway_id not present")
+	}
+
+	if !i.db.IsGatewayIdExists(ul[0]) {
+		logger.Errorf("error gateway client:%s", ul[0])
+		return fmt.Errorf("error gateway client")
+	}
+
+	// todo: 需要处理，如果状态为online，则不允许连接
+	txn := i.db.Begin()
+	err := i.db.SetGatewayStatus(ss.Context(), txn, ul[0], "online")
+	if err != nil {
+		logger.Errorf("set gateway status error:%s", err)
+		i.db.Rollback(txn)
+		return err
+	}
+	i.db.Commit(txn)
+	// 响应后的处理
+	return handler(srv, ss)
 }

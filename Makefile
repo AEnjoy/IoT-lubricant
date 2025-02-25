@@ -32,3 +32,21 @@ mock: install
 
 build-agent:
 	docker build -t hub.iotroom.top/aenjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
+
+build-gateway:
+	echo "Gateway is not running at container"
+	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
+
+build-core:
+	docker build -t hub.iotroom.top/aenjoy/lubricant-core:nightly -f cmd/core/Dockerfile .
+
+docker-build: build-agent build-gateway build-core
+
+load-to-kind-agent: build-agent
+	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
+load-to-kind-gateway: build-gateway
+	kind load docker-image hub.iotroom.top/aenjoy/lubricant-gateway:nightly
+load-to-kind-core: build-core
+	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
+
+load-to-kind: load-to-kind-agent load-to-kind-core

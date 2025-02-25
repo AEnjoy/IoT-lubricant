@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 )
 
 var _ Container = (*MapContainer)(nil)
@@ -23,23 +25,26 @@ func (c *MapContainer) Version(name string) string {
 	return ""
 }
 func (c *MapContainer) LoadObject(s map[string]Object) {
+	logger.Debugf("Load objects: %v", s)
 	c.l.Lock()
 	defer c.l.Unlock()
 	c.storge = s
 }
 func (c *MapContainer) Registry(name string, obj Object) {
+	logger.Debugf("Registry object: %s", name)
 	c.l.Lock()
 	defer c.l.Unlock()
 	c.storge[name] = obj
 }
 
 func (c *MapContainer) Get(name string) any {
+	logger.Debugf("Get object: %s", name)
 	return c.storge[name]
 }
 
 func (c *MapContainer) Init() error {
 	if c.inited {
-		return fmt.Errorf("container %s all has already been initialized", c.name)
+		return fmt.Errorf("object %s all has already been initialized", c.name)
 	}
 	// Create a slice of object names and weights for sorting
 	type weightedObject struct {
@@ -60,11 +65,12 @@ func (c *MapContainer) Init() error {
 
 	// Initialize objects in the order of their weights
 	for _, wObj := range weightedObjects {
+		logger.Debugf("[%s] %s init start with weight %d", c.name, wObj.name, wObj.object.Weight())
 		if err := wObj.object.Init(); err != nil {
 			return fmt.Errorf("%s init error, %s", wObj.name, err)
 		}
 		if c.showLog {
-			fmt.Printf("[%s] %s init success with weight %d\n", c.name, wObj.name, wObj.object.Weight())
+			logger.Infof("[%s] %s init success with weight %d", c.name, wObj.name, wObj.object.Weight())
 		}
 	}
 

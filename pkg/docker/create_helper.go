@@ -32,7 +32,7 @@ func (a *Api) InstallFromImageBinary(imageData BinaryImageInfo, name string, exp
 		return ErrNotInit
 	}
 
-	_, err := a.cli.ImageLoad(a.ctx, imageData.Reader, false)
+	_, err := a.cli.ImageLoad(a.ctx, imageData.Reader)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func convertExposePort(exposePort map[string]int) nat.PortSet {
 }
 
 func pullFromImageBinaryReader(ctx context.Context, cli *client.Client, data io.Reader) error {
-	_, err := cli.ImageLoad(ctx, data, false)
+	_, err := cli.ImageLoad(ctx, data)
 	if err != nil {
 		return err
 	}

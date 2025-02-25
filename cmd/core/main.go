@@ -3,13 +3,12 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
+	"github.com/AEnjoy/IoT-lubricant/cmd/core/internal"
 	"github.com/AEnjoy/IoT-lubricant/internal/app/core"
-	appinit "github.com/AEnjoy/IoT-lubricant/internal/app/core/init"
-	"github.com/AEnjoy/IoT-lubricant/internal/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/internal/pkg/router"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/joho/godotenv"
+	coreConfig "github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
+	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 )
 
 const (
@@ -23,17 +22,7 @@ func main() {
 	flag.Parse()
 	printBuildInfo()
 
-	if envFilePath != "" {
-		logger.Info("load env")
-		err := godotenv.Load(envFilePath)
-		if err != nil {
-			logger.Info("Failed to load .env file, using system ones.")
-		} else {
-			logger.Infof("Loaded .env file from %s", envFilePath)
-		}
-	}
-
-	err := appinit.AppInit()
+	err := internal.AppInit()
 	if err != nil {
 		panic(err)
 	}
@@ -43,8 +32,11 @@ func main() {
 	app := core.NewApp(
 		core.SetHostName(hostName),
 		core.SetPort(listenPort),
-		core.UseGinEngine(router.CoreRouter()),
-		core.UseDB(repo.DefaultCoreClient()),
+		core.UseGinEngine(),
+		//core.UseDB(repo.DefaultCoreClient()),
+		core.UseServerKey(),
+		core.UseCasdoor(),
+		core.UseSignalHandler(utils.HandelExitSignal(nil, coreConfig.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }

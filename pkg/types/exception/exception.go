@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
 	except "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
 )
@@ -16,6 +17,7 @@ type Exception struct {
 	DetailReason interface{}    `json:"detail_reason,omitempty"`
 	Data         interface{}    `json:"data,omitempty"`
 	Operation    Operation      `json:"-"`
+	ShowLog      bool           `json:"-"`
 	doOperation  bool
 }
 type Option func(*Exception)
@@ -92,6 +94,10 @@ func New(c except.ResCode, opts ...Option) *Exception {
 	if exception.Operation != nil && exception.doOperation {
 		_ = exception.Operation.Do(exception)
 	}
+	if exception.ShowLog {
+		logger.Errorf("code: %d, msg: %s, reason: %v, detail_reason: %v, data: %v",
+			exception.Code, exception.Msg, exception.Reason, exception.DetailReason, exception.Data)
+	}
 	return exception
 }
 func ErrNewException(err error, code except.ResCode, opts ...Option) *Exception {
@@ -116,4 +122,9 @@ func CheckException(err error) (*Exception, error) {
 		return e, nil
 	}
 	return nil, errors.New("not an internal exception")
+}
+func WithLogShow() Option {
+	return func(e *Exception) {
+		e.ShowLog = true
+	}
 }

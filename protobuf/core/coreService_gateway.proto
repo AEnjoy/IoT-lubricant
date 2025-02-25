@@ -18,6 +18,7 @@ service coreService {
   rpc pushDataStream(stream Data) returns (stream Data) {}
   rpc pushData(Data) returns (pushDataResponse) {}
   rpc getCoreCapacity(getCoreCapacityRequest)returns (getCoreCapacityResponse){}//获取核心服务资源容量，为数据发送做准备
+  rpc reportError(reportErrorRequest)returns (reportErrorResponse){}
 }
 
 message TaskDetail {
@@ -110,5 +111,11 @@ message getCoreCapacityRequest{
   int32 preAllocatedResourcesSize =1 ;
 }
 message getCoreCapacityResponse{
+  google.rpc.Status resp = 1;
+}
+message reportErrorRequest{
+    lubricant.ErrorMessage errorMessage = 1;
+}
+message reportErrorResponse{
   google.rpc.Status resp = 1;
 }

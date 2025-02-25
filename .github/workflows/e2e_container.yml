@@ -1,42 +1,50 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: End-to-End Test (RunningAtContainer)
+name: End-to-End Test (Container)
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: [ '1.23', '1.24']
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ matrix.go }}
-
-      - name: E2E Test Agent
+#      - name: Set up Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version: '1.23'
+      - name: Test Container builder
         run: |
           set -e
-          echo "Build and Run Agent"
-          make build-agent
-          docker run -itd --net=host hub.iotroom.top/aenjoy/lubricant-agent:nightly
-          
-          echo "Run Mock Driver"
-          sudo pip3 install -r test/mock_driver/clock/requirements.txt
-          sudo python3 test/mock_driver/clock/clock.py &
-          
-          echo "Run Agent Test"
-          go build -o test/agent_test ./cmd/test/agent
-          cd test
-          ./agent_test mini --agent-id clock-agent 
-          cd ..
+          make docker-build -j2
+#      - name: E2E Test Agent
+#        run: |
+#          set -e
+#          echo "Build and Run Agent"
+#          make build-agent
+#          docker run -itd --net=host hub.iotroom.top/aenjoy/lubricant-agent:nightly
+#
+#          echo "Run Mock Driver"
+#          sudo pip3 install -r test/mock_driver/clock/requirements.txt
+#          sudo python3 test/mock_driver/clock/clock.py &
+#
+#          echo "Run Agent Test"
+#          go build -o test/agent_test ./cmd/test/agent
+#          cd test
+#          ./agent_test mini --agent-id clock-agent
+#          cd ..

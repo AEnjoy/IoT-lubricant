@@ -5,7 +5,9 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"time"
 
+	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"github.com/dop251/goja"
 )
 
@@ -17,30 +19,9 @@ func (Server) TableName() string {
 	return "server"
 }
 
-type Token struct {
-	// 该Token是颁发
-	UserId string `json:"id" gorm:"column:user_id"` // uuid
-	// 办法给用户的访问令牌(用户需要携带Token来访问接口)
-	AccessToken string `json:"access_token" gorm:"column:access_token"`
-	// 过期时间(2h), 单位是秒
-	AccessTokenExpiredAt int `json:"access_token_expired_at" gorm:"column:access_token_expired_at"`
-	// 刷新Token
-	RefreshToken string `json:"refresh_token" gorm:"column:refresh_token"`
-	// 刷新Token过期时间(7d)
-	RefreshTokenExpiredAt int `json:"refresh_token_expired_at" gorm:"column:refresh_token_expired_at"`
-
-	// 创建时间
-	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
-	// 更新实现
-	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
-}
-
-func (Token) TableName() string {
-	return "token"
-}
-
 type User struct {
-	UserId   string `json:"id" gorm:"column:user_id"` // uuid
+	ID       int    `json:"id" gorm:"column:id"`
+	UserId   string `json:"user_id" gorm:"column:user_id"` // uuid
 	UserName string `json:"username" gorm:"column:username"`
 	Password string `json:"password" gorm:"column:password"`
 
@@ -48,6 +29,13 @@ type User struct {
 	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
 }
 
+func (req User) CheckPassword(password string) error {
+	// todo: encrypt password
+	if password == req.Password {
+		return nil
+	}
+	return errors.New("password error")
+}
 func (User) TableName() string {
 	return "user"
 }
@@ -67,17 +55,17 @@ func (Data) TableName() string {
 }
 
 type Gateway struct {
-	GatewayID   string `json:"id" gorm:"column:id"`
-	UserId      string `json:"user_id" gorm:"column:user_id"`
+	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
+	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
+	UserId      string `json:"-" gorm:"column:user_id"` //;foreignKey:UserID
 	Description string `json:"description" gorm:"column:description"`
 
-	Address           string `json:"address" gorm:"column:address"`                         // SSH: ip:port or domain:port
-	UserNameAndPasswd string `json:"username_and_passwd" gorm:"column:username_and_passwd"` //
+	TlsConfig string `json:"tls_config" gorm:"column:tls_config,serializer:json"`
+	// host information has replaced by model.GatewayHost
 
-	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"` // grpc tls config
-
-	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
-	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
+	Status    string `json:"status" gorm:"column:status;default:'created'"`
+	CreatedAt int64  `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt int64  `json:"updated_at" gorm:"column:updated_at"`
 }
 
 func (Gateway) TableName() string {
@@ -85,13 +73,13 @@ func (Gateway) TableName() string {
 }
 
 type Clean struct {
-	ID          int    `json:"id" gorm:"column:id"`
+	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
 	Description string `json:"description" gorm:"column:description"`
 
-	Interpreter string   `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
-	Script      string   `json:"script" gorm:"column:script"`           // 脚本代码
-	Command     []string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
+	Interpreter string `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
+	Script      string `json:"script" gorm:"column:script"`           // 脚本代码
+	Command     string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
 
 	CreatedAt int64 `json:"-" gorm:"column:created_at"`
 	UpdatedAt int64 `json:"-" gorm:"column:updated_at"`
@@ -117,7 +105,7 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 			return data, err
 		}
 
-		processData, ok := goja.AssertFunction(rt.Get(c.Command[0]))
+		processData, ok := goja.AssertFunction(rt.Get(c.Command))
 		if !ok {
 			return data, errors.New("not a function")
 		}
@@ -139,7 +127,7 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 
 		var newCommand []string
 		newCommand = append(newCommand, "script")
-		newCommand = append(newCommand, c.Command...)
+		newCommand = append(newCommand, c.Command)
 		cmd := exec.Command(c.Interpreter, newCommand...)
 		cmd.Stdin = bytes.NewReader(data)
 
@@ -154,4 +142,78 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 		result := out.Bytes()
 		return result, nil
 	}
+}
+
+type GatewayHost struct {
+	Id          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
+	UserID      string `json:"-" gorm:"column:user_id"` // user.userID
+	HostID      string `json:"-" gorm:"column:host_id"` //uuid
+	Description string `json:"description" gorm:"column:description"`
+
+	Host       string `json:"host" gorm:"column:host"` // ip:port
+	UserName   string `json:"username" gorm:"column:username"`
+	PassWd     string `json:"-" gorm:"column:password"`
+	PrivateKey string `json:"-" gorm:"column:private_key"`
+
+	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
+}
+type ErrorLogs struct {
+	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
+	ErrID     string `json:"err_id" gorm:"column:err_id"`
+	Component string `json:"component" gorm:"column:component"` // one of core,agent,gateway
+
+	Type    int32  `json:"type" gorm:"column:type"`
+	Code    int32  `json:"code" gorm:"column:code"`
+	Message string `json:"message" gorm:"column:message"`
+	Module  string `json:"module" gorm:"column:module"`
+	Stack   string `json:"stack" gorm:"column:stack"`
+
+	CreatedAt time.Time `json:"happened" gorm:"column:created_at"`
+}
+
+func (ErrorLogs) TableName() string {
+	return "error_logs"
+}
+func PbErrorMessage2ModelErrorLogs(message *metapb.ErrorMessage) *ErrorLogs {
+	return &ErrorLogs{
+		Code: func() int32 {
+			if status := message.GetCode(); status != nil {
+				return status.GetCode()
+			}
+			return 0
+		}(),
+		Message: func() string {
+			if status := message.GetCode(); status != nil {
+				return status.GetMessage()
+			}
+			return ""
+		}(),
+		Module: message.GetModule(),
+		Stack:  message.GetStack(),
+		Type:   message.GetErrorType(),
+		CreatedAt: func() time.Time {
+			if timestamp := message.GetTime(); timestamp != nil {
+				return timestamp.AsTime()
+			}
+			return time.Now()
+		}(),
+	}
+}
+
+type AsyncJob struct {
+	ID        int    `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	Name      string `gorm:"type:varchar(255);not null;column:name" json:"name"`
+	RequestID string `gorm:"type:varchar(255);not null;unique;column:request_id" json:"requestId"`
+	Status    string `gorm:"column:status;type:enum('completed', 'failed', 'pending', 'retried', 'retrying', 'started');not null" json:"status"`
+	Data      string `gorm:"column:data;type:json;not null" json:"data"`
+
+	CreatedAt time.Time `gorm:"type:datetime;not null" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"type:datetime;not null" json:"updatedAt"`
+	ExpiredAt time.Time `gorm:"type:datetime;not null" json:"expiredAt"`
+	//Meta      string    `gorm:"column:meta;type:json;not null" json:"meta"`
+}
+
+func (AsyncJob) TableName() string {
+	return "async_job"
 }

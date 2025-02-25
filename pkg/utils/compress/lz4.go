@@ -3,7 +3,7 @@ package compress
 import (
 	"bytes"
 
-	"github.com/pierrec/lz4"
+	"github.com/pierrec/lz4/v4"
 )
 
 var _ Compressor = (*Lz4)(nil)

@@ -9,7 +9,7 @@ import (
 
 	"github.com/AEnjoy/IoT-lubricant/internal/app/gateway/internal/data"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
 	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,12 +39,13 @@ func (a *app) grpcTaskApp() error {
 		// send - async task result
 		go func() {
 			for taskId := range a.task.GetNotifyCh() {
-				err := task.Send(&core.Task{
+				result := a.task.Query(taskId).GetResult()
+				err := task.Send(&corepb.Task{
 					ID: taskId,
-					Task: &core.Task_CoreQueryTaskResultResponse{
-						CoreQueryTaskResultResponse: &core.QueryTaskResultResponse{
+					Task: &corepb.Task_CoreQueryTaskResultResponse{
+						CoreQueryTaskResultResponse: &corepb.QueryTaskResultResponse{
 							TaskId: taskId,
-							Result: a.task.Query(taskId).GetResult(),
+							Result: result,
 						},
 					},
 				})
@@ -70,12 +71,40 @@ func (a *app) grpcTaskApp() error {
 					}
 					return
 				}
-				a.task.RemoveResult(taskId)
+				if _, ok := result.(*corepb.QueryTaskResultResponse_Finish); ok {
+					logger.Debugf("Task %s finish", taskId)
+					a.task.RemoveResult(taskId)
+				}
 			}
 		}()
 
+		// send -
+		go func() {
+			for {
+				select {
+				case <-a.ctrl.Done():
+					return
+				case <-time.After(5 * time.Second):
+					err := task.Send(&corepb.Task{
+						Task: &corepb.Task_GatewayTryGetTaskRequest{
+							GatewayTryGetTaskRequest: &corepb.GatewayTryGetTaskRequest{
+								GatewayID: gatewayId,
+							},
+						},
+					})
+					if err == io.EOF {
+						logger.Errorln("grpc stream closed")
+						return
+					}
+					if err != nil {
+						logger.Errorf("grpc stream error: %v", err)
+					}
+				}
+			}
+		}()
 		// recv
 		for {
+			time.Sleep(time.Second)
 			resp, err := task.Recv()
 			if err == io.EOF {
 				logger.Errorln("grpc stream closed")
@@ -102,14 +131,19 @@ func (a *app) grpcTaskApp() error {
 					return fmt.Errorf("recv failed: %w", err)
 				}
 			}
+			if resp.ID != "" {
+				logger.Debugf("RecvTask %s:", resp.ID)
+			}
 
 			switch t := resp.GetTask().(type) {
-			case *core.Task_GatewayGetTaskResponse:
+			case *corepb.Task_GatewayGetTaskResponse:
+				logger.Debug("Task Type is:", "GatewayGetTaskResponse")
 				a.handelGatewayGetTaskResponse(t)
-			case *core.Task_CorePushTaskRequest:
+			case *corepb.Task_CorePushTaskRequest:
+				logger.Debug("Task Type is:", "CorePushTaskRequest")
 				resp := a.handelCorePushTaskAsync(t)
-				err := task.Send(&core.Task{ID: resp.TaskId,
-					Task: &core.Task_CorePushTaskResponse{
+				err := task.Send(&corepb.Task{ID: resp.TaskId,
+					Task: &corepb.Task_CorePushTaskResponse{
 						CorePushTaskResponse: resp,
 					},
 				})
@@ -135,11 +169,10 @@ func (a *app) grpcTaskApp() error {
 					}
 					continue
 				}
-				a.task.RemoveResult(resp.GetTaskId())
-			case *core.Task_CoreQueryTaskResultRequest:
+			case *corepb.Task_CoreQueryTaskResultRequest:
 				resp := a.task.Query(t.CoreQueryTaskResultRequest.GetTaskId())
-				err := task.Send(&core.Task{ID: resp.TaskId,
-					Task: &core.Task_CoreQueryTaskResultResponse{
+				err := task.Send(&corepb.Task{ID: resp.TaskId,
+					Task: &corepb.Task_CoreQueryTaskResultResponse{
 						CoreQueryTaskResultResponse: resp,
 					},
 				})
@@ -166,14 +199,15 @@ func (a *app) grpcTaskApp() error {
 					continue
 				}
 				if resp.GetFinish() != nil {
+					logger.Debugf("Task %s finish", resp.GetTaskId())
 					a.task.RemoveResult(resp.GetTaskId())
 				}
-			case *core.Task_GatewayQueryTaskResultResponse:
+			case *corepb.Task_GatewayQueryTaskResultResponse:
 			// todo:
-			case *core.Task_NoTaskResponse:
+			case *corepb.Task_NoTaskResponse:
 				logger.Infoln("gateway get task request success, and no task need to execute")
-			case *core.Task_ErrorMessage:
-				logger.Errorf("gateway send request to core success,but get the error: %s", t.ErrorMessage.String())
+			case *corepb.Task_ErrorMessage:
+				logger.Errorf("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
 			}
 		}
 	}
@@ -213,6 +247,44 @@ func (a *app) grpcDataApp() error {
 	}
 	return nil
 }
-func (a *app) _checkPushDataStatus(resp *core.PushDataResponse) {
+func (a *app) _checkPushDataStatus(resp *corepb.PushDataResponse) {
 	// todo:
+}
+func (a *app) grpcPingApp() error {
+	retryAttempts := 3        // 最大重试次数
+	retryDelay := time.Second // 初始重试延迟
+	for i := 0; i < retryAttempts; i++ {
+		stream, err := a.grpcClient.Ping(a.ctrl)
+		if err != nil {
+			if i < retryAttempts-1 {
+				time.Sleep(retryDelay)
+				retryDelay *= 2 // 指数退避
+				continue        // 重试
+			}
+			logger.Errorf("Failed to send ping request to server: %v", err)
+			return err
+		}
+		for {
+			if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
+				if err == io.EOF {
+					logger.Errorln("grpc stream closed", "lost link with server")
+					return nil
+				}
+				time.Sleep(time.Second)
+				logger.Errorf("Failed to send ping request to server: %v", err)
+				continue
+			}
+			_, err = stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					logger.Errorln("grpc stream closed", "lost link with server")
+					return nil
+				}
+				logger.Errorf("Failed to receive response from server: %v", err)
+				return err
+			}
+		}
+
+	}
+	return nil
 }

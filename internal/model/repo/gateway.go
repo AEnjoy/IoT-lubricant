@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"time"
 
 	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"gorm.io/gorm"
@@ -11,6 +12,17 @@ var _ GatewayDbOperator = (*GatewayDb)(nil)
 
 type GatewayDb struct {
 	db *gorm.DB
+}
+
+func (d *GatewayDb) AddOrUpdateServerInfo(txn *gorm.DB, info *model.ServerInfo) error {
+	info.UpdatedAt = time.Now()
+	result := txn.First(&model.ServerInfo{}, info.Id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		info.CreatedAt = time.Now()
+		return txn.Create(info).Error
+	} else {
+		return txn.Model(info).Where("gateway_id = ?", info.Id).Updates(info).Error
+	}
 }
 
 func (d *GatewayDb) UpdateAgentInstance(txn *gorm.DB, id string, ins model.AgentInstance) error {
@@ -45,8 +57,8 @@ func (d *GatewayDb) GetAgentInstance(txn *gorm.DB, id string) model.AgentInstanc
 	txn.Where("agent_id = ?", id).First(&ret)
 	return ret
 }
-func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins model.AgentInstance) error {
-	return txn.Create(ins).Error
+func (d *GatewayDb) AddAgentInstance(txn *gorm.DB, ins *model.AgentInstance) error {
+	return txn.Model(model.AgentInstance{}).Create(ins).Error
 }
 
 func (*GatewayDb) Name() string {

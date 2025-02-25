@@ -1,0 +1,84 @@
+name: Kubernetes CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Kind and Helm
+        run: |
+          set -e
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/bin/kind
+          sudo mkdir -p /etc/casdoor
+          kind create cluster --config=scripts/kind.yaml
+          echo "Installing Helm..."
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      - name: Verify Kubernetes cluster
+        run: |
+          kubectl cluster-info
+          kubectl version
+          kubectl label nodes kind-control-plane ingress-ready=true
+          sleep 3
+
+      - name: Prepare Kubernetes Environment
+        run: |
+          set -e
+          bash deployment/infra/nsinit.sh
+          kubectl apply -f deployment/infra/db/nats.yaml
+          kubectl run nginx --image=nginx:1.27
+          bash deployment/infra/db/redis.sh
+          bash deployment/infra/db/deploy-mysql.sh
+          bash deployment/infra/auth/casdoor.sh
+
+      - name: Build And Load Containers To Kubernetes
+        run: |
+          set -e
+          make load-to-kind -j2
+
+      - name: Prepare Lubricant Resources
+        run: |
+          set -e
+          bash scripts/push_files_to_nginx_pod.sh
+          kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
+          echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
+          sudo cp /tmp/public.pem /etc/casdoor/public.pem
+
+      - name: Deploy Lubricant
+        run: |
+          set -e 
+          bash deployment/infra/secret.sh
+          kubectl apply -f deployment/infra/lubricant-core.yaml
+
+      - name: Start Lubricant Test
+        run: |
+          # set -e 
+          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
+          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
+          bash scripts/function/wait_pod.sh $lubricant_pod lubricant
+          sleep 8
+          bash scripts/core-test.sh $lubricant_pod
