@@ -19,6 +19,9 @@ for ((i = 1; i <= attempts; i++)); do
             sleep 1
         else
             echo "Pod '$pod_name' in namespace $namespace failed to be ready after $attempts attempts."
+            echo "Printing pod description and logs:"
+            kubectl describe pod -n $namespace $pod_name
+            kubectl logs -n $namespace $pod_name
             exit 1
         fi
     fi

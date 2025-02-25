@@ -78,5 +78,4 @@ jobs:
           set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
-          apt-get update && apt-get install -y jq
           kubectl exec nginx -- bash /root/k8s/core-test.sh
