@@ -29,14 +29,24 @@ if [ -z "$code" ] || [ "$code" = "null" ]; then
 fi
 
 echo "Getting cookie..."
-curl -s -X GET -c "$COOKIE_FILE" \
-  "$CALLBACK_URL?code=$code&state=casdoor" > /dev/null
+response=$(curl -s -X GET -c "$COOKIE_FILE" \
+  "$CALLBACK_URL?code=$code&state=casdoor")
+
+msg=$(echo "$response" | jq -r '.msg')
+
+if [ "$msg" != "success" ]; then
+  echo "Error: Login failed, msg=$msg"
+  echo "Response: $response"
+  exit 1
+fi
 
 if [ ! -f "$COOKIE_FILE" ]; then
   echo "Error: Failed to get cookie"
   exit 1
 fi
 echo "Cookie saved to $COOKIE_FILE"
+
+cat $COOKIE_FILE
 
 echo "Getting user info..."
 curl -s -X GET -b "$COOKIE_FILE" "$USER_INFO_URL"
