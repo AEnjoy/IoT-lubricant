@@ -79,9 +79,4 @@ jobs:
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           sleep 5
-          kubectl exec nginx -- bash /root/k8s/core-test.sh
-          if [ $? -ne 0 ]; then
-            echo "TestFailed: Stdout Information:"
-            kubectl describe pod $lubricant_pod -n lubricant
-            exit 1
-          fi
+          kubectl exec nginx -- bash /root/k8s/core-test.sh $lubricant_pod
