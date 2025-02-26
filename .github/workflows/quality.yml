@@ -43,6 +43,11 @@ jobs:
       - name: Prepare mock
         run: |
           make mock
+          wget https://static.iotroom.top/TDengine-client-3.3.5.2-Linux-x64.tar.gz
+          tar -zxvf TDengine-client-3.3.5.2-Linux-x64.tar.gz
+          cd TDengine-client-3.3.5.2/
+          sudo bash install_client.sh
+          cd ..
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -66,4 +71,9 @@ jobs:
       - name: UnitTest
         run: |
           set -e
+          wget https://static.iotroom.top/TDengine-client-3.3.5.2-Linux-x64.tar.gz
+          tar -zxvf TDengine-client-3.3.5.2-Linux-x64.tar.gz
+          cd TDengine-client-3.3.5.2/
+          sudo bash install_client.sh
+          cd ..
           make test
