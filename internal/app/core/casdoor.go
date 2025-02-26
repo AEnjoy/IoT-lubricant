@@ -2,9 +2,11 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 )
 
@@ -33,6 +35,10 @@ func initCasdoor() error {
 	if err != nil {
 		return err
 	}
-	casdoorsdk.InitConfig(endpoint, clientid, secret, string(file), organization, "")
+	if os.Getenv("RUNNING_LEVEL") == "debug" {
+		logger.Debug("CERT FILE:")
+		fmt.Println(string(file))
+	}
+	casdoorsdk.InitConfig(endpoint, clientid, secret, string(file), organization, "application_lubricant")
 	return nil
 }
