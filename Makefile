@@ -16,6 +16,10 @@ endif
 
 .PHONY: test test-coverage install mock
 
+make-output-dir:
+	rm -rf ./bin
+	mkdir -p ./bin
+
 test: mock
 	go test -v $(shell go list ./... | grep -v /integration)
 
@@ -55,7 +59,21 @@ build-agent:
 		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
 		-f cmd/agent/Dockerfile .
 
-build-gateway:
+build-gateway: make-output-dir
+	go build -o ./bin/lubricant-gateway \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/agent_proxy/main.go ./cmd/agent_proxy/start.go
+
+build-gateway-container:
 	echo "Gateway is not running at container"
 	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
 

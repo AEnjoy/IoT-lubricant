@@ -30,3 +30,4 @@ internal/app/edge/test
 
 # local test data
 cmd/agent/agent.yaml
+/bin/
