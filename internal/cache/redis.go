@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/app/core/config"
 	"github.com/AEnjoy/IoT-lubricant/internal/ioc"
+	"github.com/AEnjoy/IoT-lubricant/services/core/config"
 	"github.com/redis/go-redis/v9"
 )
 

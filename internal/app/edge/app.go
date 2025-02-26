@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	dataService "github.com/AEnjoy/IoT-lubricant/internal/app/edge/grpc"
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/edge/config"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/compress"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/net"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"

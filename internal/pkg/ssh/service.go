@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	model2 "github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -15,12 +15,12 @@ type RemoteClient interface {
 	IoUploadFile(reader io.ReadCloser, target string) error
 	Download(target, local string) error
 
-	DeployGateway(hostinfo *model.ServerInfo) error
-	UpdateConfig(hostinfo *model.ServerInfo) error
-	GetConfig() (*model.ServerInfo, error)
+	DeployGateway(hostinfo *model2.ServerInfo) error
+	UpdateConfig(hostinfo *model2.ServerInfo) error
+	GetConfig() (*model2.ServerInfo, error)
 }
 
-func NewSSHClient(gateway *model.GatewayHost, onlyTestLink bool) (RemoteClient, error) {
+func NewSSHClient(gateway *model2.GatewayHost, onlyTestLink bool) (RemoteClient, error) {
 	if gateway.UserName == "" {
 		return nil, errors.New("ssh: target host user name is empty")
 	}

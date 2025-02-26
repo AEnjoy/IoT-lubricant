@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
+	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	json "github.com/bytedance/sonic"
 	"github.com/bytedance/sonic/encoder"

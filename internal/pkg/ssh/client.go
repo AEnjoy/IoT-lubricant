@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	model2 "github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"gopkg.in/yaml.v3"
@@ -19,7 +19,7 @@ import (
 var _ RemoteClient = (*client)(nil)
 
 type client struct {
-	model     *model.GatewayHost
+	model     *model2.GatewayHost
 	sshClient *ssh.Client
 	session   *ssh.Session
 }
@@ -98,7 +98,7 @@ func (c *client) Download(target, local string) error {
 	return err
 }
 
-func (c *client) DeployGateway(hostinfo *model.ServerInfo) error {
+func (c *client) DeployGateway(hostinfo *model2.ServerInfo) error {
 	resp, err := http.Get(def.GatewayDeployScripts)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (c *client) DeployGateway(hostinfo *model.ServerInfo) error {
 	}
 	return nil
 }
-func (c *client) UpdateConfig(hostinfo *model.ServerInfo) error {
+func (c *client) UpdateConfig(hostinfo *model2.ServerInfo) error {
 	hostInfoByte, err := yaml.Marshal(hostinfo)
 	if err != nil {
 		return err
@@ -148,8 +148,8 @@ func (c *client) UpdateConfig(hostinfo *model.ServerInfo) error {
 	return nil
 }
 
-func (c *client) GetConfig() (ret *model.ServerInfo, err error) {
-	ret = new(model.ServerInfo)
+func (c *client) GetConfig() (ret *model2.ServerInfo, err error) {
+	ret = new(model2.ServerInfo)
 	out, exitCode, err := c.executeCommandAuto("cat /opt/lubricant/gateway/lubricant_server_config.yaml")
 	if err != nil || exitCode != 0 {
 		return nil, fmt.Errorf("failed to get config: %s, exit code: %d", out, exitCode)

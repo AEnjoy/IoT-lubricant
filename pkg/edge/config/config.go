@@ -5,9 +5,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
 	json "github.com/bytedance/sonic/encoder"
 	"github.com/google/go-cmp/cmp"

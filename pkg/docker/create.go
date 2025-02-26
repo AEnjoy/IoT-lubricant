@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	docker "github.com/AEnjoy/IoT-lubricant/pkg/types/container"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"

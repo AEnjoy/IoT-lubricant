@@ -7,8 +7,8 @@ import (
 	"time"
 
 	agent "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
-	"github.com/AEnjoy/IoT-lubricant/internal/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/AEnjoy/IoT-lubricant/pkg/model"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
 	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
