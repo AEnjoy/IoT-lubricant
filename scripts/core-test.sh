@@ -42,7 +42,6 @@ if [ $code -ne 0 ]; then
 fi
 
 msg=$(echo "$response" | jq -r '.msg')
-
 if [ "$msg" != "success" ]; then
   echo "Error: Login failed, msg=$msg"
   echo "Response: $response"
@@ -61,9 +60,19 @@ echo "Cookie saved to $COOKIE_FILE"
 cat $COOKIE_FILE
 
 echo "Getting user info..."
-curl -s -X GET -b "$COOKIE_FILE" "$USER_INFO_URL"
-if [ $? -ne 0 ]; then
+response=$(curl -s -X GET -b "$COOKIE_FILE" "$USER_INFO_URL")
+code=$?
+if [ $code -ne 0 ]; then
   echo "Error: Failed to get user info"
   kubectl logs "$pod_name" -n lubricant
   exit 1
 fi
+
+msg=$(echo "$response" | jq -r '.msg')
+if [ "$msg" != "success" ]; then
+  echo "Error: Failed to get user info, msg=$msg"
+  echo "Response: $response"
+  kubectl logs "$pod_name" -n lubricant
+  exit 1
+fi
+echo "User info: $response"

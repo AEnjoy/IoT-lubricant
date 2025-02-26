@@ -1,6 +1,7 @@
 name: Kubernetes CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     paths-ignore:
@@ -20,7 +21,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -64,8 +64,8 @@ jobs:
           set -e
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
-          echo $(kubectl exec nginx -- cat /root/k8s/crt.pem) > /tmp/public.pem
-          sudo cp /tmp/public.pem /etc/casdoor/public.pem
+          sudo cp scripts/crt.pem /etc/casdoor/public.pem
+          openssl x509 -in scripts/crt.pem -text -noout
 
       - name: Deploy Lubricant
         run: |
@@ -75,10 +75,10 @@ jobs:
 
       - name: Start Lubricant Test
         run: |
-          # set -e 
-          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
-          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
-          sleep 8
+          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
+          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          sleep 15
           bash scripts/core-test.sh $lubricant_pod

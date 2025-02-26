@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
-	"runtime"
 	"time"
 
 	agent "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
@@ -23,26 +21,6 @@ const (
 	BIND_GRPC_ENV = "BIND_GRPC"
 )
 
-var (
-	Version         string
-	BuildTime       string
-	GoVersion       string
-	GitTag          string
-	Features        string
-	Platform        string
-	PlatformVersion string
-)
-
-func printBuildInfo() {
-	fmt.Printf("IoT-lubricant-Version: %s\n", Version)
-	fmt.Printf("Build-Time: %s\n", BuildTime)
-	fmt.Printf("Go-Version: %s\n", GoVersion)
-	fmt.Printf("Git-Tag: %s\n", GitTag)
-	fmt.Printf("Features: %s\n", Features)
-	fmt.Printf("Platform: %s\n", Platform)
-	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s\n", runtime.GOOS, runtime.GOARCH)
-}
 func main() {
 	var envFilePath string
 	flag.StringVar(&envFilePath, "env", "", "Path to .env file")

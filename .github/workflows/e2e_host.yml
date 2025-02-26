@@ -1,9 +1,10 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: End-to-End Test (Single)
+name: End-to-End Test (Agent)
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
@@ -18,12 +19,11 @@ on:
       - 'pkg/**'
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: [ '1.23', '1.24']
+        go: ['1.22' ,'1.23']
     steps:
       - uses: actions/checkout@v4
 

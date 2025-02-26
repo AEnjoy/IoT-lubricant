@@ -1,6 +1,24 @@
 PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
+VERSION := $(shell git rev-parse --abbrev-ref HEAD)
+BUILD_TIME := $(shell date +"%Y-%m-%d %H:%M:%S")
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+GO_VERSION := $(shell go version | awk '{print $$3}')
+FEATURES := $(or $(ENV_LUBRICANT_ENABLE_FEATURES),default)
+BUILD_HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m)
+ifeq ($(shell uname -s),Linux)
+PLATFORM_VERSION := $(shell grep -E '^(NAME|VERSION)=' /etc/os-release | tr -d '"' | awk -F= '{print $$2}' | paste -sd ' ' -)
+else ifeq ($(shell uname -s),Windows)
+PLATFORM_VERSION := $(shell systeminfo | findstr /B /C:"OS Name" /C:"OS Version" | awk -F: '{print $$2}' | paste -sd ' ' -)
+else
+PLATFORM_VERSION := unknown
+endif
+
 .PHONY: test test-coverage install mock
+
+make-output-dir:
+	rm -rf ./bin
+	mkdir -p ./bin
 
 test: mock
 	go test -v $(shell go list ./... | grep -v /integration)
@@ -31,14 +49,44 @@ mock: install
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
 
 build-agent:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
+		-f cmd/agent/Dockerfile .
 
-build-gateway:
+build-gateway: make-output-dir
+	go build -o ./bin/lubricant-gateway \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/agent_proxy/main.go ./cmd/agent_proxy/start.go
+
+build-gateway-container:
 	echo "Gateway is not running at container"
 	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
 
 build-core:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-core:nightly -f cmd/core/Dockerfile .
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
+		-f cmd/core/Dockerfile .
 
 docker-build: build-agent build-gateway build-core
 
