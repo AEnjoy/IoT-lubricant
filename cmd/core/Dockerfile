@@ -11,16 +11,16 @@ WORKDIR /app
 COPY . .
 
 # if you are in China, you can uncomment the following line
-# RUN go env -w GOPROXY=https://goproxy.cn,direct
+RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 WORKDIR /app/cmd/core
-RUN GO_VERSION=`go version | awk '{print $$3}'` && \
+RUN GO_VERSION=`go version | awk '{print $3}'` && \
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
 	-X 'main.Version=${VERSION}' \
 	-X 'main.BuildTime=${BUILD_TIME}' \
-	-X 'main.GoVersion=$$GO_VERSION' \
+	-X 'main.GoVersion=$GO_VERSION' \
 	-X 'main.GitCommit=${GIT_COMMIT}' \
 	-X 'main.Features=${FEATURES}' \
 	-X 'main.BuildHostPlatform=${BUILD_HOST_PLATFORM}' \

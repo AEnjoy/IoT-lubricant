@@ -3,6 +3,7 @@ PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 VERSION := $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_TIME := $(shell date +"%Y-%m-%d %H:%M:%S")
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
+GO_VERSION := $(shell go version | awk '{print $$3}')
 FEATURES := $(or $(ENV_LUBRICANT_ENABLE_FEATURES),default)
 BUILD_HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m)
 ifeq ($(shell uname -s),Linux)
@@ -44,7 +45,15 @@ mock: install
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
 
 build-agent:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-agent:nightly -f cmd/agent/Dockerfile .
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
+		-f cmd/agent/Dockerfile .
 
 build-gateway:
 	echo "Gateway is not running at container"
