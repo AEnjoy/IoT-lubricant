@@ -1,8 +1,8 @@
 package errs
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 )
 
 var (

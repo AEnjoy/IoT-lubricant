@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
-	errLevel "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
-	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
-	data2 "github.com/AEnjoy/IoT-lubricant/services/gateway/services/data"
+	"github.com/aenjoy/iot-lubricant/pkg/edge"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	data2 "github.com/aenjoy/iot-lubricant/services/gateway/services/data"
 )
 
 const exceptionSigMaxSize = 10
@@ -120,7 +120,7 @@ func (c *agentControl) _start() error {
 	return err
 }
 func (c *agentControl) _offlineWarn() {
-	c.exceptSig <- exception.ErrNewException(nil, exceptCode.WarnAgentOffline,
+	c.exceptSig <- exception.ErrNewException(nil, exceptionCode.WarnAgentOffline,
 		exception.WithLevel(errLevel.Warn),
 		exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 	)
@@ -133,7 +133,7 @@ func (c *agentControl) _gather(wg *sync.WaitGroup) {
 			Slot:    int32(i),
 		})
 		if err != nil {
-			c.exceptSig <- exception.ErrNewException(err, exceptCode.ErrGaterDataReqFailed,
+			c.exceptSig <- exception.ErrNewException(err, exceptionCode.ErrGaterDataReqFailed,
 				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 				exception.WithMsg(fmt.Sprintf("Slot: %d", i)),
@@ -169,7 +169,7 @@ func (c *agentControl) StartGather() error {
 		if err := c._start(); err != nil {
 			if !strings.Contains(err.Error(), "Gather is working now") {
 				logger.Errorln("agent: Gather start failed", err)
-				c.exceptSig <- exception.ErrNewException(err, exceptCode.ErrGaterStartFailed,
+				c.exceptSig <- exception.ErrNewException(err, exceptionCode.ErrGaterStartFailed,
 					exception.WithLevel(errLevel.Error),
 					exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 				)

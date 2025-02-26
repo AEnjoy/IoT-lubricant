@@ -3,7 +3,7 @@ package agent
 import (
 	"net/http"
 
-	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	"github.com/aenjoy/iot-lubricant/protobuf/meta"
 )
 
 func errIsTargetNotEqual(info *meta.CommonResponse) bool {

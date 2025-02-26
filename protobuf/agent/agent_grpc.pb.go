@@ -8,7 +8,7 @@ package agent
 
 import (
 	context "context"
-	meta "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	meta "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

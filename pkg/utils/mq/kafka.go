@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/bytedance/sonic"
 	"github.com/segmentio/kafka-go"
 )

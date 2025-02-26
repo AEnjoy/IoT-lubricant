@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/hash"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/hash"
 )
 
 type CreateUserRequest struct {

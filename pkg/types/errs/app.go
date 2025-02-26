@@ -1,8 +1,8 @@
 package errs
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 )
 
 // Core
@@ -11,7 +11,7 @@ var (
 	ErrTimeout      error = exception.New(code.ErrorCoreTaskTimeout)
 )
 
-// Gateway-proxy
+// Gateway-gateway
 var (
 	ErrAgentNotFound error = exception.New(code.ErrorGatewayAgentNotFound)
 )

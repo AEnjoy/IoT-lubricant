@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
+	"github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/google/uuid"
 )
 

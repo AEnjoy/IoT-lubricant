@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	metapb "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	"github.com/dop251/goja"
 )
 

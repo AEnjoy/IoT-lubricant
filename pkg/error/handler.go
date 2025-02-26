@@ -3,9 +3,9 @@ package error
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 )
 
 const errorMessageTemplate = "error message: %s, Message: %s"

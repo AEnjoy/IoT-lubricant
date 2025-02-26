@@ -3,8 +3,8 @@ package model
 import (
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	"github.com/aenjoy/iot-lubricant/protobuf/gateway"
 )
 
 type Agent struct {
@@ -23,7 +23,7 @@ type Agent struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
 
-func ProxypbEditAgentRequest2Agent(pbreq *proxy.EditAgentRequest) *Agent {
+func ProxypbEditAgentRequest2Agent(pbreq *gateway.EditAgentRequest) *Agent {
 	return &Agent{
 		AgentId:     pbreq.GetAgentId(),
 		GatewayId:   pbreq.GetInfo().GetGatewayID(),

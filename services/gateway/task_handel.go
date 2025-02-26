@@ -3,10 +3,10 @@ package gateway
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/cache"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
-	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/pkg/cache"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/bytedance/sonic"
 	grpcStatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"

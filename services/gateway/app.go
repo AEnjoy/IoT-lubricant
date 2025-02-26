@@ -7,16 +7,17 @@ import (
 	"os"
 	"strconv"
 
-	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
-	repo2 "github.com/AEnjoy/IoT-lubricant/pkg/model/repo"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
-	"github.com/AEnjoy/IoT-lubricant/services/gateway/services/agent"
-	"github.com/AEnjoy/IoT-lubricant/services/gateway/services/async"
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/types"
+	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
+	"github.com/aenjoy/iot-lubricant/services/gateway/services/agent"
+	"github.com/aenjoy/iot-lubricant/services/gateway/services/async"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -28,11 +29,11 @@ type app struct {
 	ctrl       context.Context
 	hostConfig *model.ServerInfo
 
-	repo2.IGatewayDb
+	repo.IGatewayDb
 	agent agent.Apis
 	task  async.Task
 
-	grpcClient core.CoreServiceClient //grpc
+	grpcClient corepb.CoreServiceClient //grpc
 }
 
 func NewApp(opts ...func(*app) error) *app {
@@ -67,7 +68,7 @@ func SetGatewayId(id string) func(*app) error {
 	}
 }
 
-func UseDB(db *repo2.GatewayDb) func(*app) error {
+func UseDB(db *repo.GatewayDb) func(*app) error {
 	return func(a *app) error {
 		a.IGatewayDb = db
 		if a.hostConfig != nil {
@@ -115,7 +116,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 			}
 		}
 
-		a.grpcClient = core.NewCoreServiceClient(conn)
+		a.grpcClient = corepb.NewCoreServiceClient(conn)
 
 		// ping stream
 		stream, err := a.grpcClient.Ping(a.ctrl)
@@ -124,7 +125,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 			return err
 		}
 
-		if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
+		if err := stream.Send(&metapb.Ping{Flag: 0}); err != nil {
 			logger.Errorf("Failed to send ping request to server: %v", err)
 			return err
 		}

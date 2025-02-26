@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/AEnjoy/IoT-lubricant/cmd/test/agent/cmd"
-	def "github.com/AEnjoy/IoT-lubricant/pkg/default"
+	"github.com/aenjoy/iot-lubricant/cmd/test/agent/cmd"
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/spf13/cobra"
 )
 

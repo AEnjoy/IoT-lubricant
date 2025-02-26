@@ -7,8 +7,8 @@
 package core
 
 import (
-	meta "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
-	proxy "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	meta "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	proxy "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	status "google.golang.org/genproto/googleapis/rpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -1514,12 +1514,12 @@ var file_protobuf_core_coreService_gateway_proto_goTypes = []any{
 	(*GetCoreCapacityResponse)(nil),  // 13: lubricant.core.getCoreCapacityResponse
 	(*ReportErrorRequest)(nil),       // 14: lubricant.core.reportErrorRequest
 	(*ReportErrorResponse)(nil),      // 15: lubricant.core.reportErrorResponse
-	(*proxy.StartAgentRequest)(nil),  // 16: lubricant.proxy.StartAgentRequest
-	(*proxy.CreateAgentRequest)(nil), // 17: lubricant.proxy.CreateAgentRequest
-	(*proxy.EditAgentRequest)(nil),   // 18: lubricant.proxy.EditAgentRequest
-	(*proxy.RemoveAgentRequest)(nil), // 19: lubricant.proxy.RemoveAgentRequest
-	(*proxy.StopAgentRequest)(nil),   // 20: lubricant.proxy.StopAgentRequest
-	(*proxy.UpdateAgentRequest)(nil), // 21: lubricant.proxy.UpdateAgentRequest
+	(*proxy.StartAgentRequest)(nil),  // 16: lubricant.gateway.StartAgentRequest
+	(*proxy.CreateAgentRequest)(nil), // 17: lubricant.gateway.CreateAgentRequest
+	(*proxy.EditAgentRequest)(nil),   // 18: lubricant.gateway.EditAgentRequest
+	(*proxy.RemoveAgentRequest)(nil), // 19: lubricant.gateway.RemoveAgentRequest
+	(*proxy.StopAgentRequest)(nil),   // 20: lubricant.gateway.StopAgentRequest
+	(*proxy.UpdateAgentRequest)(nil), // 21: lubricant.gateway.UpdateAgentRequest
 	(*meta.ErrorMessage)(nil),        // 22: lubricant.ErrorMessage
 	(*emptypb.Empty)(nil),            // 23: google.protobuf.Empty
 	(*anypb.Any)(nil),                // 24: google.protobuf.Any
@@ -1527,12 +1527,12 @@ var file_protobuf_core_coreService_gateway_proto_goTypes = []any{
 	(*meta.Ping)(nil),                // 26: lubricant.Ping
 }
 var file_protobuf_core_coreService_gateway_proto_depIdxs = []int32{
-	16, // 0: lubricant.core.TaskDetail.startAgentRequest:type_name -> lubricant.proxy.StartAgentRequest
-	17, // 1: lubricant.core.TaskDetail.createAgentRequest:type_name -> lubricant.proxy.CreateAgentRequest
-	18, // 2: lubricant.core.TaskDetail.editAgentRequest:type_name -> lubricant.proxy.EditAgentRequest
-	19, // 3: lubricant.core.TaskDetail.removeAgentRequest:type_name -> lubricant.proxy.RemoveAgentRequest
-	20, // 4: lubricant.core.TaskDetail.stopAgentRequest:type_name -> lubricant.proxy.StopAgentRequest
-	21, // 5: lubricant.core.TaskDetail.updateAgentRequest:type_name -> lubricant.proxy.UpdateAgentRequest
+	16, // 0: lubricant.core.TaskDetail.startAgentRequest:type_name -> lubricant.gateway.StartAgentRequest
+	17, // 1: lubricant.core.TaskDetail.createAgentRequest:type_name -> lubricant.gateway.CreateAgentRequest
+	18, // 2: lubricant.core.TaskDetail.editAgentRequest:type_name -> lubricant.gateway.EditAgentRequest
+	19, // 3: lubricant.core.TaskDetail.removeAgentRequest:type_name -> lubricant.gateway.RemoveAgentRequest
+	20, // 4: lubricant.core.TaskDetail.stopAgentRequest:type_name -> lubricant.gateway.StopAgentRequest
+	21, // 5: lubricant.core.TaskDetail.updateAgentRequest:type_name -> lubricant.gateway.UpdateAgentRequest
 	3,  // 6: lubricant.core.Task.gatewayTryGetTaskRequest:type_name -> lubricant.core.GatewayTryGetTaskRequest
 	4,  // 7: lubricant.core.Task.gatewayGetTaskResponse:type_name -> lubricant.core.GatewayGetTaskResponse
 	5,  // 8: lubricant.core.Task.corePushTaskRequest:type_name -> lubricant.core.CorePushTaskRequest

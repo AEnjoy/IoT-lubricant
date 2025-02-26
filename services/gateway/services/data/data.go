@@ -5,28 +5,28 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 )
 
 var _ Apis = (*data)(nil)
 
 type data struct {
-	data  []*agent.DataMessage
+	data  []*agentpb.DataMessage
 	cycle int //agent数据采集周期
 	//loadTime   string // 第一次数据上载时间
 	sendSignal chan struct{}
 	l          sync.Mutex
 
 	lastLen int
-	cache   *core.Data
+	cache   *corepb.Data
 }
 
-func (d *data) Store(message *agent.DataMessage) error {
+func (d *data) Store(message *agentpb.DataMessage) error {
 	return d.Push(message)
 }
 
-func (d *data) Push(message *agent.DataMessage) error {
+func (d *data) Push(message *agentpb.DataMessage) error {
 	d.l.Lock()
 	defer d.l.Unlock()
 
@@ -34,7 +34,7 @@ func (d *data) Push(message *agent.DataMessage) error {
 	return nil
 }
 
-func (d *data) Pop() *core.Data {
+func (d *data) Pop() *corepb.Data {
 	d.l.Lock()
 	defer d.l.Unlock()
 	defer d.cleanData()
@@ -42,13 +42,13 @@ func (d *data) Pop() *core.Data {
 	return d.top()
 }
 
-func (d *data) Top() *core.Data {
+func (d *data) Top() *corepb.Data {
 	d.l.Lock()
 	defer d.l.Unlock()
 
 	return d.top()
 }
-func (d *data) top() *core.Data {
+func (d *data) top() *corepb.Data {
 	if len(d.data) == 0 {
 		return nil
 	}
@@ -69,20 +69,20 @@ func (d *data) Clean() error {
 	return nil
 }
 
-func (a *data) parseData(in *agent.DataMessage) {
+func (a *data) parseData(in *agentpb.DataMessage) {
 	a.data = append(a.data, in)
 	if rand.Intn(101) > 70 {
 		a.makeCache()
 	}
 }
 func (a *data) cleanData() {
-	a.data = make([]*agent.DataMessage, 0)
+	a.data = make([]*agentpb.DataMessage, 0)
 
 	a.cache = nil
 	a.lastLen = 0
 }
-func (a *data) coverToGrpcData() *core.Data {
-	var data core.Data
+func (a *data) coverToGrpcData() *corepb.Data {
+	var data corepb.Data
 	for _, datum := range a.data {
 		for _, singleData := range datum.GetData() {
 			data.Data = append(data.Data, singleData)

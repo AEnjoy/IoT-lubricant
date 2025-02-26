@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	agent "github.com/AEnjoy/IoT-lubricant/internal/app/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/utils"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
+	"github.com/aenjoy/iot-lubricant/services/agent"
 	"github.com/joho/godotenv"
 )
 

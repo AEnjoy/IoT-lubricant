@@ -7,15 +7,15 @@ import (
 	"net"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	corepb "github.com/AEnjoy/IoT-lubricant/protobuf/core"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/meta"
-	"github.com/AEnjoy/IoT-lubricant/services/gateway/services/data"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-var _ = &meta.Ping{
+var _ = &metapb.Ping{
 	Flag: 0,
 }
 
@@ -265,7 +265,7 @@ func (a *app) grpcPingApp() error {
 			return err
 		}
 		for {
-			if err := stream.Send(&meta.Ping{Flag: 0}); err != nil {
+			if err := stream.Send(&metapb.Ping{Flag: 0}); err != nil {
 				if err == io.EOF {
 					logger.Errorln("grpc stream closed", "lost link with server")
 					return nil

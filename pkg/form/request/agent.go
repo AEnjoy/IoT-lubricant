@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
+	"github.com/aenjoy/iot-lubricant/pkg/types/container"
 )
 
 type AddAgentRequest struct {

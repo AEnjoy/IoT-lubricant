@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/docker"
-	errCh "github.com/AEnjoy/IoT-lubricant/pkg/error"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	model2 "github.com/AEnjoy/IoT-lubricant/pkg/model"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model/repo"
-	errLevel "github.com/AEnjoy/IoT-lubricant/pkg/types/code"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	exceptCode "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
-	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	"github.com/aenjoy/iot-lubricant/pkg/docker"
+	errCh "github.com/aenjoy/iot-lubricant/pkg/error"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/bytedance/sonic"
 	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
 	"gorm.io/gorm"
@@ -36,7 +36,7 @@ func (a *agentApis) init() {
 	}
 	//todo: 这里可以加个并发限速防止goroutine合并/丢弃
 	for _, agent := range agents {
-		go func(agent *model2.Agent) {
+		go func(agent *model.Agent) {
 			ins := a.db.GetAgentInstance(nil, agent.AgentId)
 			control := newAgentControl(agent)
 
@@ -57,10 +57,10 @@ func (a *agentApis) init() {
 func (a *agentApis) StartAgent(id string) error {
 	ctrl := a.pool.GetAgentControl(id)
 	if ctrl == nil {
-		return exception.New(exceptCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
 	}
 	if !a.isLocalAgentDevice(id) {
-		return exception.New(exceptCode.OperationOnlyAtLocal, exception.WithLevel(errLevel.Error),
+		return exception.New(exceptionCode.OperationOnlyAtLocal, exception.WithLevel(errLevel.Error),
 			exception.WithMsg(fmt.Sprintf("agentID:%s", id)),
 			exception.WithReason("Cannot control manually added agent instances to online, please manage manually."))
 	}
@@ -69,7 +69,7 @@ func (a *agentApis) StartAgent(id string) error {
 	if !docker.IsContainerRunning(ins.ContainerID) {
 		err := bootAgentInstance(ins.ContainerID)
 		if err != nil {
-			return exception.ErrNewException(err, exceptCode.ErrorAgentStartFailed,
+			return exception.ErrNewException(err, exceptionCode.ErrorAgentStartFailed,
 				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
 		}
@@ -104,16 +104,16 @@ func (a *agentApis) RemoveAgent(id string) error {
 
 	err := ctrl.StopGather()
 	if err != nil {
-		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed", true)
+		errorCh.Report(err, exceptionCode.StopAgentFailed, "stop gather failed", true)
 		return err
 	}
 	if ins.Local {
 		if err = docker.Stop(ctx, ins.ContainerID); err != nil {
-			errorCh.Report(err, exceptCode.StopAgentFailed, "stop agent container failed", true)
+			errorCh.Report(err, exceptionCode.StopAgentFailed, "stop agent container failed", true)
 			return err
 		}
 		if err = docker.Remove(ctx, ins.ContainerID); err != nil {
-			errorCh.Report(err, exceptCode.RemoveAgentFailed, "remove agent container failed", true)
+			errorCh.Report(err, exceptionCode.RemoveAgentFailed, "remove agent container failed", true)
 			return err
 		}
 	} else {
@@ -127,7 +127,7 @@ func (a *agentApis) RemoveAgent(id string) error {
 }
 
 // todo: update 和 edit 需要做下功能区分
-func (a *agentApis) UpdateAgent(id string, conf *model2.CreateAgentRequest) error {
+func (a *agentApis) UpdateAgent(id string, conf *model.CreateAgentRequest) error {
 	txn := a.db.Begin()
 	errorCh := errCh.NewErrorChan()
 	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
@@ -138,18 +138,18 @@ func (a *agentApis) UpdateAgent(id string, conf *model2.CreateAgentRequest) erro
 
 	// todo:可以校验请求是否与数据库的Agent最初的配置一致
 	ins := a.db.GetAgentInstance(txn, id)
-	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, ins model2.AgentInstance) {
+	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, ins model.AgentInstance) {
 		if err := db.UpdateAgentInstance(txn, id, ins); err != nil {
-			err = exception.ErrNewException(err, exceptCode.ErrorAgentUpdateFailed,
+			err = exception.ErrNewException(err, exceptionCode.ErrorAgentUpdateFailed,
 				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("agentID:%s", id)),
 				exception.WithMsg("at update agent instance database commit"))
-			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
+			errorCh.Report(err, exceptionCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
 		}
 	}(a.db, txn, id, ins)
-	originCreateConf := &model2.CreateAgentRequest{CreateAgentConf: new(model2.CreateAgentConf), AgentInfo: new(model2.Agent)}
+	originCreateConf := &model.CreateAgentRequest{CreateAgentConf: new(model.CreateAgentConf), AgentInfo: new(model.Agent)}
 	if err := sonic.Unmarshal([]byte(ins.CreateConf), originCreateConf.CreateAgentConf); err != nil {
-		errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
+		errorCh.Report(err, exceptionCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
 		return err
 	}
 
@@ -164,7 +164,7 @@ func (a *agentApis) UpdateAgent(id string, conf *model2.CreateAgentRequest) erro
 			if conf.AgentContainerInfo != nil {
 				id, err := docker.UpdateContainer(context.Background(), conf.AgentContainerInfo, ins.ContainerID)
 				if err != nil {
-					errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent container failed", true)
+					errorCh.Report(err, exceptionCode.ErrorAgentUpdateFailed, "update agent container failed", true)
 					return err
 				}
 				ins.ContainerID = id
@@ -172,16 +172,16 @@ func (a *agentApis) UpdateAgent(id string, conf *model2.CreateAgentRequest) erro
 			if conf.DriverContainerInfo != nil {
 				id, err := docker.UpdateContainer(context.Background(), conf.DriverContainerInfo, ins.DriverID)
 				if err != nil {
-					errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update driver container failed", true)
+					errorCh.Report(err, exceptionCode.ErrorAgentUpdateFailed, "update driver container failed", true)
 					return err
 				}
 				ins.DriverID = id
 			}
 		}
 	} else {
-		err := exception.New(exceptCode.ErrorAgentUpdateNotSupportRemote, exception.WithLevel(errLevel.Error),
+		err := exception.New(exceptionCode.ErrorAgentUpdateNotSupportRemote, exception.WithLevel(errLevel.Error),
 			exception.WithMsg("agent container conf is needed"))
-		errorCh.Report(err, exceptCode.ErrorAgentUpdateNotSupportRemote, "please manually update your remote agent or recreate agent", true)
+		errorCh.Report(err, exceptionCode.ErrorAgentUpdateNotSupportRemote, "please manually update your remote agent or recreate agent", true)
 		return err
 	}
 	return nil
@@ -196,31 +196,31 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 	}).Do()
 
 	ins := a.db.GetAgentInstance(txn, req.GetAgentId())
-	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, ins model2.AgentInstance) {
+	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, ins model.AgentInstance) {
 		if err := db.UpdateAgentInstance(txn, id, ins); err != nil {
-			err = exception.ErrNewException(err, exceptCode.ErrorAgentUpdateFailed,
+			err = exception.ErrNewException(err, exceptionCode.ErrorAgentUpdateFailed,
 				exception.WithLevel(errLevel.Error),
 				exception.WithMsg(fmt.Sprintf("agentID:%s", id)),
 				exception.WithMsg("at update agent instance database commit"))
-			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
+			errorCh.Report(err, exceptionCode.ErrorAgentUpdateFailed, "update agent instance failed", true)
 		}
 	}(a.db, txn, req.GetAgentId(), ins)
 
 	// 四种情况: 1.local-> local  2.remote -> remote 3.local -> remote 4.remote -> local
 	ctrl := a.pool.GetAgentControl(req.GetAgentId())
-	m := model2.ProxypbEditAgentRequest2Agent(req)
+	m := model.ProxypbEditAgentRequest2Agent(req)
 	if len(req.GetConf()) > 0 {
-		createConf := model2.CreateAgentRequest{AgentInfo: &model2.Agent{}}
+		createConf := model.CreateAgentRequest{AgentInfo: &model.Agent{}}
 		if err := sonic.Unmarshal(req.GetConf(), &createConf); err != nil {
-			errorCh.Report(err, exceptCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
+			errorCh.Report(err, exceptionCode.ErrorDecodeJSON, "unmarshal agent conf failed", true)
 			return err
 		}
 		if err := a.RemoveAgent(req.GetAgentId()); err != nil {
-			errorCh.Report(err, exceptCode.RemoveAgentFailed, "update agent container failed(at remove old agent)", true)
+			errorCh.Report(err, exceptionCode.RemoveAgentFailed, "update agent container failed(at remove old agent)", true)
 			return err
 		}
 		if err := a.CreateAgent(&createConf); err != nil {
-			errorCh.Report(err, exceptCode.ErrorAgentUpdateFailed, "update agent setting failed(at create new agent)", true)
+			errorCh.Report(err, exceptionCode.ErrorAgentUpdateFailed, "update agent setting failed(at create new agent)", true)
 			return err
 		}
 		m.Cycle = createConf.AgentInfo.Cycle
@@ -230,33 +230,33 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 		}
 	}
 
-	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, agent *model2.Agent) {
+	defer func(db repo.IGatewayDb, txn *gorm.DB, id string, agent *model.Agent) {
 		err := db.UpdateAgent(txn, id, agent)
 		if err != nil {
-			errorCh.Report(err, exceptCode.UpdateAgentFailed, "update db agent info failed due to:%v", true)
+			errorCh.Report(err, exceptionCode.UpdateAgentFailed, "update db agent info failed due to:%v", true)
 		}
 	}(a.db, txn, req.GetAgentId(), m)
 
 	if err := ctrl.StopGather(); err != nil {
-		errorCh.Report(err, exceptCode.StopAgentFailed, "stop gather failed due to:%v", true)
+		errorCh.Report(err, exceptionCode.StopAgentFailed, "stop gather failed due to:%v", true)
 		return err
 	}
 
 	setResp, err := ctrl.AgentCli.SetAgent(context.Background(),
 		&agentpb.SetAgentRequest{AgentID: req.GetAgentId(), AgentInfo: req.Info})
 	if err != nil {
-		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%v", true)
+		errorCh.Report(err, exceptionCode.SetAgentFailed, "set agent failed due to:%v", true)
 		return err
 	}
 	if grpcCode.Code(setResp.GetInfo().GetCode()) != grpcCode.Code_OK ||
 		(grpcCode.Code(setResp.GetInfo().GetCode()) == grpcCode.Code_INVALID_ARGUMENT && setResp.GetInfo().GetMessage() != "Gather is not working") {
-		errorCh.Report(err, exceptCode.SetAgentFailed, "set agent failed due to:%s", true, setResp.GetInfo().GetMessage())
+		errorCh.Report(err, exceptionCode.SetAgentFailed, "set agent failed due to:%s", true, setResp.GetInfo().GetMessage())
 		return err
 	}
 
 	_ = ctrl.Start(context.Background())
 	if err = ctrl.StartGather(); err != nil {
-		errorCh.Report(err, exceptCode.StartAgentFailed, "online agent failed", true)
+		errorCh.Report(err, exceptionCode.StartAgentFailed, "online agent failed", true)
 		return err
 	}
 	return nil
@@ -267,13 +267,13 @@ func (a *agentApis) SetAgent(id string, info *agentpb.AgentInfo) error {
 func (a *agentApis) GetAgentInfo(id string) (*agentpb.AgentInfo, error) {
 	panic("implement me")
 }
-func (a *agentApis) GetAgentModel(id string) (*model2.Agent, error) {
+func (a *agentApis) GetAgentModel(id string) (*model.Agent, error) {
 	panic("implement me")
 }
-func (a *agentApis) AddAgent(req *model2.CreateAgentRequest) error {
+func (a *agentApis) AddAgent(req *model.CreateAgentRequest) error {
 	return a.CreateAgent(req)
 }
-func (a *agentApis) CreateAgent(req *model2.CreateAgentRequest) error {
+func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 	logger.Debugf("%+v,%+v", req.AgentInfo, req.CreateAgentConf)
 	txn := a.db.Begin()
 	errorCh := errCh.NewErrorChan()
@@ -283,7 +283,7 @@ func (a *agentApis) CreateAgent(req *model2.CreateAgentRequest) error {
 		a.db.Commit(txn)
 	}).Do()
 
-	var instance model2.AgentInstance
+	var instance model.AgentInstance
 	instance.CreateConf, _ = sonic.MarshalString(req.CreateAgentConf)
 
 	// 处理添加不在本机agent的情况
@@ -297,12 +297,12 @@ func (a *agentApis) CreateAgent(req *model2.CreateAgentRequest) error {
 		if req.CreateAgentConf.DriverContainerInfo != nil {
 			resp, err := docker.Create(context.Background(), req.CreateAgentConf.DriverContainerInfo)
 			if err != nil {
-				errorCh.Report(err, exceptCode.AddAgentFailed, "add edge driver failed", true)
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "add edge driver failed", true)
 				return err
 			}
 			driverIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
 			if err != nil {
-				errorCh.Report(err, exceptCode.AddAgentFailed, "failed to get driver container ip", true)
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "failed to get driver container ip", true)
 				return err
 			}
 		}
@@ -310,12 +310,12 @@ func (a *agentApis) CreateAgent(req *model2.CreateAgentRequest) error {
 			req.CreateAgentConf.AgentContainerInfo.Env["DRIVER_IP"] = driverIP
 			resp, err := docker.Create(context.Background(), req.CreateAgentConf.AgentContainerInfo)
 			if err != nil {
-				errorCh.Report(err, exceptCode.AddAgentFailed, "add edge agent failed", true)
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "add edge agent failed", true)
 				return err
 			}
 			agentIP, err = docker.GetContainerIPAddress(context.Background(), resp.ID)
 			if err != nil {
-				errorCh.Report(err, exceptCode.AddAgentFailed, "failed to get agent container ip", true)
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "failed to get agent container ip", true)
 				return err
 			}
 			instance.ContainerID = resp.ID
@@ -328,12 +328,12 @@ func (a *agentApis) CreateAgent(req *model2.CreateAgentRequest) error {
 	logger.Debugf("Instance： %+v", instance)
 	err := a.db.AddAgentInstance(txn, &instance)
 	if err != nil {
-		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
+		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
 	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo))
 	if err != nil {
-		errorCh.Report(err, exceptCode.AddAgentFailed, "add agent instance failed", true)
+		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
 	return nil

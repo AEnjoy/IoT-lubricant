@@ -3,11 +3,11 @@ package data
 import (
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/crontab"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/crontab"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 )
 
-var dataSendQueue chan *core.Data
+var dataSendQueue chan *corepb.Data
 
 var once sync.Once
 
@@ -25,10 +25,10 @@ func InitDataSendQueue() {
 		})
 	}
 	once.Do(func() {
-		dataSendQueue = make(chan *core.Data, 100)
+		dataSendQueue = make(chan *corepb.Data, 100)
 		_ = crontab.RegisterCron(handelData, "@every 2m")
 	})
 }
-func GetDataSendQueue() <-chan *core.Data {
+func GetDataSendQueue() <-chan *corepb.Data {
 	return dataSendQueue
 }

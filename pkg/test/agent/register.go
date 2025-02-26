@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"net/http"
 
-	testMeta "github.com/AEnjoy/IoT-lubricant/pkg/test"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	testMeta "github.com/aenjoy/iot-lubricant/pkg/test"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 )
 
-func TestRegisterGateway(cli agent.EdgeServiceClient) *testMeta.Result {
+func TestRegisterGateway(cli agentpb.EdgeServiceClient) *testMeta.Result {
 	fmt.Println("Test_RegisterGateway:")
 	fmt.Print("--Test error target:")
 	registerGatewayResponse, err := cli.RegisterGateway(context.Background(),
-		&agent.RegisterGatewayRequest{},
+		&agentpb.RegisterGatewayRequest{},
 	)
 	if err != nil {
 		return &testMeta.Result{Success: false, Message: err.Error()}
@@ -23,7 +23,7 @@ func TestRegisterGateway(cli agent.EdgeServiceClient) *testMeta.Result {
 	}
 	fmt.Print("--Test success register:")
 	registerGatewayResponse, err = cli.RegisterGateway(context.Background(),
-		&agent.RegisterGatewayRequest{
+		&agentpb.RegisterGatewayRequest{
 			AgentID:   testMeta.AgentID,
 			GatewayID: testMeta.GatewayID,
 		},

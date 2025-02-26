@@ -3,15 +3,15 @@ package agent
 import (
 	"fmt"
 
-	testMeta "github.com/AEnjoy/IoT-lubricant/pkg/test"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	testMeta "github.com/aenjoy/iot-lubricant/pkg/test"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 )
 
-func TestGetDataStream(cli agent.EdgeServiceClient) *testMeta.Result {
+func TestGetDataStream(cli agentpb.EdgeServiceClient) *testMeta.Result {
 	// todo implement me
 	panic("implement me")
 }
-func TestGetGatherData(cli agent.EdgeServiceClient, testType int) *testMeta.Result {
+func TestGetGatherData(cli agentpb.EdgeServiceClient, testType int) *testMeta.Result {
 	fmt.Println("Test_GetGatherData:")
 	//
 	switch testType {
@@ -23,7 +23,7 @@ func TestGetGatherData(cli agent.EdgeServiceClient, testType int) *testMeta.Resu
 	return &testMeta.Result{Success: false, Message: "not support test type"}
 }
 
-func TestSendHttpRequest(cli agent.EdgeServiceClient, testType int) *testMeta.Result {
+func TestSendHttpRequest(cli agentpb.EdgeServiceClient, testType int) *testMeta.Result {
 	fmt.Println("Test_SendHttpRequest:")
 	switch testType {
 	// todo

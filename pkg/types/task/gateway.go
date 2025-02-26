@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
+	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 )
 
 type Way uint8

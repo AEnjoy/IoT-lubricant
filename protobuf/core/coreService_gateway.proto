@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "protobuf/meta/meta.proto";
-import "protobuf/proxy/api_agent.proto";
+import "protobuf/gateway/api_agent.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
 import "google/rpc/status.proto";
@@ -26,12 +26,12 @@ message TaskDetail {
   string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
   bytes content = 3; // json格式 []byte
   oneof task{
-    proxy.StartAgentRequest startAgentRequest = 4;
-    proxy.CreateAgentRequest createAgentRequest=5;
-    proxy.EditAgentRequest editAgentRequest=6;
-    proxy.RemoveAgentRequest removeAgentRequest=7;
-    proxy.StopAgentRequest stopAgentRequest=8;
-    proxy.UpdateAgentRequest updateAgentRequest=9;
+    gateway.StartAgentRequest startAgentRequest = 4;
+    gateway.CreateAgentRequest createAgentRequest=5;
+    gateway.EditAgentRequest editAgentRequest=6;
+    gateway.RemoveAgentRequest removeAgentRequest=7;
+    gateway.StopAgentRequest stopAgentRequest=8;
+    gateway.UpdateAgentRequest updateAgentRequest=9;
   }
 }
 

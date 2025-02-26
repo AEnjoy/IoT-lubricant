@@ -1,6 +1,6 @@
 package request
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/types/crypto"
+import "github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 
 type AddGatewayHostRequest struct {
 	Host        string `json:"host"` // ip:port

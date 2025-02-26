@@ -3,10 +3,10 @@ package async
 import (
 	"sync/atomic"
 
-	"github.com/AEnjoy/IoT-lubricant/internal/cache"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	code "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/pkg/cache"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	taskCode "github.com/aenjoy/iot-lubricant/pkg/types/task"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/panjf2000/ants/v2"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -14,17 +14,17 @@ import (
 var _ Task = (*task)(nil)
 
 type task struct {
-	result   *cache.MemoryCache[*core.QueryTaskResultResponse] // id -> QueryTaskResultResponse
-	queue    chan *core.TaskDetail
+	result   *cache.MemoryCache[*corepb.QueryTaskResultResponse] // id -> QueryTaskResultResponse
+	queue    chan *corepb.TaskDetail
 	notify   chan string
-	actor    func(*core.TaskDetail, *cache.MemoryCache[*core.QueryTaskResultResponse])
+	actor    func(*corepb.TaskDetail, *cache.MemoryCache[*corepb.QueryTaskResultResponse])
 	pool     *ants.Pool
 	finished int32
 }
 
 func (r *task) init() {
-	r.result = cache.NewMemoryCache[*core.QueryTaskResultResponse]()
-	r.queue = make(chan *core.TaskDetail, 100)
+	r.result = cache.NewMemoryCache[*corepb.QueryTaskResultResponse]()
+	r.queue = make(chan *corepb.TaskDetail, 100)
 	r.notify = make(chan string, 5)
 	var err error
 	r.pool, err = ants.NewPool(100, ants.WithPreAlloc(true))
@@ -44,9 +44,9 @@ func (r *task) run() {
 		})
 		if err != nil {
 			logger.Errorf("submit task failed: %v", err)
-			result := cache.NewStoreResult[*core.QueryTaskResultResponse](cache.NeverExpired, &core.QueryTaskResultResponse{
+			result := cache.NewStoreResult[*corepb.QueryTaskResultResponse](cache.NeverExpired, &corepb.QueryTaskResultResponse{
 				TaskId: detail.TaskId,
-				Result: &core.QueryTaskResultResponse_NotFound{
+				Result: &corepb.QueryTaskResultResponse_NotFound{
 					NotFound: &status.Status{
 						Message: "Task execute failed",
 					},
@@ -57,13 +57,13 @@ func (r *task) run() {
 	}
 }
 
-func (r *task) AddTask(task *core.TaskDetail, notice bool) {
-	result := cache.NewStoreResult[*core.QueryTaskResultResponse](cache.NeverExpired,
-		&core.QueryTaskResultResponse{
+func (r *task) AddTask(task *corepb.TaskDetail, notice bool) {
+	result := cache.NewStoreResult[*corepb.QueryTaskResultResponse](cache.NeverExpired,
+		&corepb.QueryTaskResultResponse{
 			TaskId: task.TaskId,
-			Result: &core.QueryTaskResultResponse_Pending{
+			Result: &corepb.QueryTaskResultResponse_Pending{
 				Pending: &status.Status{
-					Code:    code.TaskStatusPending,
+					Code:    taskCode.TaskStatusPending,
 					Message: "Task is pending due to the actuator does not run this task",
 				},
 			},
@@ -75,20 +75,20 @@ func (r *task) AddTask(task *core.TaskDetail, notice bool) {
 	r.result.Set(task.TaskId, "-", result)
 	r.queue <- task
 }
-func (r *task) Query(id string) *core.QueryTaskResultResponse {
+func (r *task) Query(id string) *corepb.QueryTaskResultResponse {
 	if v, ok := r.result.GetCache(id); ok {
 		return v
 	}
-	return &core.QueryTaskResultResponse{
+	return &corepb.QueryTaskResultResponse{
 		TaskId: id,
-		Result: &core.QueryTaskResultResponse_NotFound{
+		Result: &corepb.QueryTaskResultResponse_NotFound{
 			NotFound: &status.Status{
 				Message: "Task not found",
 			},
 		},
 	}
 }
-func (r *task) SetActor(f func(*core.TaskDetail, *cache.MemoryCache[*core.QueryTaskResultResponse])) {
+func (r *task) SetActor(f func(*corepb.TaskDetail, *cache.MemoryCache[*corepb.QueryTaskResultResponse])) {
 	r.actor = f
 }
 func (r *task) Release() {

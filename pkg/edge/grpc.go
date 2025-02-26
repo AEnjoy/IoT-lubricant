@@ -1,7 +1,7 @@
 package edge
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	"github.com/aenjoy/iot-lubricant/protobuf/agent"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

@@ -4,7 +4,7 @@ package model
 import (
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
 )
 
 type EdgeSystem struct {

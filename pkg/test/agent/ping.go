@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	testMeta "github.com/AEnjoy/IoT-lubricant/pkg/test"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	agentMeta "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	testMeta "github.com/aenjoy/iot-lubricant/pkg/test"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	agentMeta "github.com/aenjoy/iot-lubricant/protobuf/meta"
 )
 
-func TestPing(cli agent.EdgeServiceClient) *testMeta.Result {
+func TestPing(cli agentpb.EdgeServiceClient) *testMeta.Result {
 	fmt.Println("Test Ping:")
 	pingResult, err := cli.Ping(context.Background(), &agentMeta.Ping{})
 	if err != nil {

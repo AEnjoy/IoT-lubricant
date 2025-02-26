@@ -1,7 +1,7 @@
 package gateway
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
 )
 
 func HandelCreateAgentRequest(req *model.CreateAgentRequest) (*model.CreateAgentResponse, error) {

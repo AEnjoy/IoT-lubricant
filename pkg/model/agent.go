@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/default"
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/container"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/task"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	"github.com/aenjoy/iot-lubricant/pkg/default"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/types/container"
+	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
+	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/bytedance/sonic"
 	"github.com/docker/docker/api/types/network"
 )
@@ -62,7 +62,7 @@ type CreateAgentConf struct {
 	OpenApiDoc          *openapi.OpenAPICli  `json:"open_api_doc,omitempty"`
 }
 
-func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *proxy.CreateAgentRequest) *CreateAgentRequest {
+func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *gatewaypb.CreateAgentRequest) *CreateAgentRequest {
 	logger.Debugf("%+v", pbreq)
 	var retVal = &CreateAgentRequest{AgentInfo: &Agent{}, CreateAgentConf: &CreateAgentConf{}}
 	retVal.AgentInfo.GatewayId = pbreq.GetInfo().GetGatewayID()

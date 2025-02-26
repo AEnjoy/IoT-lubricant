@@ -8,8 +8,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
+	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
 	json "github.com/bytedance/sonic"
 	"github.com/bytedance/sonic/decoder"
 )

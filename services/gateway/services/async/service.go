@@ -1,8 +1,8 @@
 package async
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/internal/cache"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/pkg/cache"
+	"github.com/aenjoy/iot-lubricant/protobuf/core"
 )
 
 type Task interface {

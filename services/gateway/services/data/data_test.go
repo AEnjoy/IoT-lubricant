@@ -5,15 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 var timer = time.Now().Format("2006-01-02 15:04:05")
 
-func newRandomDataMessage(n int) *agent.DataMessage {
-	data := &agent.DataMessage{DataGatherStartTime: timer}
+func newRandomDataMessage(n int) *agentpb.DataMessage {
+	data := &agentpb.DataMessage{DataGatherStartTime: timer}
 
 	var s [][]byte
 	for i := 0; i < n; i++ {
@@ -24,7 +24,7 @@ func newRandomDataMessage(n int) *agent.DataMessage {
 	return data
 }
 func newTestAgent(n int) *data {
-	agent := &data{data: make([]*agent.DataMessage, 0)}
+	agent := &data{data: make([]*agentpb.DataMessage, 0)}
 
 	for i := 0; i < n; i++ {
 		data := newRandomDataMessage(n)

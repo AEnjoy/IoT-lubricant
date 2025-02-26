@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	testMeta "github.com/AEnjoy/IoT-lubricant/pkg/test"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	testMeta "github.com/aenjoy/iot-lubricant/pkg/test"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 )
 
-func TestGetAgentInfo(cli agent.EdgeServiceClient) *testMeta.Result {
+func TestGetAgentInfo(cli agentpb.EdgeServiceClient) *testMeta.Result {
 	fmt.Println("Test_GetAgentInfo:")
-	_, err := cli.SetAgent(context.Background(), &agent.SetAgentRequest{
+	_, err := cli.SetAgent(context.Background(), &agentpb.SetAgentRequest{
 		AgentID: testMeta.AgentID,
-		AgentInfo: &agent.AgentInfo{
+		AgentInfo: &agentpb.AgentInfo{
 			AgentID:     testMeta.AgentID,
 			Description: &testMeta.AgentID,
 		},
@@ -21,7 +21,7 @@ func TestGetAgentInfo(cli agent.EdgeServiceClient) *testMeta.Result {
 		return &testMeta.Result{Success: false, Message: err.Error()}
 	}
 	fmt.Print("--Test set agent info: ")
-	info, err := cli.GetAgentInfo(context.Background(), &agent.GetAgentInfoRequest{
+	info, err := cli.GetAgentInfo(context.Background(), &agentpb.GetAgentInfoRequest{
 		AgentID: testMeta.AgentID,
 	})
 	if err != nil {

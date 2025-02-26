@@ -3,10 +3,10 @@ package agent
 import (
 	"sync"
 
-	model2 "github.com/AEnjoy/IoT-lubricant/pkg/model"
-	"github.com/AEnjoy/IoT-lubricant/pkg/model/repo"
-	agentpb "github.com/AEnjoy/IoT-lubricant/protobuf/agent"
-	proxypb "github.com/AEnjoy/IoT-lubricant/protobuf/proxy"
+	model2 "github.com/aenjoy/iot-lubricant/pkg/model"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 )
 
 type Apis interface {

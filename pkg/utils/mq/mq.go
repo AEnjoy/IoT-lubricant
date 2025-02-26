@@ -3,7 +3,7 @@ package mq
 import (
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils"
+	"github.com/aenjoy/iot-lubricant/pkg/utils"
 )
 
 var _ Mq = (*MessageQueue[any])(nil)
