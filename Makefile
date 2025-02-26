@@ -1,5 +1,18 @@
 PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
+VERSION := $(shell git rev-parse --abbrev-ref HEAD)
+BUILD_TIME := $(shell date +"%Y-%m-%d %H:%M:%S")
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+FEATURES := $(or $(ENV_LUBRICANT_ENABLE_FEATURES),default)
+BUILD_HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m)
+ifeq ($(shell uname -s),Linux)
+PLATFORM_VERSION := $(shell grep -E '^(NAME|VERSION)=' /etc/os-release | tr -d '"' | awk -F= '{print $$2}' | paste -sd ' ' -)
+else ifeq ($(shell uname -s),Windows)
+PLATFORM_VERSION := $(shell systeminfo | findstr /B /C:"OS Name" /C:"OS Version" | awk -F: '{print $$2}' | paste -sd ' ' -)
+else
+PLATFORM_VERSION := unknown
+endif
+
 .PHONY: test test-coverage install mock
 
 test: mock
@@ -38,7 +51,15 @@ build-gateway:
 	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
 
 build-core:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-core:nightly -f cmd/core/Dockerfile .
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
+		-f cmd/core/Dockerfile .
 
 docker-build: build-agent build-gateway build-core
 
