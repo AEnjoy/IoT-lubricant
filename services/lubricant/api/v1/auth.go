@@ -11,9 +11,9 @@ import (
 	"time"
 
 	def "github.com/aenjoy/iot-lubricant/pkg/default"
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"

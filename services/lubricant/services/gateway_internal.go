@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/response"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
