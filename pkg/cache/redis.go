@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
-	ioc "github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"github.com/redis/go-redis/v9"
 )
 

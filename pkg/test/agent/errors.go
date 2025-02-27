@@ -3,10 +3,10 @@ package agent
 import (
 	"net/http"
 
-	"github.com/aenjoy/iot-lubricant/protobuf/meta"
+	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 )
 
-func errIsTargetNotEqual(info *meta.CommonResponse) bool {
+func errIsTargetNotEqual(info *metapb.CommonResponse) bool {
 	if info == nil {
 		return false
 	}

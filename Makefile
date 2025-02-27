@@ -42,7 +42,10 @@ install:
 
 mock: install
 	mockgen \
-		-source=internal/model/repo/service.go -destination=pkg/mock/db/mockdb.go \
+		-source=services/gateway/repo/igateway.go -destination=pkg/mock/db/mockdb-gateway.go \
+		-package=db
+	mockgen \
+		-source=services/lubricant/repo/icore.go -destination=pkg/mock/db/mockdb-lubricant.go \
 		-package=db
 	mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
@@ -71,7 +74,7 @@ build-gateway: make-output-dir
 	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
-	./cmd/agent_proxy/main.go ./cmd/agent_proxy/start.go
+	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
 	echo "Gateway is not running at container"
@@ -86,15 +89,17 @@ build-core:
 		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
-		-f cmd/core/Dockerfile .
+		-f cmd/lubricant/Dockerfile .
 
-docker-build: build-agent build-gateway build-core
+build-lubricant: build-core
+
+docker-build: build-agent build-gateway build-lubricant
 
 load-to-kind-agent: build-agent
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
 load-to-kind-gateway: build-gateway
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-gateway:nightly
-load-to-kind-core: build-core
+load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
 
 load-to-kind: load-to-kind-agent load-to-kind-core

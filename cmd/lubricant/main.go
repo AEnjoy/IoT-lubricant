@@ -8,7 +8,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/cmd/lubricant/internal"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
 	"github.com/aenjoy/iot-lubricant/services/lubricant"
-	coreConfig "github.com/aenjoy/iot-lubricant/services/lubricant/config"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 )
 
 const (
@@ -36,7 +36,7 @@ func main() {
 		//core.UseDB(repo.DefaultCoreClient()),
 		lubricant.UseServerKey(),
 		lubricant.UseCasdoor(),
-		lubricant.UseSignalHandler(utils.HandelExitSignal(nil, coreConfig.SaveConfig, nil, 30*time.Second)),
+		lubricant.UseSignalHandler(utils.HandelExitSignal(nil, config.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
 }

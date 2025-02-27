@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
-	"github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 )
 
 type Agent struct {
@@ -23,7 +23,7 @@ type Agent struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at"`
 }
 
-func ProxypbEditAgentRequest2Agent(pbreq *gateway.EditAgentRequest) *Agent {
+func ProxypbEditAgentRequest2Agent(pbreq *gatewaypb.EditAgentRequest) *Agent {
 	return &Agent{
 		AgentId:     pbreq.GetAgentId(),
 		GatewayId:   pbreq.GetInfo().GetGatewayID(),

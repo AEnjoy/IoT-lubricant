@@ -1,8 +1,6 @@
 package request
 
-import (
-	"github.com/aenjoy/iot-lubricant/pkg/types/container"
-)
+import "github.com/aenjoy/iot-lubricant/pkg/types/container"
 
 type AddAgentRequest struct {
 	Description           string `json:"description"`

@@ -8,11 +8,11 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/auth"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	data "github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
-	ioc "github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	mqService "github.com/aenjoy/iot-lubricant/services/lubricant/mq"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/router"
-	service2 "github.com/aenjoy/iot-lubricant/services/lubricant/services"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/services"
 )
 
 var once sync.Once
@@ -31,8 +31,8 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_DATABASE_STORE:        &data.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 			ioc.APP_NAME_CORE_GRPC_AUTH_INTERCEPTOR: &auth.InterceptorImpl{},
 			ioc.APP_NAME_CORE_GRPC_SERVER:           &lubricant.Grpc{},
-			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &service2.GatewayService{},
-			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &service2.AgentService{},
+			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &services.GatewayService{},
+			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &services.AgentService{},
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
 			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:   &mqService.MqService{},
 		}

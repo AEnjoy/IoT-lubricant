@@ -1,8 +1,6 @@
 package request
 
-import (
-	"github.com/aenjoy/iot-lubricant/pkg/utils/hash"
-)
+import "github.com/aenjoy/iot-lubricant/pkg/utils/hash"
 
 type CreateUserRequest struct {
 	UserName string            `json:"username" gorm:"column:username"`
