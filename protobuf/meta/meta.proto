@@ -5,7 +5,7 @@ package lubricant;
 import "google/rpc/status.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/AEnjoy/IoT-lubricant/protobuf/meta";
+option go_package = "github.com/aenjoy/iot-lubricant/protobuf/meta";
 
 message ErrorMessage {
   optional int32 errorType = 1;

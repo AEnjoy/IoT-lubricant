@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	testMeta "github.com/AEnjoy/IoT-lubricant/pkg/test"
-	"github.com/AEnjoy/IoT-lubricant/protobuf/agent"
+	testMeta "github.com/aenjoy/iot-lubricant/pkg/test"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 )
 
-func TestGetOpenApiDoc(cli agent.EdgeServiceClient, docType *agent.OpenapiDocType, content *[]byte) *testMeta.Result {
+func TestGetOpenApiDoc(cli agentpb.EdgeServiceClient, docType *agentpb.OpenapiDocType, content *[]byte) *testMeta.Result {
 	fmt.Println("Test_GetOpenApiDoc:")
 	if docType == nil {
 		// test all
 		fmt.Print("--Test get all doc(should be null because of no setting):")
 		doc, err := cli.GetOpenapiDoc(context.Background(),
-			&agent.GetOpenapiDocRequest{
+			&agentpb.GetOpenapiDocRequest{
 				AgentID: testMeta.AgentID,
-				DocType: agent.OpenapiDocType_All,
+				DocType: agentpb.OpenapiDocType_All,
 			})
 		if err != nil {
 			return &testMeta.Result{Success: false, Message: err.Error()}
@@ -30,10 +30,10 @@ func TestGetOpenApiDoc(cli agent.EdgeServiceClient, docType *agent.OpenapiDocTyp
 	}
 	fmt.Print("--Test get doc: ")
 	switch *docType {
-	case agent.OpenapiDocType_enableFile:
-		doc, err := cli.GetOpenapiDoc(context.Background(), &agent.GetOpenapiDocRequest{
+	case agentpb.OpenapiDocType_enableFile:
+		doc, err := cli.GetOpenapiDoc(context.Background(), &agentpb.GetOpenapiDocRequest{
 			AgentID: testMeta.AgentID,
-			DocType: agent.OpenapiDocType_enableFile,
+			DocType: agentpb.OpenapiDocType_enableFile,
 		})
 		if err != nil {
 			return &testMeta.Result{Success: false, Message: err.Error()}
@@ -46,10 +46,10 @@ func TestGetOpenApiDoc(cli agent.EdgeServiceClient, docType *agent.OpenapiDocTyp
 		} else {
 			return &testMeta.Result{Success: false, Message: "Inconsistency between actual and expected"}
 		}
-	case agent.OpenapiDocType_originalFile:
-		doc, err := cli.GetOpenapiDoc(context.Background(), &agent.GetOpenapiDocRequest{
+	case agentpb.OpenapiDocType_originalFile:
+		doc, err := cli.GetOpenapiDoc(context.Background(), &agentpb.GetOpenapiDocRequest{
 			AgentID: testMeta.AgentID,
-			DocType: agent.OpenapiDocType_originalFile,
+			DocType: agentpb.OpenapiDocType_originalFile,
 		})
 		if err != nil {
 			return &testMeta.Result{Success: false, Message: err.Error()}

@@ -1,6 +1,6 @@
 package types
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/types/task"
+import "github.com/aenjoy/iot-lubricant/pkg/types/task"
 
 // messageQueue topic list
 

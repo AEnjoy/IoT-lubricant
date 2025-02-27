@@ -7,7 +7,7 @@
 package agent
 
 import (
-	meta "github.com/AEnjoy/IoT-lubricant/protobuf/meta"
+	meta "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

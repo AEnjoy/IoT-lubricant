@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/errs"
+	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
 )
 
 type Enable struct {

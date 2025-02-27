@@ -1,10 +1,10 @@
 package errs
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 )
 
 var (
-	ErrNeedTxn error = exception.New(code.ErrorDbNeedTxn)
+	ErrNeedTxn error = exception.New(exceptionCode.ErrorDbNeedTxn)
 )

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 )
 
 type GoMq[T any] struct {

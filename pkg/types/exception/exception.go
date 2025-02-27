@@ -4,20 +4,20 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/code"
-	except "github.com/AEnjoy/IoT-lubricant/pkg/types/exception/code"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/types/code"
+	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 )
 
 type Exception struct {
-	Code         except.ResCode `json:"code"`
-	Msg          []string       `json:"msg"`
-	Level        code.Level     `json:"level,omitempty"`
-	Reason       interface{}    `json:"reason,omitempty"`
-	DetailReason interface{}    `json:"detail_reason,omitempty"`
-	Data         interface{}    `json:"data,omitempty"`
-	Operation    Operation      `json:"-"`
-	ShowLog      bool           `json:"-"`
+	Code         exceptionCode.ResCode `json:"code"`
+	Msg          []string              `json:"msg"`
+	Level        code.Level            `json:"level,omitempty"`
+	Reason       interface{}           `json:"reason,omitempty"`
+	DetailReason interface{}           `json:"detail_reason,omitempty"`
+	Data         interface{}           `json:"data,omitempty"`
+	Operation    Operation             `json:"-"`
+	ShowLog      bool                  `json:"-"`
 	doOperation  bool
 }
 type Option func(*Exception)
@@ -77,13 +77,13 @@ func WithOperation(operation Operation, do bool) Option {
 		e.doOperation = do
 	}
 }
-func New(c except.ResCode, opts ...Option) *Exception {
+func New(c exceptionCode.ResCode, opts ...Option) *Exception {
 	exception := &Exception{
 		Code: c,
 	}
 
 	m := c.GetMsg()
-	if m != except.StatusMsgMap[except.ErrorUnknown] {
+	if m != exceptionCode.StatusMsgMap[exceptionCode.ErrorUnknown] {
 		exception.Msg = []string{m}
 	}
 
@@ -100,7 +100,7 @@ func New(c except.ResCode, opts ...Option) *Exception {
 	}
 	return exception
 }
-func ErrNewException(err error, code except.ResCode, opts ...Option) *Exception {
+func ErrNewException(err error, code exceptionCode.ResCode, opts ...Option) *Exception {
 	if err == nil {
 		return nil
 	}

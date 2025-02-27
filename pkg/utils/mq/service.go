@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	nats2 "github.com/AEnjoy/IoT-lubricant/pkg/utils/nats"
+	nats2 "github.com/aenjoy/iot-lubricant/pkg/utils/nats"
 	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"

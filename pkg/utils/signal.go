@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 )
 
 func HandelExitSignal(ctxCancel, call, timeOutCall func(), timeout time.Duration) func() {

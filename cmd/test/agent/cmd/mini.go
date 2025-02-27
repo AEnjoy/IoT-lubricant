@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	testApp "github.com/AEnjoy/IoT-lubricant/internal/test"
-	"github.com/AEnjoy/IoT-lubricant/pkg/edge"
-	"github.com/AEnjoy/IoT-lubricant/pkg/test"
+	"github.com/aenjoy/iot-lubricant/pkg/edge"
+	"github.com/aenjoy/iot-lubricant/pkg/test"
+	test2 "github.com/aenjoy/iot-lubricant/services/test"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func MiniTest() *cobra.Command {
 			}
 			abort, _ := cmd.Flags().GetBool("auto-abort")
 			init, _ := cmd.Flags().GetBool("has-inited")
-			panic(testApp.Service(&testApp.Mini{}).App(cli, abort, init))
+			panic(test2.Service(&test2.Mini{}).App(cli, abort, init))
 		},
 		SilenceUsage:  false,
 		SilenceErrors: false,

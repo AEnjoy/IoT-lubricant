@@ -1,6 +1,6 @@
 package task
 
-import "github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
+import "github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
 
 type ContainerDeployInfo struct {
 	Name  string            `json:"name"`  // 容器名

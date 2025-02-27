@@ -3,8 +3,8 @@ package openapi
 import (
 	"sync"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/file"
-	json "github.com/bytedance/sonic"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
+	"github.com/bytedance/sonic"
 )
 
 var _ OpenApi = (*ApiInfo)(nil)
@@ -39,12 +39,12 @@ func NewOpenApiCli(fileName string) (*ApiInfo, error) {
 func NewOpenApiCliEx(apiJson, enableJson []byte) (*ApiInfo, error) {
 	retVal := &ApiInfo{l: &sync.Mutex{}}
 	if len(apiJson) != 0 {
-		if err := json.Unmarshal(apiJson, &retVal.OpenAPICli); err != nil {
+		if err := sonic.Unmarshal(apiJson, &retVal.OpenAPICli); err != nil {
 			return nil, err
 		}
 	}
 	if len(enableJson) != 0 {
-		if err := json.Unmarshal(enableJson, &retVal.Enable); err != nil {
+		if err := sonic.Unmarshal(enableJson, &retVal.Enable); err != nil {
 			return nil, err
 		}
 	}

@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/types/user"
+	"github.com/aenjoy/iot-lubricant/pkg/types/user"
 )
 
 type Task struct {

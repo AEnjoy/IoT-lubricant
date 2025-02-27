@@ -1,8 +1,8 @@
 package edge
 
 import (
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/openapi"
-	json "github.com/bytedance/sonic"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
+	"github.com/bytedance/sonic"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
@@ -12,7 +12,7 @@ func CheckConfigInvalidGet(a openapi.OpenApi) bool {
 	}
 	// 检查至少一个选项启用且配置有效
 	apiInfo := a.(*openapi.ApiInfo)
-	marshal, err := json.Marshal(apiInfo.OpenAPICli)
+	marshal, err := sonic.Marshal(apiInfo.OpenAPICli)
 	if err != nil {
 		return false
 	}
@@ -27,7 +27,7 @@ func CheckConfigInvalidPost(a openapi.OpenApi) bool {
 	}
 	// 检查至少一个选项启用且配置有效
 	apiInfo := a.(*openapi.ApiInfo)
-	marshal, err := json.Marshal(apiInfo.OpenAPICli)
+	marshal, err := sonic.Marshal(apiInfo.OpenAPICli)
 	if err != nil {
 		return false
 	}
