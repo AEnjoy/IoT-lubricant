@@ -14,7 +14,7 @@ COPY . .
 # RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
-WORKDIR /app/cmd/core
+WORKDIR /app/cmd/lubricant
 RUN GO_VERSION=`go version | awk '{print $3}'` && \
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
@@ -25,13 +25,13 @@ RUN GO_VERSION=`go version | awk '{print $3}'` && \
 	-X 'main.Features=${FEATURES}' \
 	-X 'main.BuildHostPlatform=${BUILD_HOST_PLATFORM}' \
 	-X 'main.PlatformVersion=${PLATFORM_VERSION}' \
-	" -o /core
+	" -o /lubricant
 
 FROM alpine:latest
 WORKDIR /root/
-COPY --from=builder /core .
+COPY --from=builder /lubricant .
 
 # COPY scripts/files ./files
 
 EXPOSE 8080
-CMD ["./core"]
+CMD ["./lubricant"]

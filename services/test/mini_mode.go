@@ -38,7 +38,7 @@ func (Mini) App(cli agentpb.EdgeServiceClient, abort, init bool) error {
 		r.CheckResult(abort)
 	}
 
-	originalApiData, err := os.ReadFile("mock_driver/clock/api.sonic")
+	originalApiData, err := os.ReadFile("mock_driver/clock/api.json")
 	if err != nil {
 		return err
 	}
