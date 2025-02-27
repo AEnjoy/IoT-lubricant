@@ -50,6 +50,8 @@ mock: install
 	mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
+	# mockgen will add a dependency on the mockgen package, which is needed by ut but this is not present in go.mod.
+	go mod tidy -v
 
 build-agent:
 	docker build \
