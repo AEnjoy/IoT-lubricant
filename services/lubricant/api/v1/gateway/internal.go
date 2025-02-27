@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
-	response2 "github.com/aenjoy/iot-lubricant/pkg/model/response"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
@@ -31,7 +31,7 @@ func (a Api) AddGatewayInternal(c *gin.Context) {
 			exception.ErrNewException(err, exceptionCode.AddGatewayFailed), c)
 		return
 	}
-	helper.SuccessJson(response2.AddGatewayResponse{GatewayID: gatewayid}, c)
+	helper.SuccessJson(response.AddGatewayResponse{GatewayID: gatewayid}, c)
 }
 func (a Api) RemoveGatewayInternal(c *gin.Context) {
 	req := a.getGatewayRemoveModel(c)
@@ -86,7 +86,7 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 		helper.FailedWithJson(http.StatusInternalServerError, err.(*exception.Exception), c)
 		return
 	}
-	helper.SuccessJson(response2.AddAgentResponse{AgentID: agentID,
-		PushAgentTaskResponse: response2.PushAgentTaskResponse{TaskID: *taskID},
+	helper.SuccessJson(response.AddAgentResponse{AgentID: agentID,
+		PushAgentTaskResponse: response.PushAgentTaskResponse{TaskID: *taskID},
 	}, c)
 }

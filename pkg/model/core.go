@@ -58,6 +58,7 @@ type Gateway struct {
 	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
 	UserId      string `json:"-" gorm:"column:user_id"` //;foreignKey:UserID
+	BindHost    string `json:"_" gorm:"column:bind_host"`
 	Description string `json:"description" gorm:"column:description"`
 
 	TlsConfig string `json:"tls_config" gorm:"column:tls_config,serializer:json"`
@@ -146,8 +147,8 @@ func (c *Clean) Run(data []byte) ([]byte, error) {
 
 type GatewayHost struct {
 	Id          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
-	UserID      string `json:"-" gorm:"column:user_id"` // user.userID
-	HostID      string `json:"-" gorm:"column:host_id"` //uuid
+	UserID      string `json:"-" gorm:"column:user_id"`       // user.userID
+	HostID      string `json:"host_id" gorm:"column:host_id"` //uuid
 	Description string `json:"description" gorm:"column:description"`
 
 	Host       string `json:"host" gorm:"column:host"` // ip:port

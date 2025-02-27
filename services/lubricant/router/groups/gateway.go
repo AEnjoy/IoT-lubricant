@@ -14,6 +14,9 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup) {
 
 	gateway.POST("/add-host", controller.AddHost)
 	gateway.POST("/host", controller.AddHost)
+	gateway.GET("/host", controller.DescriptionHost)
+	gateway.GET("/host/description", controller.DescriptionHost)
+	gateway.GET("/list-host", controller.ListHosts)
 
 	gateway.POST("/internal/add-gateway", controller.AddGatewayInternal)
 	gateway.POST("/internal/gateway", controller.AddGatewayInternal)

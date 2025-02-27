@@ -7,6 +7,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
@@ -21,9 +22,26 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var _ IGatewayService = (*GatewayService)(nil)
+
 type GatewayService struct {
 	db    repo.ICoreDb
 	store *datastore.DataStore
+}
+
+func (s *GatewayService) DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error) {
+	var retVal response.DescriptionHostResponse
+	info, err := s.db.GetGatewayHostInfo(ctx, hostid)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.DbGetGatewayFailed, exception.WithMsg("Failed to get gateway host information from database"))
+	}
+	retVal.Host = info
+	gateways, err := s.db.GetAllGatewayByUserID(ctx, info.UserID)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.DbGetGatewayFailed, exception.WithMsg("Failed to get gateway information from database"))
+	}
+	retVal.GatewayList = gateways
+	return &retVal, nil
 }
 
 func (s *GatewayService) AddHostInternal(ctx context.Context, info *model.GatewayHost) error {

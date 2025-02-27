@@ -15,6 +15,8 @@ var (
 
 type IGateway interface {
 	AddHost(c *gin.Context)
+	ListHosts(c *gin.Context)
+	DescriptionHost(c *gin.Context)
 
 	AddGatewayInternal(c *gin.Context)
 	RemoveGatewayInternal(c *gin.Context)

@@ -3,7 +3,7 @@ package agent
 import (
 	"sync"
 
-	model2 "github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
@@ -14,13 +14,13 @@ type Apis interface {
 	StopAgent(id string) error
 	KillAgent(id string) error
 	RemoveAgent(id string) error
-	UpdateAgent(id string, optionalConf *model2.CreateAgentRequest) error
+	UpdateAgent(id string, optionalConf *model.CreateAgentRequest) error
 	EditAgent(id string, info *proxypb.EditAgentRequest) error
 	SetAgent(id string, info *agentpb.AgentInfo) error
 	GetAgentInfo(id string) (*agentpb.AgentInfo, error)
-	GetAgentModel(id string) (*model2.Agent, error)
-	AddAgent(req *model2.CreateAgentRequest) error
-	CreateAgent(req *model2.CreateAgentRequest) error
+	GetAgentModel(id string) (*model.Agent, error)
+	AddAgent(req *model.CreateAgentRequest) error
+	CreateAgent(req *model.CreateAgentRequest) error
 }
 
 var (

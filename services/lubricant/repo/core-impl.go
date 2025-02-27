@@ -18,6 +18,12 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error) {
+	var ret []model.Gateway
+	err := d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
+	return ret, err
+}
+
 func (d *CoreDb) GetGatewayStatus(ctx context.Context, gatewayID string) (string, error) {
 	var ret model.Gateway
 	return ret.Status, d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).First(&ret).Error

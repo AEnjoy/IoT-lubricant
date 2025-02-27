@@ -6,6 +6,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -14,6 +15,7 @@ type IGatewayService interface {
 	AddHost(ctx context.Context, info *model.GatewayHost) error
 	EditHost(ctx context.Context, hostid string, info *model.GatewayHost) error
 	GetHost(ctx context.Context, hostid string) (model.GatewayHost, error)
+	DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error)
 	UserGetHosts(ctx context.Context, userid string) ([]model.GatewayHost, error)
 	DeployGatewayInstance(ctx context.Context, hostid string, description string, tls *crypto.Tls) (string, error)
 

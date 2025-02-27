@@ -26,6 +26,7 @@ type ICoreDb interface {
 	UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error             // need txn
 	DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error
 	GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error)
+	GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error)
 	AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *model.GatewayHost) error
 	GetGatewayHostInfo(ctx context.Context, hostid string) (model.GatewayHost, error)
 	UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error

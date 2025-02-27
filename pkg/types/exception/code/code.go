@@ -49,6 +49,7 @@ const (
 	AddGatewayHostFailed
 	RemoveGatewayFailed
 	RemoveGatewayHostFailed
+	DescriptionHostFailed
 )
 
 // gateway
@@ -146,6 +147,7 @@ var StatusMsgMap = map[ResCode]string{
 	AddGatewayFailed:        "add gateway failed",
 	RemoveGatewayFailed:     "remove gateway failed",
 	RemoveGatewayHostFailed: "remove gateway host failed",
+	DescriptionHostFailed:   "get description host failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
