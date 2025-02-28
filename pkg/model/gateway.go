@@ -8,7 +8,7 @@ import (
 )
 
 type Agent struct {
-	ID          int    `json:"id" gorm:"column:id;primary_key,autoIncrement"`
+	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentId     string `json:"agent_id" gorm:"column:agent_id"` // agent id
 	GatewayId   string `json:"gateway_id" gorm:"column:gateway_id"`
 	Description string `json:"description" gorm:"column:description"`
