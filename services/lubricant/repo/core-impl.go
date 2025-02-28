@@ -185,7 +185,15 @@ func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
-	return txn.WithContext(ctx).Where("id = ?", gateway.GatewayID).Save(&gateway).Error
+	var m model.Gateway
+	txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gateway.GatewayID).First(&m)
+	gateway.UpdatedAt = time.Now().Unix()
+	gateway.CreatedAt = m.CreatedAt
+	gateway.UserId = m.UserId
+	gateway.Status = m.Status
+	gateway.BindHost = m.BindHost
+	gateway.ID = m.ID
+	return txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gateway.GatewayID).Updates(&gateway).Error
 }
 
 func (d *CoreDb) DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error {

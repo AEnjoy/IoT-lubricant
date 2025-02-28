@@ -15,6 +15,7 @@ type IGatewayService interface {
 	AddHost(ctx context.Context, info *model.GatewayHost) error
 	EditHost(ctx context.Context, hostid string, info *model.GatewayHost) error
 	GetHost(ctx context.Context, hostid string) (model.GatewayHost, error)
+	EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error
 	DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error)
 	DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error)
 	UserGetHosts(ctx context.Context, userid string) ([]model.GatewayHost, error)

@@ -18,6 +18,7 @@ type IGateway interface {
 	ListHosts(c *gin.Context)
 	DescriptionHost(c *gin.Context)
 	DescriptionGateway(c *gin.Context)
+	EditGateway(c *gin.Context)
 
 	AddGatewayInternal(c *gin.Context)
 	RemoveGatewayInternal(c *gin.Context)

@@ -29,6 +29,37 @@ type GatewayService struct {
 	store *datastore.DataStore
 }
 
+func (s *GatewayService) EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error {
+	txn, errorCh, commit := s.txnHelper()
+	defer commit()
+
+	var info model.Gateway
+	if tls != nil {
+		marshalString, err := sonic.MarshalString(tls)
+		if err != nil {
+			err = exception.ErrNewException(err,
+				exceptionCode.ErrorEncodeJSON,
+				exception.WithMsg("Failed to marshall json result"),
+			)
+			errorCh.Report(err, exceptionCode.ErrorEncodeJSON, "Failed to marshall json result", true)
+			return err
+		}
+		info.TlsConfig = marshalString
+	}
+
+	info.Description = description
+	info.GatewayID = gatewayid
+	err := s.db.UpdateGateway(ctx, txn, info)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbUpdateGatewayInfoFailed,
+			exception.WithMsg("Failed to update gateway information to database"),
+		)
+		return err
+	}
+	return nil
+}
+
 func (s *GatewayService) DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error) {
 	var retVal response.DescriptionGatewayResponse
 	info, err := s.db.GetGatewayInfo(ctx, gatewayid)

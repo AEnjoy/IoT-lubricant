@@ -12,3 +12,6 @@ type Failed struct {
 type Success struct {
 	Meta
 }
+
+type Empty struct {
+}
