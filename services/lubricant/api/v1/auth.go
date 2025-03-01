@@ -1,11 +1,14 @@
 package v1
 
 import (
+	"bytes"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"sync"
 	"time"
@@ -14,12 +17,16 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/global"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
+	"github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/decoder"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
 )
@@ -36,37 +43,52 @@ func (a Auth) Register(c *gin.Context) {
 
 }
 func (a Auth) Login(c *gin.Context) {
-	req := request.LoginRequest{}
-	if err := c.ShouldBind(&req); err != nil {
-		helper.FailedByClient(err, c)
+	conf := config.GetConfig()
+	req := helper.LoginRequest2CasdoorLoginRequest(helper.RequestBind[request.LoginRequest](c))
+	if req == nil {
 		return
 	}
-	if user, err := a.Db.QueryUser(c, req.UserName, ""); err != nil {
-		helper.FailedByServer(err, c)
+
+	client := http.Client{}
+	u, _ := url.Parse(fmt.Sprintf("%s/api/login", conf.AuthEndpoint))
+	params := u.Query()
+	params.Add("clientId", conf.AuthClientID)
+	params.Add("responseType", "code")
+	params.Add("redirectUri", fmt.Sprintf("http://%s/api/v1/signin"))
+	params.Add("type", "code")
+	params.Add("scope", "read")
+	params.Add("state", "casdoor")
+	u.RawQuery = params.Encode()
+	marshal, err := sonic.Marshal(req)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorEncodeJSON), c)
 		return
-	} else {
-		err := user.CheckPassword(req.Password)
-		if err != nil {
-			helper.FailedByClient(err, c)
-			return
-		}
-		tk := model.NewToken(&user)
-		err = a.Db.SaveToken(c, tk)
-		if err != nil {
-			helper.FailedByServer(err, c)
-			return
-		}
-		c.SetCookie(model.COOKIE_TOKEY_KEY,
-			tk.AccessToken,
-			tk.RefreshTokenExpiredAt,
-			"/", "",
-			false, true)
-		helper.SuccessJson(user, c)
 	}
+	resp, err := client.Post(u.String(), "application/json", bytes.NewReader(marshal))
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorCommunicationWithAuthServer), c)
+		return
+	}
+	var loginResult response.CasdoorLoginResponse
+	err = decoder.NewStreamDecoder(resp.Body).Decode(&loginResult)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorDecodeJSON), c)
+		return
+	}
+
+	if loginResult.Status != "ok" {
+		helper.FailedWithJson(http.StatusUnauthorized, exception.ErrNewException(err, exceptionCode.ErrorCommunicationWithAuthServer), c)
+		return
+	}
+	signin(loginResult.Data, "casdoor", c, a.Db)
 }
 func (a Auth) Signin(c *gin.Context) {
 	code, _ := c.GetQuery("code")
 	state, _ := c.GetQuery("state")
+	signin(code, state, c, a.Db)
+}
+
+func signin(code, state string, c *gin.Context, db repo.ICoreDb) {
 	token, err := casdoorsdk.GetOAuthToken(code, state)
 	if err != nil {
 		logger.Errorln(err.Error())
@@ -85,7 +107,7 @@ func (a Auth) Signin(c *gin.Context) {
 		helper.FailedByServer(err, c)
 		return
 	}
-	err = a.Db.SaveTokenOauth2(c, token, u.User.Id)
+	err = db.SaveTokenOauth2(c, token, u.User.Id)
 	if err != nil {
 		logger.Errorf("save token error: %v", err)
 		helper.FailedByServer(err, c)
