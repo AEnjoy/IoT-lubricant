@@ -6,7 +6,7 @@ go 1.22.5
 
 require (
 	github.com/DataDog/zstd v1.5.6
-	github.com/bytedance/sonic v1.12.8
+	github.com/bytedance/sonic v1.12.10
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/casdoor/casdoor-go-sdk v1.4.0
 	github.com/docker/docker v28.0.0+incompatible
