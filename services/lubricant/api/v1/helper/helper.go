@@ -7,10 +7,26 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
+	"github.com/bytedance/sonic"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
 )
 
+// JsonString data is json string failed return false and nothing to do, else return true
+func JsonString(httpCode int, data, msg, code string, c *gin.Context) bool {
+	var m map[string]any
+	err := sonic.Unmarshal([]byte(data), &m)
+	if err != nil {
+		// FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err,exceptionCode.ErrorDecodeJSON),c)
+		return false
+	}
+	c.JSON(httpCode, response.Meta{
+		Code: code,
+		Msg:  msg,
+		Data: m,
+	})
+	return true
+}
 func SuccessJson(data any, c *gin.Context) {
 	c.JSON(http.StatusOK, response.Success{
 		Meta: response.Meta{

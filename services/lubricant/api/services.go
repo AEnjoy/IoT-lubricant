@@ -48,6 +48,7 @@ func NewAuth() IAuth {
 func NewMonitor() IMonitor {
 	if _monitor == nil {
 		_monitor = monitor.Api{
+			DataStore:       ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore),
 			IGatewayService: ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_SERVICE).(services.IGatewayService),
 			IAgentService:   ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(services.IAgentService),
 		}
