@@ -3,7 +3,7 @@ package router
 import (
 	"os"
 
-	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1"
+	v1 "github.com/aenjoy/iot-lubricant/services/lubricant/api"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/router/middleware"
 	"github.com/gin-gonic/gin"
 )

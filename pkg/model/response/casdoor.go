@@ -8,3 +8,7 @@ type CasdoorLoginResponse struct {
 	Data   string `json:"data"`
 	Data2  bool   `json:"data2"`
 }
+type Token struct {
+	AccessToken  string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}

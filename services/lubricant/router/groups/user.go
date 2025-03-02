@@ -1,7 +1,7 @@
 package groups
 
 import (
-	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1"
+	v1 "github.com/aenjoy/iot-lubricant/services/lubricant/api"
 	"github.com/gin-gonic/gin"
 )
 

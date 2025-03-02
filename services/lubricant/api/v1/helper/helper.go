@@ -3,6 +3,7 @@ package helper
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
@@ -13,6 +14,7 @@ import (
 func SuccessJson(data any, c *gin.Context) {
 	c.JSON(http.StatusOK, response.Success{
 		Meta: response.Meta{
+			Code: "0000",
 			Msg:  "success",
 			Data: data,
 		},
@@ -52,7 +54,7 @@ func FailedWithErrorJson(code int, err error, c *gin.Context) {
 func FailedWithJson(code int, exception *exception.Exception, c *gin.Context) {
 	c.JSON(code, response.Failed{
 		Meta: response.Meta{
-			Code: code,
+			Code: strconv.Itoa(code),
 			Msg:  "failed",
 			Data: exception,
 		},

@@ -17,11 +17,11 @@ type Token struct {
 	// 该Token是颁发
 	UserId string `json:"id" gorm:"column:user_id"` // uuid
 	// 办法给用户的访问令牌(用户需要携带Token来访问接口)
-	AccessToken string `json:"access_token" gorm:"column:access_token"`
+	AccessToken string `json:"token" gorm:"column:access_token"`
 	// 过期时间(2h), 单位是秒
 	AccessTokenExpiredAt int `json:"access_token_expired_at" gorm:"column:access_token_expired_at"`
 	// 刷新Token
-	RefreshToken string `json:"refresh_token" gorm:"column:refresh_token"`
+	RefreshToken string `json:"refreshToken" gorm:"column:refresh_token"`
 	// 刷新Token过期时间(7d)
 	RefreshTokenExpiredAt int `json:"refresh_token_expired_at" gorm:"column:refresh_token_expired_at"`
 

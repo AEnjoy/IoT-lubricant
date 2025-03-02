@@ -23,29 +23,21 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/global"
-	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
 	"github.com/bytedance/sonic"
-	"github.com/bytedance/sonic/decoder"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"github.com/gin-gonic/gin"
-)
-
-var (
-	_auth *Auth
 )
 
 type Auth struct {
 	Db repo.ICoreDb
 }
 
-func (a Auth) Register(c *gin.Context) {
-
-}
 func (a Auth) Login(c *gin.Context) {
 	conf := config.GetConfig()
 	req := helper.LoginRequest2CasdoorLoginRequest(helper.RequestBind[request.LoginRequest](c))
 	if req == nil {
+		logger.Debugf("login request is nil")
 		return
 	}
 
@@ -54,29 +46,40 @@ func (a Auth) Login(c *gin.Context) {
 	params := u.Query()
 	params.Add("clientId", conf.AuthClientID)
 	params.Add("responseType", "code")
-	params.Add("redirectUri", fmt.Sprintf("http://%s/api/v1/signin"))
+	params.Add("redirectUri", fmt.Sprintf("http://%s/api/v1/signin", conf.Domain))
 	params.Add("type", "code")
 	params.Add("scope", "read")
 	params.Add("state", "casdoor")
 	u.RawQuery = params.Encode()
 	marshal, err := sonic.Marshal(req)
 	if err != nil {
+		logger.Debugf("error %v", err)
 		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorEncodeJSON), c)
 		return
 	}
 	resp, err := client.Post(u.String(), "application/json", bytes.NewReader(marshal))
 	if err != nil {
+		logger.Debugf("send login request error %v", err)
+		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorCommunicationWithAuthServer), c)
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Debugf("read login result error %v", err)
 		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorCommunicationWithAuthServer), c)
 		return
 	}
 	var loginResult response.CasdoorLoginResponse
-	err = decoder.NewStreamDecoder(resp.Body).Decode(&loginResult)
+	err = sonic.Unmarshal(body, &loginResult)
 	if err != nil {
+		logger.Debugf("decode login result error %v,resp.Body:%s", err, string(body))
 		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorDecodeJSON), c)
 		return
 	}
 
 	if loginResult.Status != "ok" {
+		logger.Debugf("login error: body:%s", string(body))
 		helper.FailedWithJson(http.StatusUnauthorized, exception.ErrNewException(err, exceptionCode.ErrorCommunicationWithAuthServer), c)
 		return
 	}
@@ -113,7 +116,9 @@ func signin(code, state string, c *gin.Context, db repo.ICoreDb) {
 		helper.FailedByServer(err, c)
 		return
 	}
-	helper.SuccessJson(u, c)
+
+	tokenResponse := response.Token{AccessToken: token.AccessToken, RefreshToken: token.RefreshToken}
+	helper.SuccessJson(tokenResponse, c)
 }
 
 var setAuthCrtLock sync.Mutex
@@ -184,11 +189,4 @@ func isValidCertificate(fileBytes []byte) bool {
 
 	_, err := x509.ParseCertificate(block.Bytes)
 	return err == nil
-}
-
-func NewAuth() *Auth {
-	if _auth == nil {
-		_auth = &Auth{Db: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)}
-	}
-	return _auth
 }
