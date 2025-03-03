@@ -5,3 +5,7 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 	Membered bool   `json:"membered"`
 }
+type Token struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
+}

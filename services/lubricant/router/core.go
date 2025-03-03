@@ -28,6 +28,7 @@ func CoreRouter() (*gin.Engine, error) {
 	// v1Route
 	v1Route := router.Group("/api/v1")
 	signinController := v1.NewAuth()
+	v1Route.POST("/refresh-token", signinController.RefreshToken)
 	v1Route.GET("/signin", signinController.Signin)       // /api/v1/signin (oauth callback)
 	v1Route.POST("/login", signinController.Login)        // /api/v1/login
 	v1Route.POST("/set-crt", signinController.SetAuthCrt) // /api/v1/set-crt

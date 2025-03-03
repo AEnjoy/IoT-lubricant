@@ -33,6 +33,28 @@ type Auth struct {
 	Db repo.ICoreDb
 }
 
+func (a Auth) RefreshToken(c *gin.Context) {
+	req := helper.RequestBind[request.Token](c)
+	if req == nil {
+		return
+	}
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	token, err := casdoorsdk.RefreshOAuthToken(req.RefreshToken)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	err = a.Db.SaveTokenOauth2(c, token, claims.User.Id)
+	if err != nil {
+		logger.Warnf("save token error: %v", err)
+	}
+	helper.SuccessJson(response.Token{AccessToken: token.AccessToken, RefreshToken: token.RefreshToken}, c)
+}
+
 func (a Auth) Login(c *gin.Context) {
 	conf := config.GetConfig()
 	req := helper.LoginRequest2CasdoorLoginRequest(helper.RequestBind[request.LoginRequest](c))

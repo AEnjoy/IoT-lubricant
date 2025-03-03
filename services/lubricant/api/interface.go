@@ -25,6 +25,7 @@ type IAuth interface {
 	Login(c *gin.Context)
 	Signin(c *gin.Context)
 	SetAuthCrt(c *gin.Context)
+	RefreshToken(c *gin.Context)
 }
 type IMonitor interface {
 	// BaseInfo 返回网关个数，agent个数，离线个数信息，node个数信息
