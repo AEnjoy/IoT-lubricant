@@ -1,10 +1,10 @@
 package response
 
 type QueryMonitorBaseInfoResponse struct {
-	GatewayCount int `json:"gatewayCount"`
-	AgentCount   int `json:"agentCount"`
-	NodeCount    int `json:"nodeCount"`
+	GatewayCount int32 `json:"gatewayCount"`
+	AgentCount   int32 `json:"agentCount"`
+	NodeCount    int32 `json:"nodeCount"`
 
-	OfflineGateway int `json:"offlineGateway"`
-	OfflineAgent   int `json:"offlineAgent"`
+	OfflineGateway int32 `json:"offlineGateway"`
+	OfflineAgent   int32 `json:"offlineAgent"`
 }

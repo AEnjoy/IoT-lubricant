@@ -198,10 +198,10 @@ func (a *app) grpcTaskApp() error {
 					}
 					continue
 				}
-				if resp.GetFinish() != nil {
-					logger.Debugf("Task %s finish", resp.GetTaskId())
-					a.task.RemoveResult(resp.GetTaskId())
-				}
+				//if resp.GetFinish() != nil {
+				//	logger.Debugf("Task %s finish", resp.GetTaskId())
+				//	a.task.RemoveResult(resp.GetTaskId())
+				//}
 			case *corepb.Task_GatewayQueryTaskResultResponse:
 			// todo:
 			case *corepb.Task_NoTaskResponse:

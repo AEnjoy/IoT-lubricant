@@ -29,3 +29,6 @@ message CreateAgentRequest{
   agent.AgentInfo info = 1;
   bytes conf = 2;
 }
+message GetAgentStatusRequest{
+  repeated string agentId =1;
+}

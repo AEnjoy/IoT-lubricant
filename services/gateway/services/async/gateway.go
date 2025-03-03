@@ -72,7 +72,7 @@ func (r *task) AddTask(task *corepb.TaskDetail, notice bool) {
 		task.MessageId = "notice"
 	}
 	logger.Debugf("Add task result cache: id: %s", task.TaskId)
-	r.result.Set(task.TaskId, "-", result)
+	r.result.Set(task.TaskId, task.TaskId, result)
 	r.queue <- task
 }
 func (r *task) Query(id string) *corepb.QueryTaskResultResponse {

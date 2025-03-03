@@ -247,6 +247,14 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 				Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &corepb.NoTaskResponse{}},
 			})
 			//taskSendErrorMessage(s, 404, errs.ErrTimeout.Error())
+		case *corepb.Task_CoreQueryTaskResultResponse:
+			m := taskReq.GetCoreQueryTaskResultResponse()
+			marshal, err := proto.Marshal(m)
+			if err != nil {
+				logger.Errorf("failed to marshal task data: %v", err)
+				continue
+			}
+			_ = taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s/response", taskTypes.TargetGateway, gatewayID, m.TaskId), marshal)
 		}
 	}
 }

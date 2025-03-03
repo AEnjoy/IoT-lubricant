@@ -135,3 +135,20 @@ type AgentInstance struct {
 }
 
 func (AgentInstance) TableName() string { return "agent_instance" }
+
+type AgentStatus string
+
+func (a AgentStatus) String() string {
+	return string(a)
+}
+
+const (
+	StatusUnknown AgentStatus = "Unknown"
+
+	StatusRunning  AgentStatus = "Running"
+	StatusStopped  AgentStatus = "Stopped"
+	StatusQuit     AgentStatus = "Quit"
+	StatusError    AgentStatus = "Error"
+	StatusCreated  AgentStatus = "Created"
+	StatusNotExist AgentStatus = "NotExist"
+)

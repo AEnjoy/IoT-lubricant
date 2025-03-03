@@ -28,6 +28,23 @@ type agentApis struct {
 	*pool
 }
 
+func (a *agentApis) GetAgentStatus(id string) model.AgentStatus {
+	if !a.db.IsAgentIdExists(nil, id) {
+		return model.StatusNotExist
+	}
+
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return model.StatusCreated
+	}
+
+	if ctrl.IsStarted() {
+		return model.StatusRunning
+	} else {
+		return model.StatusStopped
+	}
+}
+
 func (a *agentApis) init() {
 	ctx := context.Background()
 	agents, err := a.db.GetAllAgents(nil)

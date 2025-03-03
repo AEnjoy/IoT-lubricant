@@ -33,6 +33,8 @@ const (
 	ErrorDecodeJSON
 	ErrorValidation
 	ErrorReadRequestBody
+	ErrorEncodeProtoMessage
+	ErrorDecodeProtoMessage
 )
 
 // core module
@@ -132,6 +134,8 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorDecodeFailed:        "Decoding failed due to an error with the data",
 	ErrorEncodeJSON:          "JSON encode failed",
 	ErrorDecodeJSON:          "JSON decode failed",
+	ErrorEncodeProtoMessage:  "Protobuf encode failed",
+	ErrorDecodeProtoMessage:  "Protobuf decode failed",
 	ErrorValidation:          "Validation Error",
 	ErrorInvalidAuthHeader:   "Invalid authorization header",
 	ErrorInvalidAuthKey:      "Invalid authorization key",

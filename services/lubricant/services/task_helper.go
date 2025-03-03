@@ -17,6 +17,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// _taskHelper 封装了任务相关的操作
+// 返回：两个值，第一个是响应topic，第二个是taskID
 func _taskHelper(
 	ctx context.Context,
 	txnHelper func() (*gorm.DB, *errCh.ErrorChan, func()),
@@ -65,7 +67,7 @@ func _taskHelper(
 		// 任务数据发送需要异步操作(在其它线程订阅这个topic后)，否则可能会导致获取任务失败
 		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
 		logger.Debugf("send task data to %s", pbTopic)
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 		_ = storeMq.PublishBytes(pbTopic, bin)
 	}()
 

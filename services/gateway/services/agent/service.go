@@ -21,6 +21,7 @@ type Apis interface {
 	GetAgentModel(id string) (*model.Agent, error)
 	AddAgent(req *model.CreateAgentRequest) error
 	CreateAgent(req *model.CreateAgentRequest) error
+	GetAgentStatus(id string) model.AgentStatus
 }
 
 var (

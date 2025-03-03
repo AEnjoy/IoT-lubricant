@@ -248,10 +248,10 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 	pbData, err := proto.Marshal(&td)
 	if err != nil {
 		err = exception.ErrNewException(err,
-			exceptionCode.ErrorEncodeJSON,
+			exceptionCode.ErrorEncodeProtoMessage,
 			exception.WithMsg("Failed to marshal agent information by proto"),
 		)
-		errorCh.Report(err, exceptionCode.ErrorEncodeJSON, "Failed to marshal agent information by proto", false)
+		errorCh.Report(err, exceptionCode.ErrorEncodeProtoMessage, "Failed to marshal agent information by proto", false)
 		return "", err
 	}
 

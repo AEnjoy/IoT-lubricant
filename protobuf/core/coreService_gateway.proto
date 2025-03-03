@@ -32,6 +32,7 @@ message TaskDetail {
     gateway.RemoveAgentRequest removeAgentRequest=7;
     gateway.StopAgentRequest stopAgentRequest=8;
     gateway.UpdateAgentRequest updateAgentRequest=9;
+    gateway.GetAgentStatusRequest getAgentStatusRequest=10;
   }
 }
 

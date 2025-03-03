@@ -3,6 +3,8 @@ package monitor
 import (
 	"fmt"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
@@ -16,8 +18,6 @@ import (
 )
 
 func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
-	var output response.QueryMonitorBaseInfoResponse
-
 	claims, err := helper.GetClaims(c)
 	if err != nil {
 		helper.FailedByServer(err, c)
@@ -35,7 +35,9 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 
 	var (
 		gateways []model.Gateway
-		agents   []model.Agent
+
+		wg     sync.WaitGroup
+		output response.QueryMonitorBaseInfoResponse
 	)
 
 	gateways, err = a.DataStore.ICoreDb.GetAllGatewayByUserID(c, claims.User.Id)
@@ -47,6 +49,7 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 	}
 
 	for _, gateway := range gateways {
+		output.GatewayCount++
 		if gateway.Status != "running" {
 			output.OfflineGateway++
 		}
@@ -55,12 +58,26 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 			logger.Errorf("GetAgentList failed,err: %v", err)
 			continue
 		}
-		agents = append(agents, list...)
-	}
-	output.GatewayCount = len(gateways)
-	output.AgentCount = len(agents)
-	// todo: agent 离线数据
 
+		var ids []string
+		for _, agent := range list {
+			ids = append(ids, agent.AgentId)
+			output.AgentCount++
+		}
+
+		wg.Add(1)
+		go func(c *gin.Context, id string, ids []string, output *response.QueryMonitorBaseInfoResponse) {
+			defer wg.Done()
+			status, _ := a.IAgentService.GetAgentStatus(c, nil, id, ids)
+			for _, agentStatus := range status {
+				if agentStatus != model.StatusRunning {
+					atomic.AddInt32(&output.OfflineAgent, 1)
+				}
+			}
+		}(c, gateway.GatewayID, ids, &output)
+	}
+
+	wg.Wait()
 	str, _ := sonic.MarshalString(&output)
 
 	err = a.CacheCli.SetEx(c, key, str, 10*time.Minute)
