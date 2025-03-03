@@ -1,6 +1,6 @@
 module github.com/aenjoy/iot-lubricant
 
-go 1.22.5
+go 1.23
 toolchain go1.23.6
 
 // toolchain go1.24.0
