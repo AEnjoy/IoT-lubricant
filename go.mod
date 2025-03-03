@@ -28,7 +28,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22
 	github.com/pkg/sftp v1.13.7
 	github.com/prometheus/client_golang v1.21.0
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/v9 v9.7.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.6.0
 	github.com/segmentio/kafka-go v0.4.47
