@@ -9,7 +9,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/edge"
 	"github.com/aenjoy/iot-lubricant/pkg/edge/config"
-	middleware2 "github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
+	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
@@ -336,8 +336,8 @@ func NewServer(bind string) {
 		panic(err)
 	}
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(middleware2.GetLoggerInterceptor(),
-			middleware2.GetRecovery(middleware2.GetRegistry(middleware2.GetSrvMetrics()))))
+		grpc.ChainUnaryInterceptor(middleware.GetLoggerInterceptor(),
+			middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics()))))
 	pb.RegisterEdgeServiceServer(grpcServer, &agentServer{})
 	logger.Infoln("agent grpc-server start at: ", bind)
 	panic(grpcServer.Serve(lis))

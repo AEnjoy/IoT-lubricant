@@ -201,3 +201,15 @@ func UseServerInfo(c *model.ServerInfo) func(*app) error {
 		return nil
 	}
 }
+func UseGrpcDebugServer() func(*app) error {
+	return func(a *app) error {
+		if os.Getenv(def.ENV_RUNNING_LEVEL) == "debug" && os.Getenv(def.ENV_ENABLE_GRPC_DEBUG_SERVER) == "true" {
+			bind, ok := os.LookupEnv(def.ENV_GRPC_DEBUG_SERVER_PORT)
+			if !ok {
+				return fmt.Errorf("grpc debug server port not found, please set %s", def.ENV_GRPC_DEBUG_SERVER_PORT)
+			}
+			go NewDebugServer(bind)
+		}
+		return nil
+	}
+}

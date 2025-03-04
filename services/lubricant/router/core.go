@@ -3,6 +3,7 @@ package router
 import (
 	"os"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	v1 "github.com/aenjoy/iot-lubricant/services/lubricant/api"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/router/middleware"
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 var middlewares = middleware.GetMiddlewares()
 
 func CoreRouter() (*gin.Engine, error) {
-	if os.Getenv("RUNNING_LEVEL") != "debug" {
+	if os.Getenv(def.ENV_RUNNING_LEVEL) != "debug" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	router := gin.Default()

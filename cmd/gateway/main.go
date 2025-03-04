@@ -56,6 +56,7 @@ func main() {
 		gateway.SetGatewayId(id),
 		gateway.UseDB(repo.NewGatewayDb(nil)),
 		gateway.LinkCoreServer(),
+		gateway.UseGrpcDebugServer(),
 	)
 	panic(app.Run())
 }

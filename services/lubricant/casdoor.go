@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
@@ -15,7 +16,7 @@ func initCasdoor() error {
 	if err != nil {
 		return err
 	}
-	if os.Getenv("RUNNING_LEVEL") == "debug" {
+	if os.Getenv(def.ENV_RUNNING_LEVEL) == "debug" {
 		logger.Debug("CERT FILE:")
 		fmt.Println(string(file))
 	}

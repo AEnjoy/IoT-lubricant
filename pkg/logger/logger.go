@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -40,7 +41,7 @@ func init() {
 
 func NewLogger() *zap.SugaredLogger {
 	atom := zap.NewAtomicLevel()
-	logLevel := os.Getenv("RUNNING_LEVEL")
+	logLevel := os.Getenv(def.ENV_RUNNING_LEVEL)
 	switch logLevel {
 	case "debug":
 		atom.SetLevel(zap.DebugLevel)
