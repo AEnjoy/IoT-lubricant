@@ -21,6 +21,7 @@ type DataStore struct {
 }
 
 func (d *DataStore) Init() error {
+	d.ICoreDb = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
 	if d.CacheEnable {
 		if d.CacheCli == nil {
 			o := ioc.Controller.Get(cache.APP_NAME)

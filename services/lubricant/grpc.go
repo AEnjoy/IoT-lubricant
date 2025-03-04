@@ -242,7 +242,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			case <-time.After(1500 * time.Millisecond):
 			}
 			// 超时意味着没有创建过任务ch (任务不存在)
-			logger.Debugf("task not found")
+			// logger.Debugf("task not found")
 			_ = s.Send(&corepb.Task{ID: taskReq.ID,
 				Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &corepb.NoTaskResponse{}},
 			})
