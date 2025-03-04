@@ -348,6 +348,12 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
+
+	err = a.db.AddAgent(txn, req.AgentInfo)
+	if err != nil {
+		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent information failed", true)
+		return err
+	}
 	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo))
 	if err != nil {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)

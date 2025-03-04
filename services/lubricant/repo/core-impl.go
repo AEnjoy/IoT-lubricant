@@ -20,7 +20,7 @@ type CoreDb struct {
 
 func (d *CoreDb) GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error) {
 	var ret []model.Gateway
-	err := d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
+	err := d.db.WithContext(ctx).Model(model.Gateway{}).Where("user_id = ?", userID).Find(&ret).Error
 	return ret, err
 }
 

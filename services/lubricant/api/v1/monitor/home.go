@@ -25,13 +25,15 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 	}
 
 	key := fmt.Sprintf("baseinfo-query-user-%s", claims.User.Id)
-	result, _ := a.DataStore.CacheCli.Get(c, key)
-	if result != "" {
-		if helper.JsonString(http.StatusOK, result, "success", "0000", c) {
-			return
-		}
-		// no cache or cache expired/failed
-	}
+
+	// dev stg, ignore cache
+	//result, _ := a.DataStore.CacheCli.Get(c, key)
+	//if result != "" {
+	//	if helper.JsonString(http.StatusOK, result, "success", "0000", c) {
+	//		return
+	//	}
+	//	// no cache or cache expired/failed
+	//}
 
 	var (
 		gateways []model.Gateway
@@ -65,16 +67,18 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 			output.AgentCount++
 		}
 
-		wg.Add(1)
-		go func(c *gin.Context, id string, ids []string, output *response.QueryMonitorBaseInfoResponse) {
-			defer wg.Done()
-			status, _ := a.IAgentService.GetAgentStatus(c, nil, id, ids)
-			for _, agentStatus := range status {
-				if agentStatus != model.StatusRunning {
-					atomic.AddInt32(&output.OfflineAgent, 1)
+		if gateway.Status == "running" {
+			wg.Add(1)
+			go func(c *gin.Context, id string, ids []string, output *response.QueryMonitorBaseInfoResponse) {
+				defer wg.Done()
+				status, _ := a.IAgentService.GetAgentStatus(c, nil, id, ids)
+				for _, agentStatus := range status {
+					if agentStatus != model.StatusRunning {
+						atomic.AddInt32(&output.OfflineAgent, 1)
+					}
 				}
-			}
-		}(c, gateway.GatewayID, ids, &output)
+			}(c, gateway.GatewayID, ids, &output)
+		}
 	}
 
 	wg.Wait()

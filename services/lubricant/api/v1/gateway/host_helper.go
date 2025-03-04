@@ -48,7 +48,7 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 	}
 
 	return req.TlsConfig, &model.GatewayHost{
-		UserID: userInfo.ID,
+		UserID: userInfo.User.Id,
 		HostID: uuid.NewString(),
 
 		Description: req.Description,

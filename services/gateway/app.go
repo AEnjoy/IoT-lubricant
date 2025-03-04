@@ -49,6 +49,7 @@ func (a *app) Run() error {
 	a.agent = agent.NewAgentApis(a.IGatewayDb)
 	a.task = async.NewAsyncTask()
 	a.task.SetActor(a.handelTask)
+	agent.SetErrorHandelFunc(HandelAgentControlError)
 
 	go func() {
 		_ = a.grpcDataApp()

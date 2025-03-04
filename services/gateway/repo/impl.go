@@ -14,6 +14,13 @@ type GatewayDb struct {
 	db *gorm.DB
 }
 
+func (d *GatewayDb) AddAgent(txn *gorm.DB, agent *model.Agent) error {
+	agent.CreatedAt = time.Now()
+	agent.UpdatedAt = time.Now()
+
+	return txn.Create(agent).Error
+}
+
 func (d *GatewayDb) AddOrUpdateServerInfo(txn *gorm.DB, info *model.ServerInfo) error {
 	info.UpdatedAt = time.Now()
 	result := txn.First(&model.ServerInfo{}, info.Id)

@@ -66,6 +66,9 @@ func (c *agentControl) init(ctx context.Context) {
 		c.exceptSig = make(chan *exception.Exception, exceptionSigMaxSize)
 		c.dataCollect = data2.NewDataStoreApis(c.id)
 
+		if handelFunc != nil {
+			go handelFunc(c.exceptSig)
+		}
 		if len(c.Slot) == 0 {
 			c.Slot = []int{0}
 		}
