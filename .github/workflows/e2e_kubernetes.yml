@@ -24,6 +24,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache Docker Images
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images
+          key: ${{ runner.os }}-docker-images-${{ hashFiles('**/Dockerfile') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-docker-images-
+
+      - name: Pull and Save Docker Images
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          set -e
+          # for base images
+          docker pull golang:1.23-alpine &
+          docker pull alpine:latest &
+          docker pull kindest/node:v1.32.2 &
+          # for Kubernetes yaml
+          docker pull nginx:1.27 &
+          docker pull nats:2.10.26 &
+          docker pull redis:7.4.2 &
+          docker pull casbin/casdoor:v1.854.0 &
+          wait
+          if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
+            mkdir -p /tmp/docker-images
+            docker save \
+              nginx:1.27 golang:1.23-alpine alpine:latest kindest/node:v1.32.2 \
+              nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
+              -o /tmp/docker-images/base-images.tar &
+          fi
+
+      - name: Load Docker Images
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: |
+          if [ -f /tmp/docker-images/base-images.tar ]; then
+            docker load -i /tmp/docker-images/base-images.tar
+          fi
+
+      - name: Cache Go Modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+
       - name: Install Kind and Helm
         run: |
           set -e
@@ -37,16 +83,22 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
 
-      - name: Verify Kubernetes cluster
+      - name: Load Images to Kind
         run: |
+          set -e
+          kind load docker-image nginx:1.27 &
+          kind load docker-image nats:2.10.26 &
+          kind load docker-image redis:7.4.2 &
+          kind load docker-image casbin/casdoor:v1.854.0 &
+          wait
+
+      - name: Verify and Prepare Kubernetes Environment
+        run: |
+          set -e
           kubectl cluster-info
           kubectl version
           kubectl label nodes kind-control-plane ingress-ready=true
-          sleep 3
-
-      - name: Prepare Kubernetes Environment
-        run: |
-          set -e
+          sleep 1
           bash deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
@@ -62,20 +114,16 @@ jobs:
       - name: Prepare Lubricant Resources
         run: |
           set -e
+          bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
 
-      - name: Deploy Lubricant
+      - name: Deploy Lubricant and Start Test
         run: |
           set -e 
-          bash deployment/infra/secret.sh
           kubectl apply -f deployment/infra/lubricant-core.yaml
-
-      - name: Start Lubricant Test
-        run: |
-          set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &

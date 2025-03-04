@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: casdoor-container
-          image: casbin/casdoor:latest
+          image: casbin/casdoor:v1.854.0
           ports:
             - containerPort: 8000
           env:
