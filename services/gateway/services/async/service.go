@@ -1,6 +1,8 @@
 package async
 
 import (
+	"sync"
+
 	"github.com/aenjoy/iot-lubricant/pkg/cache"
 	"github.com/aenjoy/iot-lubricant/protobuf/core"
 )
@@ -14,8 +16,15 @@ type Task interface {
 	Release()
 }
 
+var _task *task
+var _taskL sync.Mutex
+
 func NewAsyncTask() Task {
-	t := new(task)
-	t.init()
-	return t
+	_taskL.Lock()
+	defer _taskL.Unlock()
+	if _task == nil {
+		_task = new(task)
+		_task.init()
+	}
+	return _task
 }

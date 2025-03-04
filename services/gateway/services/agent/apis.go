@@ -28,6 +28,14 @@ type agentApis struct {
 	*pool
 }
 
+func (a *agentApis) GetPoolIDs() []string {
+	var retVal []string
+	a.pool.p.Range(func(key, _ interface{}) bool {
+		retVal = append(retVal, key.(string))
+		return true
+	})
+	return retVal
+}
 func (a *agentApis) GetAgentStatus(id string) model.AgentStatus {
 	if !a.db.IsAgentIdExists(nil, id) {
 		return model.StatusNotExist

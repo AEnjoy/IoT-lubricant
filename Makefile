@@ -47,6 +47,7 @@ mock: install
 	mockgen \
 		-source=services/lubricant/repo/icore.go -destination=pkg/mock/db/mockdb-lubricant.go \
 		-package=db
+	mockery --dir=services/gateway/services/async --name=Task --output=pkg/mock/async --outpkg=async
 	mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc

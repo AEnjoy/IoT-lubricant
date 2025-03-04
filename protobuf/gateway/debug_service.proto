@@ -15,6 +15,8 @@ service debugService {
 
 message mockCoreTaskRequest{
   string taskId = 1;
+  optional int32 timeout = 2;
+  optional bool isQuery = 3;
   oneof task{
     StartAgentRequest startAgentRequest = 4;
     CreateAgentRequest createAgentRequest=5;
@@ -37,6 +39,7 @@ message mockCoreTaskResponse{
   }
 }
 message GetGatewayResourcesApiRequest{
+  int32 timeout = 4;
   oneof resources{
       GetAgentPool pool = 1;
       AgentPoolOperator agentOperator = 2;
@@ -64,13 +67,14 @@ message AgentPoolOperator{
     }
 }
 message DataPoolOperator{
+  string agentID = 1;
   oneof operator{
-    agent.DataMessage storeDataRequest = 1;
-    DataGetRequest getDataRequest = 2;
-    DataPopRequest popDataRequest = 3;
-    DataTopRequest topDataRequest = 4;
-    DataCleanRequest cleanDataRequest = 5;
-    DataSizeRequest sizeDataRequest = 6;
+    agent.DataMessage storeDataRequest = 2;
+    DataGetRequest getDataRequest = 3;
+    DataPopRequest popDataRequest = 4;
+    DataTopRequest topDataRequest = 5;
+    DataCleanRequest cleanDataRequest = 6;
+    DataSizeRequest sizeDataRequest = 7;
   }
 }
 message DataGetRequest{}

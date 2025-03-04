@@ -208,7 +208,7 @@ func UseGrpcDebugServer() func(*app) error {
 			if !ok {
 				return fmt.Errorf("grpc debug server port not found, please set %s", def.ENV_GRPC_DEBUG_SERVER_PORT)
 			}
-			go NewDebugServer(bind)
+			go NewDebugServer(fmt.Sprintf(":%s", bind))
 		}
 		return nil
 	}

@@ -40,3 +40,14 @@ curl 'http://127.0.0.1:8080/api/v1/user/info' -X GET  -v -i -b cookie.txt
 ```
 
 
+## 接口
+
+添加网关：
+```shell
+curl 'http://127.0.0.1:8080/api/v1/gateway/internal/gateway' -X POST -b cookie.txt -H 'Content-Type: application/json'  -d @test/request/create_gateway_internal.json
+```
+
+添加agent
+```shell
+curl 'http://127.0.0.1:8080/api/v1/gateway/2988e18e-6861-4d7d-8be1-5c539faad0f1/agent/internal/add' -X POST -b cookie.txt -H 'Content-Type: application/json' -d @test/request/add_agent_internal_request.json
+```

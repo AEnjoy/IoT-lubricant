@@ -22,6 +22,9 @@ type data struct {
 	cache   *corepb.Data
 }
 
+func (d *data) Size() int {
+	return d.lastLen
+}
 func (d *data) Store(message *agentpb.DataMessage) error {
 	return d.Push(message)
 }

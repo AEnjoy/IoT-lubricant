@@ -22,6 +22,7 @@ type Apis interface {
 	AddAgent(req *model.CreateAgentRequest) error
 	CreateAgent(req *model.CreateAgentRequest) error
 	GetAgentStatus(id string) model.AgentStatus
+	GetPoolIDs() []string
 }
 
 var (
