@@ -8,7 +8,7 @@ USER_INFO_URL="http://127.0.0.1:8080/api/v1/user/info"
 COOKIE_FILE="cookie.txt"
 
 echo "Logging in..."
-response=$(curl -s -X POST "$LOGIN_URL" \
+response=$(curl -s -f -X POST "$LOGIN_URL" \
   -H "Content-Type: application/json" \
   -d '{
     "application": "application_lubricant",
@@ -30,7 +30,7 @@ if [ -z "$code" ] || [ "$code" = "null" ]; then
 fi
 
 echo "Getting cookie..."
-response=$(curl -s -X GET -c "$COOKIE_FILE" \
+response=$(curl -s -f -X GET -c "$COOKIE_FILE" \
   "$CALLBACK_URL?code=$code&state=casdoor")
 code=$?
 if [ $code -ne 0 ]; then
@@ -60,7 +60,7 @@ echo "Cookie saved to $COOKIE_FILE"
 cat $COOKIE_FILE
 
 echo "Getting user info..."
-response=$(curl -s -X GET -b "$COOKIE_FILE" "$USER_INFO_URL")
+response=$(curl -s -f -X GET -b "$COOKIE_FILE" "$USER_INFO_URL")
 code=$?
 if [ $code -ne 0 ]; then
   echo "Error: Failed to get user info"

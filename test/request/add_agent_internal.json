@@ -1,0 +1,1 @@
+{"description":"agent","gather_cycle":1,"report_cycle":5,"address":"127.0.0.1:5436","data_compress_algorithm":"default","enable_stream_ability":false,"open_api_doc":"","enable_conf":""}

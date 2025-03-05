@@ -41,6 +41,7 @@ jobs:
           docker pull golang:1.23-alpine &
           docker pull alpine:latest &
           docker pull kindest/node:v1.32.2 &
+          docker pull python:3.9-slim-buster &
           # for Kubernetes yaml
           docker pull nginx:1.27 &
           docker pull nats:2.10.26 &
@@ -52,6 +53,7 @@ jobs:
             docker save \
               nginx:1.27 golang:1.23-alpine alpine:latest kindest/node:v1.32.2 \
               nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
+              python:3.9-slim-buster \
               -o /tmp/docker-images/base-images.tar &
           fi
 
@@ -73,15 +75,21 @@ jobs:
       - name: Install Kind and Helm
         run: |
           set -e
+          (
+          echo "Installing Kind..."
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
           chmod +x ./kind
           sudo mv ./kind /usr/bin/kind
           sudo mkdir -p /etc/casdoor
           kind create cluster --config=scripts/kind.yaml
+          )&
+          (
           echo "Installing Helm..."
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
           chmod 700 get_helm.sh
           ./get_helm.sh
+          )&
+          wait
 
       - name: Load Images to Kind
         run: |
@@ -90,6 +98,7 @@ jobs:
           kind load docker-image nats:2.10.26 &
           kind load docker-image redis:7.4.2 &
           kind load docker-image casbin/casdoor:v1.854.0 &
+          kind load docker-image python:3.9-slim-buster &
           wait
 
       - name: Verify and Prepare Kubernetes Environment
@@ -98,22 +107,28 @@ jobs:
           kubectl cluster-info
           kubectl version
           kubectl label nodes kind-control-plane ingress-ready=true
-          sleep 1
           bash deployment/infra/nsinit.sh
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
-          bash deployment/infra/db/deploy-mysql.sh
-          bash deployment/infra/auth/casdoor.sh
 
       - name: Build And Load Containers To Kubernetes
         run: |
           set -e
+          (
+          bash deployment/infra/db/deploy-mysql.sh
+          bash deployment/infra/auth/casdoor.sh
+          )&
+          (
+            make load-test-driver 
+            bash test/mock_driver/load-test-driver.sh
+          )&
           make load-to-kind -j2
 
-      - name: Prepare Lubricant Resources
+      - name: Prepare Lubricant and Test Resources
         run: |
           set -e
+          kubectl apply -f deployment/tester/agent.yaml
           bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'

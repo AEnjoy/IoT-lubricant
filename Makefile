@@ -106,3 +106,16 @@ load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
 
 load-to-kind: load-to-kind-agent load-to-kind-core
+
+test-driver-clock:
+	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
+		-f test/mock_driver/clock/Dockerfile test/mock_driver/clock
+load-to-kind-test-driver-clock: test-driver-clock
+	kind load docker-image hub.iotroom.top/aenjoy/test-driver-clock:nightly
+
+load-to-kind-test-driver: load-to-kind-test-driver-clock
+
+build-test-driver: test-driver-clock
+
+load-test-driver: load-to-kind-test-driver
+
