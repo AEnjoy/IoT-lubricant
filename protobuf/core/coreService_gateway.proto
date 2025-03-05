@@ -33,6 +33,8 @@ message TaskDetail {
     gateway.StopAgentRequest stopAgentRequest=8;
     gateway.UpdateAgentRequest updateAgentRequest=9;
     gateway.GetAgentStatusRequest getAgentStatusRequest=10;
+    gateway.StartGatherRequest startGatherRequest = 11;
+    gateway.StopGatherRequest stopGatherRequest = 12;
   }
 }
 

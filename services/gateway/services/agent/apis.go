@@ -28,6 +28,22 @@ type agentApis struct {
 	*pool
 }
 
+func (a *agentApis) StopGather(id string) error {
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	return ctrl.StopGather()
+}
+
+func (a *agentApis) StartGather(id string) error {
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	return ctrl.StartGather()
+}
+
 func (a *agentApis) GetPoolIDs() []string {
 	var retVal []string
 	a.pool.p.Range(func(key, _ interface{}) bool {

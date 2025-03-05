@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 
 	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
@@ -60,11 +61,25 @@ func (a *app) Run() error {
 	return a.grpcTaskApp() // gateway <--> core
 }
 
+var _ctxLock sync.Mutex
+
+func (a *app) _getRequestContext(ctx context.Context) context.Context {
+	_ctxLock.Lock()
+	defer _ctxLock.Unlock()
+
+	if a.ctrl == nil {
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
+		a.ctrl = metadata.NewOutgoingContext(ctx, md)
+	}
+	return a.ctrl
+}
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
-		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
-		s.ctrl = metadata.NewOutgoingContext(context.Background(), md)
+		s._getRequestContext(nil)
 		return nil
 	}
 }

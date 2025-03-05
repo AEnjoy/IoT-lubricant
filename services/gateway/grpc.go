@@ -26,7 +26,7 @@ func (a *app) grpcTaskApp() error {
 
 	// task
 	for i := 0; i < retryAttempts; i++ {
-		task, err := a.grpcClient.GetTask(a.ctrl)
+		task, err := a.grpcClient.GetTask(a._getRequestContext(nil))
 		if err != nil {
 			if i < retryAttempts-1 {
 				time.Sleep(retryDelay)
@@ -220,7 +220,7 @@ func (a *app) grpcDataApp() error {
 	for d := range ch {
 		//todo:可选: 发送前需要 GetCoreCapacity 检查
 		d.GatewayId = gatewayId
-		resp, err := a.grpcClient.PushData(a.ctrl, d)
+		resp, err := a.grpcClient.PushData(a._getRequestContext(nil), d)
 		if err != nil {
 			st, ok := status.FromError(err)
 			if ok {
@@ -254,7 +254,7 @@ func (a *app) grpcPingApp() error {
 	retryAttempts := 3        // 最大重试次数
 	retryDelay := time.Second // 初始重试延迟
 	for i := 0; i < retryAttempts; i++ {
-		stream, err := a.grpcClient.Ping(a.ctrl)
+		stream, err := a.grpcClient.Ping(a._getRequestContext(nil))
 		if err != nil {
 			if i < retryAttempts-1 {
 				time.Sleep(retryDelay)

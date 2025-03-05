@@ -32,3 +32,9 @@ message CreateAgentRequest{
 message GetAgentStatusRequest{
   repeated string agentId =1;
 }
+message StartGatherRequest{
+  string agentId =1;
+}
+message StopGatherRequest{
+  string agentId =1;
+}

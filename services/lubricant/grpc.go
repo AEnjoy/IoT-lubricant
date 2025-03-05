@@ -263,6 +263,7 @@ func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (
 }
 func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := getGatewayID(d.Context())
+	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
 	mq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	for {
 		data, err := d.Recv()

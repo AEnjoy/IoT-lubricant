@@ -155,6 +155,28 @@ func (s gatewayDebugServer) GatewayResources(_ context.Context,
 			}
 			res, _ := anypb.New(&allStatus)
 			return &gatewaypb.GetGatewayResourcesApiResponse{Resources: res}, nil
+		case *gatewaypb.AgentPoolOperator_StartGatherRequest:
+			var _status status.Status
+			err := s.Apis.StartGather(r.StartGatherRequest.GetAgentId())
+			if err != nil {
+				_status.Code = 1
+				_status.Message = err.Error()
+			} else {
+				_status.Message = "done"
+			}
+			res, _ := anypb.New(&_status)
+			return &gatewaypb.GetGatewayResourcesApiResponse{Resources: res}, nil
+		case *gatewaypb.AgentPoolOperator_StopGatherRequest:
+			var _status status.Status
+			err := s.Apis.StopGather(r.StopGatherRequest.GetAgentId())
+			if err != nil {
+				_status.Code = 1
+				_status.Message = err.Error()
+			} else {
+				_status.Message = "done"
+			}
+			res, _ := anypb.New(&_status)
+			return &gatewaypb.GetGatewayResourcesApiResponse{Resources: res}, nil
 		default:
 			return nil, grpcStatus.Errorf(codes.Unimplemented, "method GatewayResources not implemented")
 		}

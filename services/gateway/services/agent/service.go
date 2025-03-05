@@ -12,6 +12,8 @@ import (
 type Apis interface {
 	StartAgent(id string) error
 	StopAgent(id string) error
+	StartGather(id string) error
+	StopGather(id string) error
 	KillAgent(id string) error
 	RemoveAgent(id string) error
 	UpdateAgent(id string, optionalConf *model.CreateAgentRequest) error

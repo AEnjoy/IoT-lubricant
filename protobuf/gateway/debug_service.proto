@@ -64,6 +64,8 @@ message AgentPoolOperator{
       gateway.StopAgentRequest stopAgentRequest=5;
       gateway.UpdateAgentRequest updateAgentRequest=6;
       gateway.GetAgentStatusRequest getAgentStatusRequest=7;
+      gateway.StartGatherRequest startGatherRequest=8;
+      gateway.StopGatherRequest stopGatherRequest=9;
     }
 }
 message DataPoolOperator{
