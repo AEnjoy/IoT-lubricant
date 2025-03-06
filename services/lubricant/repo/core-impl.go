@@ -244,7 +244,7 @@ func (d *CoreDb) IsGatewayIdExists(id string) bool {
 	return d.db.Where("gateway_id = ?", id).First(&model.Gateway{}).Error == nil
 }
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
-	data := &model.Data{AgentID: id, Content: content}
+	data := &model.Data{AgentID: id, Content: content, CreatedAt: time.Now().Unix(), UpdatedAt: time.Now().Unix()}
 	if txn != nil {
 		return txn.WithContext(ctx).Create(data).Error
 	}

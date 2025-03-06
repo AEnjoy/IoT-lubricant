@@ -52,7 +52,7 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 
 	for _, gateway := range gateways {
 		output.GatewayCount++
-		if gateway.Status != "running" {
+		if gateway.Status != "online" {
 			output.OfflineGateway++
 		}
 		list, err := a.DataStore.ICoreDb.GetAgentList(c, gateway.GatewayID)

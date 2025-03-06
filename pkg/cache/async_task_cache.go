@@ -17,7 +17,8 @@ func (m *MemoryCache[T]) cleanExpired() {
 	m.cacheMap.Range(func(key, value any) bool {
 		k := key.(string)
 		v := value.(*Result[T])
-		if v.expiredAt.Before(time.Now()) {
+		if v.expiredAt.Before(time.Now()) && !v.expiredAt.IsZero() {
+			logger.Debugf("clean expired cache: %v", k)
 			m.cacheMap.Delete(k)
 		}
 		return true

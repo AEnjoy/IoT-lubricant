@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	middleware2 "github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
+	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
@@ -20,7 +20,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/auth"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
-	ioc "github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -40,6 +40,12 @@ type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 }
 
+func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
+	gatewayid, _ := getGatewayID(ctx)
+	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
+	go HandelRecvData(in)
+	return &corepb.PushDataResponse{Resp: &status.Status{Code: 0, Message: "ok"}}, nil
+}
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := getGatewayID(s.Context())
 
@@ -317,8 +323,8 @@ func (g *Grpc) Init() error {
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
 				//middlewares.UnaryServerInterceptor,
-				middleware2.GetLoggerInterceptor(),
-				middleware2.GetRecovery(middleware2.GetRegistry(middleware2.GetSrvMetrics())),
+				middleware.GetLoggerInterceptor(),
+				middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
 			),
 		)
 	} else {
@@ -336,9 +342,13 @@ func (g *Grpc) Init() error {
 		return err
 	}
 	go func() {
-		_ = server.Serve(lis)
+		err := server.Serve(lis)
+		if err != nil {
+			panic(err)
+		}
 	}()
 	logger.Debugf("core-grpc-server start at: %s", lis.Addr())
+	go gatewayStatusGuard()
 	return nil
 }
 
@@ -358,8 +368,9 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 	_ = s.Send(&out)
 }
 func gatewayOffline(mq mq.Mq, gatewayid string) error {
-	return mq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayid),
-		[]byte(time.Now().Format("2006-01-02 15:04:05")))
+	logger.Debugf("gateway offline: %s", gatewayid)
+	return mq.PublishBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway),
+		[]byte(gatewayid))
 }
 func getGatewayID(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)

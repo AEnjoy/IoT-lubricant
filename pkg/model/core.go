@@ -41,7 +41,7 @@ func (User) TableName() string {
 }
 
 type Data struct {
-	ID      int    `json:"id" gorm:"column:id"`
+	ID      int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentID string `json:"agent_id" gorm:"column:agent_id"` // equal to  DeviceID
 
 	Content string `json:"data" gorm:"column:data;serializer:json"` // core.Data 序列化的json

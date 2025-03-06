@@ -205,7 +205,7 @@ func (a *app) grpcTaskApp() error {
 			case *corepb.Task_GatewayQueryTaskResultResponse:
 			// todo:
 			case *corepb.Task_NoTaskResponse:
-				logger.Infoln("gateway get task request success, and no task need to execute")
+				logger.Debug("gateway get task request success, and no task need to execute")
 			case *corepb.Task_ErrorMessage:
 				logger.Errorf("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
 			}
