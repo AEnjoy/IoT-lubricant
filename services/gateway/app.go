@@ -48,16 +48,18 @@ func NewApp(opts ...func(*app) error) *app {
 }
 func (a *app) Run() error {
 	a.agent = agent.NewAgentApis(a.IGatewayDb)
+	a.agent.SetReporter(_reportMessage)
 	a.task = async.NewAsyncTask()
 	a.task.SetActor(a.handelTask)
-	agent.SetErrorHandelFunc(HandelAgentControlError)
+	agent.SetErrorHandelFunc(a._handelAgentControlError)
 
-	go func() {
-		_ = a.grpcDataApp()
-	}()
+	go a.grpcDataApp()
+	go a.grpcReportApp()
+
 	go func() {
 		_ = a.grpcPingApp()
 	}()
+
 	return a.grpcTaskApp() // gateway <--> core
 }
 

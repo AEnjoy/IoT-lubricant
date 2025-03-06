@@ -54,25 +54,6 @@ func (Data) TableName() string {
 	return "data"
 }
 
-type Gateway struct {
-	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
-	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
-	UserId      string `json:"-" gorm:"column:user_id"` //;foreignKey:UserID
-	BindHost    string `json:"_" gorm:"column:bind_host"`
-	Description string `json:"description" gorm:"column:description"`
-
-	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"`
-	// host information has replaced by model.GatewayHost
-
-	Status    string `json:"status" gorm:"column:status;default:'created'"`
-	CreatedAt int64  `json:"created_at" gorm:"column:created_at"`
-	UpdatedAt int64  `json:"updated_at" gorm:"column:updated_at"`
-}
-
-func (Gateway) TableName() string {
-	return "gateway"
-}
-
 type Clean struct {
 	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentID     string `json:"agent_id" gorm:"column:agent_id"`

@@ -15,6 +15,7 @@ import (
 	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	object "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
@@ -140,7 +141,7 @@ func (c *agentControl) _start() error {
 func (c *agentControl) _offlineWarn() {
 	c.exceptSig <- exception.ErrNewException(nil, exceptionCode.WarnAgentOffline,
 		exception.WithLevel(errLevel.Warn),
-		exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
+		exception.WithContext(string(object.TargetAgent), c.id),
 	)
 }
 func (c *agentControl) _gather(wg *sync.WaitGroup) {

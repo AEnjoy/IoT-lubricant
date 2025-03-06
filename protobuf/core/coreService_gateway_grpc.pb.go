@@ -26,7 +26,7 @@ const (
 	CoreService_PushDataStream_FullMethodName  = "/lubricant.core.coreService/pushDataStream"
 	CoreService_PushData_FullMethodName        = "/lubricant.core.coreService/pushData"
 	CoreService_GetCoreCapacity_FullMethodName = "/lubricant.core.coreService/getCoreCapacity"
-	CoreService_ReportError_FullMethodName     = "/lubricant.core.coreService/reportError"
+	CoreService_Report_FullMethodName          = "/lubricant.core.coreService/report"
 )
 
 // CoreServiceClient is the client API for CoreService service.
@@ -39,7 +39,7 @@ type CoreServiceClient interface {
 	PushDataStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Data, Data], error)
 	PushData(ctx context.Context, in *Data, opts ...grpc.CallOption) (*PushDataResponse, error)
 	GetCoreCapacity(ctx context.Context, in *GetCoreCapacityRequest, opts ...grpc.CallOption) (*GetCoreCapacityResponse, error)
-	ReportError(ctx context.Context, in *ReportErrorRequest, opts ...grpc.CallOption) (*ReportErrorResponse, error)
+	Report(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*ReportResponse, error)
 }
 
 type coreServiceClient struct {
@@ -119,10 +119,10 @@ func (c *coreServiceClient) GetCoreCapacity(ctx context.Context, in *GetCoreCapa
 	return out, nil
 }
 
-func (c *coreServiceClient) ReportError(ctx context.Context, in *ReportErrorRequest, opts ...grpc.CallOption) (*ReportErrorResponse, error) {
+func (c *coreServiceClient) Report(ctx context.Context, in *ReportRequest, opts ...grpc.CallOption) (*ReportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReportErrorResponse)
-	err := c.cc.Invoke(ctx, CoreService_ReportError_FullMethodName, in, out, cOpts...)
+	out := new(ReportResponse)
+	err := c.cc.Invoke(ctx, CoreService_Report_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ type CoreServiceServer interface {
 	PushDataStream(grpc.BidiStreamingServer[Data, Data]) error
 	PushData(context.Context, *Data) (*PushDataResponse, error)
 	GetCoreCapacity(context.Context, *GetCoreCapacityRequest) (*GetCoreCapacityResponse, error)
-	ReportError(context.Context, *ReportErrorRequest) (*ReportErrorResponse, error)
+	Report(context.Context, *ReportRequest) (*ReportResponse, error)
 	mustEmbedUnimplementedCoreServiceServer()
 }
 
@@ -168,8 +168,8 @@ func (UnimplementedCoreServiceServer) PushData(context.Context, *Data) (*PushDat
 func (UnimplementedCoreServiceServer) GetCoreCapacity(context.Context, *GetCoreCapacityRequest) (*GetCoreCapacityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCoreCapacity not implemented")
 }
-func (UnimplementedCoreServiceServer) ReportError(context.Context, *ReportErrorRequest) (*ReportErrorResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReportError not implemented")
+func (UnimplementedCoreServiceServer) Report(context.Context, *ReportRequest) (*ReportResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Report not implemented")
 }
 func (UnimplementedCoreServiceServer) mustEmbedUnimplementedCoreServiceServer() {}
 func (UnimplementedCoreServiceServer) testEmbeddedByValue()                     {}
@@ -267,20 +267,20 @@ func _CoreService_GetCoreCapacity_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CoreService_ReportError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReportErrorRequest)
+func _CoreService_Report_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CoreServiceServer).ReportError(ctx, in)
+		return srv.(CoreServiceServer).Report(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CoreService_ReportError_FullMethodName,
+		FullMethod: CoreService_Report_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServiceServer).ReportError(ctx, req.(*ReportErrorRequest))
+		return srv.(CoreServiceServer).Report(ctx, req.(*ReportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -305,8 +305,8 @@ var CoreService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CoreService_GetCoreCapacity_Handler,
 		},
 		{
-			MethodName: "reportError",
-			Handler:    _CoreService_ReportError_Handler,
+			MethodName: "report",
+			Handler:    _CoreService_Report_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

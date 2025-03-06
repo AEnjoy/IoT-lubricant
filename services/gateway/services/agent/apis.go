@@ -13,6 +13,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/bytedance/sonic"
@@ -23,9 +24,14 @@ import (
 var _ Apis = (*agentApis)(nil)
 
 type agentApis struct {
-	db repo.IGatewayDb
+	db       repo.IGatewayDb
+	reporter chan *corepb.ReportRequest
 
 	*pool
+}
+
+func (a *agentApis) SetReporter(requests chan *corepb.ReportRequest) {
+	a.reporter = requests
 }
 
 func (a *agentApis) StopGather(id string) error {

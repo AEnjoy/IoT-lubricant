@@ -18,7 +18,7 @@ service coreService {
   rpc pushDataStream(stream Data) returns (stream Data) {}
   rpc pushData(Data) returns (pushDataResponse) {}
   rpc getCoreCapacity(getCoreCapacityRequest)returns (getCoreCapacityResponse){}//获取核心服务资源容量，为数据发送做准备
-  rpc reportError(reportErrorRequest)returns (reportErrorResponse){}
+  rpc report(ReportRequest)returns (ReportResponse){}
 }
 
 message TaskDetail {
@@ -120,5 +120,29 @@ message reportErrorRequest{
     lubricant.ErrorMessage errorMessage = 1;
 }
 message reportErrorResponse{
+  google.rpc.Status resp = 1;
+}
+message ReportRequest{
+  string gatewayId = 1;
+  string agentId = 2;
+
+  oneof req{
+      reportErrorRequest error = 3;
+      AgentStatusRequest agentStatus = 4;
+  }
+}
+message ReportResponse{
+  string gatewayId = 1;
+  string agentId = 2;
+
+  oneof resp{
+      reportErrorResponse error = 3;
+      AgentStatusResponse agentStatus = 4;
+  }
+}
+message AgentStatusRequest{
+  google.rpc.Status req = 1;
+}
+message AgentStatusResponse{
   google.rpc.Status resp = 1;
 }

@@ -15,10 +15,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _ = &metapb.Ping{
-	Flag: 0,
+var _reportMessage = make(chan *corepb.ReportRequest, 10)
+
+func (a *app) grpcReportApp() {
+	for request := range _reportMessage {
+		_, err := a.grpcClient.Report(a._getRequestContext(nil), request)
+		if err != nil {
+			logger.Errorf("Failed to send report request to server: %v", err)
+		}
+	}
 }
 
+// todo: 需要重构逻辑，以后Core向网关发送任务后，不需要再通过这个接口查询结果，而是通过网关主动Report上传结果
 func (a *app) grpcTaskApp() error {
 	// todo: not all implemented yet
 	retryAttempts := 3        // 最大重试次数
@@ -213,7 +221,7 @@ func (a *app) grpcTaskApp() error {
 	}
 	return nil
 }
-func (a *app) grpcDataApp() error {
+func (a *app) grpcDataApp() {
 	time.Sleep(30 * time.Second)
 	data.InitDataSendQueue()
 	ch := data.GetDataSendQueue()
@@ -245,7 +253,6 @@ func (a *app) grpcDataApp() error {
 		}
 		a._checkPushDataStatus(resp)
 	}
-	return nil
 }
 func (a *app) _checkPushDataStatus(resp *corepb.PushDataResponse) {
 	// todo:

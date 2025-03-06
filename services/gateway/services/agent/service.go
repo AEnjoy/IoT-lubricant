@@ -5,7 +5,8 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
-	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 )
 
@@ -17,7 +18,7 @@ type Apis interface {
 	KillAgent(id string) error
 	RemoveAgent(id string) error
 	UpdateAgent(id string, optionalConf *model.CreateAgentRequest) error
-	EditAgent(id string, info *proxypb.EditAgentRequest) error
+	EditAgent(id string, info *gatewaypb.EditAgentRequest) error
 	SetAgent(id string, info *agentpb.AgentInfo) error
 	GetAgentInfo(id string) (*agentpb.AgentInfo, error)
 	GetAgentModel(id string) (*model.Agent, error)
@@ -25,6 +26,8 @@ type Apis interface {
 	CreateAgent(req *model.CreateAgentRequest) error
 	GetAgentStatus(id string) model.AgentStatus
 	GetPoolIDs() []string
+
+	SetReporter(chan *corepb.ReportRequest)
 }
 
 var (
