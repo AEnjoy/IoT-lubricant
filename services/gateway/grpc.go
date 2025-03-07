@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -20,7 +21,7 @@ var _reportMessage = make(chan *corepb.ReportRequest, 10)
 func (a *app) grpcReportApp() {
 	for request := range _reportMessage {
 		request.GatewayId = gatewayId
-		_, err := a.grpcClient.Report(a._getRequestContext(nil), request)
+		_, err := a.grpcClient.Report(a._getRequestContext(context.TODO()), request)
 		if err != nil {
 			logger.Errorf("Failed to send report request to server: %v", err)
 		}
@@ -35,7 +36,7 @@ func (a *app) grpcTaskApp() error {
 
 	// task
 	for i := 0; i < retryAttempts; i++ {
-		task, err := a.grpcClient.GetTask(a._getRequestContext(nil))
+		task, err := a.grpcClient.GetTask(a._getRequestContext(context.TODO()))
 		if err != nil {
 			if i < retryAttempts-1 {
 				time.Sleep(retryDelay)
@@ -229,7 +230,7 @@ func (a *app) grpcDataApp() {
 	for d := range ch {
 		//todo:可选: 发送前需要 GetCoreCapacity 检查
 		d.GatewayId = gatewayId
-		resp, err := a.grpcClient.PushData(a._getRequestContext(nil), d)
+		resp, err := a.grpcClient.PushData(a._getRequestContext(context.TODO()), d)
 		if err != nil {
 			st, ok := status.FromError(err)
 			if ok {
@@ -262,7 +263,7 @@ func (a *app) grpcPingApp() error {
 	retryAttempts := 3        // 最大重试次数
 	retryDelay := time.Second // 初始重试延迟
 	for i := 0; i < retryAttempts; i++ {
-		stream, err := a.grpcClient.Ping(a._getRequestContext(nil))
+		stream, err := a.grpcClient.Ping(a._getRequestContext(context.TODO()))
 		if err != nil {
 			if i < retryAttempts-1 {
 				time.Sleep(retryDelay)

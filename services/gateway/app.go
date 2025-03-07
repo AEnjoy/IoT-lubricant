@@ -81,7 +81,7 @@ func (a *app) _getRequestContext(ctx context.Context) context.Context {
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
-		s._getRequestContext(nil)
+		s._getRequestContext(context.TODO())
 		return nil
 	}
 }

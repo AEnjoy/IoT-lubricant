@@ -50,7 +50,7 @@ type agentControl struct {
 }
 
 func (c *agentControl) setCtx(ctx context.Context) {
-	if ctx == nil {
+	if ctx == nil || ctx == context.TODO() {
 		ctx = c.rootCtx
 	}
 	c.ctx, c.cancel = context.WithCancel(ctx)
@@ -74,7 +74,7 @@ func (c *agentControl) init(ctx context.Context) {
 	c._initOnce.Do(func() {
 		c.rootCtx = ctx
 		c.id = c.AgentInfo.AgentId
-		c.setCtx(nil)
+		c.setCtx(context.TODO())
 		c.exitSig = make(chan struct{})
 		c.exceptSig = make(chan *exception.Exception, exceptionSigMaxSize)
 		c.dataCollect = data.NewDataStoreApis(c.id)
@@ -199,7 +199,7 @@ func (c *agentControl) Start(ctx context.Context) error {
 }
 
 func (c *agentControl) StartGather() error {
-	c.setCtx(nil)
+	c.setCtx(context.TODO())
 	if !c._checkOnline() {
 		return errors.New("agent is not started or has been offline")
 	}
