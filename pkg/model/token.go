@@ -26,16 +26,16 @@ type Token struct {
 	RefreshTokenExpiredAt int `json:"refresh_token_expired_at" gorm:"column:refresh_token_expired_at"`
 
 	// 创建时间
-	CreatedAt int64 `json:"created_at" gorm:"column:created_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
 	// 更新实现
-	UpdatedAt int64 `json:"updated_at" gorm:"column:updated_at"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 }
 
 func (Token) TableName() string {
 	return "token"
 }
 func (t *Token) IssueTime() time.Time {
-	return time.Unix(t.CreatedAt, 0)
+	return t.CreatedAt
 }
 
 func (t *Token) AccessTokenDuration() time.Duration {
@@ -78,6 +78,6 @@ func NewToken(u *User) *Token {
 		AccessTokenExpiredAt:  3600,
 		RefreshToken:          xid.New().String(),
 		RefreshTokenExpiredAt: 3600 * 4,
-		CreatedAt:             time.Now().Unix(),
+		CreatedAt:             time.Now(),
 	}
 }

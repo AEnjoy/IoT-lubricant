@@ -132,7 +132,7 @@ func (d *CoreDb) AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *mod
 }
 
 func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {
-	tk.CreatedAt = time.Now().Unix()
+	tk.CreatedAt = time.Now()
 	return d.db.WithContext(ctx).Create(tk).Error
 }
 func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error {
@@ -142,7 +142,7 @@ func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID s
 	mToken.AccessTokenExpiredAt = tk.Expiry.Second()
 	mToken.RefreshTokenExpiredAt = tk.Expiry.Second()
 	mToken.UserId = userID
-	mToken.CreatedAt = time.Now().Unix()
+	mToken.CreatedAt = time.Now()
 	return d.SaveToken(ctx, &mToken)
 }
 func (d *CoreDb) QueryUser(ctx context.Context, userName, uuid string) (ret model.User, err error) {
@@ -191,7 +191,7 @@ func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*model.Gateway,
 
 func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error {
 	gateway.UserId = userID
-	gateway.CreatedAt = time.Now().Unix()
+	gateway.CreatedAt = time.Now()
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
@@ -204,7 +204,7 @@ func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.
 	}
 	var m model.Gateway
 	txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gateway.GatewayID).First(&m)
-	gateway.UpdatedAt = time.Now().Unix()
+	gateway.UpdatedAt = time.Now()
 	gateway.CreatedAt = m.CreatedAt
 	gateway.UserId = m.UserId
 	gateway.Status = m.Status
@@ -261,7 +261,7 @@ func (d *CoreDb) IsGatewayIdExists(id string) bool {
 	return d.db.Where("gateway_id = ?", id).First(&model.Gateway{}).Error == nil
 }
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
-	data := &model.Data{AgentID: id, Content: content, CreatedAt: time.Now().Unix(), UpdatedAt: time.Now().Unix()}
+	data := &model.Data{AgentID: id, Content: content, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	if txn != nil {
 		return txn.WithContext(ctx).Create(data).Error
 	}
