@@ -69,8 +69,8 @@ func (a *app) _getRequestContext(ctx context.Context) context.Context {
 	_ctxLock.Lock()
 	defer _ctxLock.Unlock()
 
-	if a.ctrl == nil {
-		if ctx == nil {
+	if a.ctrl == context.TODO() || a.ctrl == nil {
+		if ctx == nil || ctx == context.TODO() {
 			ctx = context.Background()
 		}
 		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
@@ -81,7 +81,7 @@ func (a *app) _getRequestContext(ctx context.Context) context.Context {
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
-		s._getRequestContext(context.TODO())
+		s._getRequestContext(context.Background())
 		return nil
 	}
 }

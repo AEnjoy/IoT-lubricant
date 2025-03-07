@@ -67,18 +67,16 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 			output.AgentCount++
 		}
 
-		if gateway.Status == "running" {
-			wg.Add(1)
-			go func(c *gin.Context, id string, ids []string, output *response.QueryMonitorBaseInfoResponse) {
-				defer wg.Done()
-				status, _ := a.IAgentService.GetAgentStatus(c, nil, id, ids)
-				for _, agentStatus := range status {
-					if agentStatus != model.StatusRunning {
-						atomic.AddInt32(&output.OfflineAgent, 1)
-					}
+		wg.Add(1)
+		go func(c *gin.Context, id string, ids []string, output *response.QueryMonitorBaseInfoResponse) {
+			defer wg.Done()
+			status, _ := a.IAgentService.GetAgentStatus(c, id, ids)
+			for _, agentStatus := range status {
+				if agentStatus != model.StatusOnline {
+					atomic.AddInt32(&output.OfflineAgent, 1)
 				}
-			}(c, gateway.GatewayID, ids, &output)
-		}
+			}
+		}(c, gateway.GatewayID, ids, &output)
 	}
 
 	wg.Wait()

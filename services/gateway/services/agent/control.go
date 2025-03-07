@@ -118,6 +118,7 @@ func (c *agentControl) _checkOnline() bool {
 		}
 	} else {
 		if !c.online {
+			logger.Debug("agent online")
 			c.reporter <- &corepb.ReportRequest{
 				AgentId: c.id,
 				Req: &corepb.ReportRequest_AgentStatus{

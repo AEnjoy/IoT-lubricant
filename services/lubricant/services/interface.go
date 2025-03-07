@@ -55,5 +55,5 @@ type IAgentService interface {
 	// if taskid is "", system will create a random taskid
 	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
 
-	GetAgentStatus(ctx context.Context, taskid *string, gatewayid string, ids []string) ([]model.AgentStatus, error)
+	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
 }

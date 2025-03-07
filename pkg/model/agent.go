@@ -162,6 +162,9 @@ func (a AgentStatus) String() string {
 const (
 	StatusUnknown AgentStatus = "Unknown"
 
+	StatusOnline  AgentStatus = "online"
+	StatusOffline AgentStatus = "offline"
+
 	StatusRunning  AgentStatus = "Running"
 	StatusStopped  AgentStatus = "Stopped"
 	StatusQuit     AgentStatus = "Quit"
