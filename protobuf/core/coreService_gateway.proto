@@ -35,6 +35,7 @@ message TaskDetail {
     gateway.GetAgentStatusRequest getAgentStatusRequest=10;
     gateway.StartGatherRequest startGatherRequest = 11;
     gateway.StopGatherRequest stopGatherRequest = 12;
+    gateway.ReloadAgentControlRequest reloadAgentControlRequest = 13; //WIP
   }
 }
 

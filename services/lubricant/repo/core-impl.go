@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/rs/xid"
 	"golang.org/x/oauth2"
 
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
@@ -16,6 +17,22 @@ var _ ICoreDb = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
+}
+
+func (d *CoreDb) GetAgentStatus(ctx context.Context, agentID string) (string, error) {
+	var ag model.Agent
+	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("agent_id = ?", agentID).First(&ag).Error
+	return ag.Status, err
+}
+
+func (d *CoreDb) UpdateAgentStatus(ctx context.Context, txn *gorm.DB, agentID, status string) error {
+	return txn.WithContext(ctx).Model(model.Agent{}).Where("agent_id = ?", agentID).Update("status", status).Error
+}
+
+func (d *CoreDb) SaveErrorLog(ctx context.Context, err *model.ErrorLogs) error {
+	err.ErrID = xid.New().String()
+	err.CreatedAt = time.Now()
+	return d.db.WithContext(ctx).Model(model.ErrorLogs{}).Create(err).Error
 }
 
 func (d *CoreDb) GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error) {

@@ -3,12 +3,14 @@ package lubricant
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 )
 
 func gatewayStatusGuard() {
+	time.Sleep(3 * time.Second)
 	dataStore := dataCli()
 	gatewayCh, err := dataStore.Mq.SubscribeBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway))
 	if err != nil {

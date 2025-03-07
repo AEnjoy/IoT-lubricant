@@ -18,6 +18,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/bytedance/sonic"
 	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/genproto/googleapis/rpc/status"
 	"gorm.io/gorm"
 )
 
@@ -85,7 +86,7 @@ func (a *agentApis) init() {
 	for _, agent := range agents {
 		go func(agent *model.Agent) {
 			ins := a.db.GetAgentInstance(nil, agent.AgentId)
-			control := newAgentControl(agent)
+			control := newAgentControl(agent, a.reporter)
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
@@ -96,6 +97,15 @@ func (a *agentApis) init() {
 
 			if err := a.pool.JoinAgent(ctx, control); err != nil {
 				logger.Error("agent join to handel pool failed", agent.AgentId, err)
+				return
+			}
+			a.reporter <- &corepb.ReportRequest{
+				AgentId: agent.AgentId,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "online"},
+					},
+				},
 			}
 		}(&agent)
 		time.Sleep(100 * time.Millisecond) //避免Goroutine启动过快失败
@@ -384,10 +394,18 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent information failed", true)
 		return err
 	}
-	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo))
+	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo, a.reporter))
 	if err != nil {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
+	}
+	a.reporter <- &corepb.ReportRequest{
+		AgentId: req.AgentInfo.AgentId,
+		Req: &corepb.ReportRequest_AgentStatus{
+			AgentStatus: &corepb.AgentStatusRequest{
+				Req: &status.Status{Message: "online"},
+			},
+		},
 	}
 	return nil
 }

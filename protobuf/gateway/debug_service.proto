@@ -25,6 +25,7 @@ message mockCoreTaskRequest{
     StopAgentRequest stopAgentRequest=8;
     UpdateAgentRequest updateAgentRequest=9;
     GetAgentStatusRequest getAgentStatusRequest=10;
+    ReloadAgentControlRequest reloadAgentControlRequest = 11; // WIP
   }
 }
 message mockCoreTaskResponse{

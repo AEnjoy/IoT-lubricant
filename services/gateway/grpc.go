@@ -19,6 +19,7 @@ var _reportMessage = make(chan *corepb.ReportRequest, 10)
 
 func (a *app) grpcReportApp() {
 	for request := range _reportMessage {
+		request.GatewayId = gatewayId
 		_, err := a.grpcClient.Report(a._getRequestContext(nil), request)
 		if err != nil {
 			logger.Errorf("Failed to send report request to server: %v", err)
@@ -213,7 +214,7 @@ func (a *app) grpcTaskApp() error {
 			case *corepb.Task_GatewayQueryTaskResultResponse:
 			// todo:
 			case *corepb.Task_NoTaskResponse:
-				logger.Debug("gateway get task request success, and no task need to execute")
+				// logger.Debug("gateway get task request success, and no task need to execute")
 			case *corepb.Task_ErrorMessage:
 				logger.Errorf("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
 			}

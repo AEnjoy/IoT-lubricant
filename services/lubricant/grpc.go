@@ -40,6 +40,27 @@ type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 }
 
+func (PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
+	gatewayid, _ := getGatewayID(ctx)
+	logger.Debugf("Recv gateway report request: %s", gatewayid)
+	go HandelReport(req)
+
+	if req.GetAgentStatus() != nil {
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_AgentStatus{
+			AgentStatus: &corepb.AgentStatusResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		},
+		}, nil
+	}
+	return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
+		Error: &corepb.ReportErrorResponse{
+			Resp: &status.Status{Message: "ok"},
+		},
+	},
+	}, nil
+}
+
 func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
 	gatewayid, _ := getGatewayID(ctx)
 	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
@@ -348,7 +369,6 @@ func (g *Grpc) Init() error {
 		}
 	}()
 	logger.Debugf("core-grpc-server start at: %s", lis.Addr())
-	go gatewayStatusGuard()
 	return nil
 }
 

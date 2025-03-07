@@ -36,5 +36,19 @@ func (p *pool) GetAgentControl(id string) *agentControl {
 	if v, ok := p.p.Load(id); ok {
 		return v.(*agentControl)
 	}
-	return nil
+	// 对于不存在的情况，先判断是否存在于数据库，如果是，重新加载后不存在则返回nil
+	return p._tryReloadAgentControl(id)
+}
+func (p *pool) _tryReloadAgentControl(id string) *agentControl {
+	agent, err := _apis.(*agentApis).db.GetAgent(id)
+	if err != nil {
+		return nil
+	}
+
+	ctrl := newAgentControl(&agent, _apis.(*agentApis).reporter)
+	err = p.JoinAgent(context.Background(), ctrl)
+	if err != nil {
+		return nil
+	}
+	return ctrl
 }

@@ -17,8 +17,11 @@ import (
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	object "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
+
+	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
 const exceptionSigMaxSize = 10
@@ -37,6 +40,7 @@ type agentControl struct {
 
 	exitSig   chan struct{} // 销毁信号
 	exceptSig chan *exception.Exception
+	reporter  chan *corepb.ReportRequest
 
 	gatherLock sync.Mutex
 	online     bool // online/offline
@@ -101,10 +105,28 @@ func (c *agentControl) _checkOnline() bool {
 	_, err := c.AgentCli.Ping(c.ctx, _ping)
 	if err != nil {
 		if c.online {
+			c.reporter <- &corepb.ReportRequest{
+				AgentId: c.id,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "offline"},
+					},
+				},
+			}
 			c.online = false
 			c._offlineWarn()
 		}
 	} else {
+		if !c.online {
+			c.reporter <- &corepb.ReportRequest{
+				AgentId: c.id,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "online"},
+					},
+				},
+			}
+		}
 		c.online = true
 	}
 	return c.online
@@ -231,8 +253,9 @@ func (c *agentControl) Exit() {
 func (c *agentControl) GetDataApi() data.Apis {
 	return c.dataCollect
 }
-func newAgentControl(a *model.Agent) *agentControl {
+func newAgentControl(a *model.Agent, reporter chan *corepb.ReportRequest) *agentControl {
 	return &agentControl{
 		AgentInfo: a,
+		reporter:  reporter,
 	}
 }
