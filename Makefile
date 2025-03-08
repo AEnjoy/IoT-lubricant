@@ -80,7 +80,15 @@ build-gateway: make-output-dir
 	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/gateway/Dockerfile .
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-gateway:nightly \
+		-f cmd/gateway/Dockerfile .
 
 build-core:
 	docker build \
