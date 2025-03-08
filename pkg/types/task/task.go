@@ -1,6 +1,8 @@
 package task
 
 import (
+	"database/sql"
+
 	"github.com/aenjoy/iot-lubricant/pkg/types/user"
 )
 
@@ -13,8 +15,8 @@ type Task struct {
 	OperationCommend string    `json:"operation_commend" gorm:"column:operation_commend;serializer:json"` //json
 	SupportRollback  bool      `json:"support_rollback" gorm:"column:support_rollback"`
 
-	OperationTime int64 `json:"operation_time" gorm:"column:created_at"`
-	UpdatedAt     int64 `json:"-" gorm:"column:updated_at"`
+	OperationTime int64        `json:"operation_time" gorm:"column:created_at"`
+	UpdatedAt     sql.NullTime `json:"-" gorm:"column:updated_at"`
 }
 
 func (Task) TableName() string {

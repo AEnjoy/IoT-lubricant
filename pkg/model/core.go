@@ -2,6 +2,7 @@ package model
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"os"
 	"os/exec"
@@ -25,9 +26,9 @@ type User struct {
 	UserName string `json:"username" gorm:"column:username"`
 	Password string `json:"password" gorm:"column:password"`
 
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (req User) CheckPassword(password string) error {
@@ -47,9 +48,9 @@ type Data struct {
 
 	Content string `json:"data" gorm:"column:data;serializer:json"` // core.Data 序列化的json
 
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (Data) TableName() string {
@@ -65,9 +66,9 @@ type Clean struct {
 	Script      string `json:"script" gorm:"column:script"`           // 脚本代码
 	Command     string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
 
-	CreatedAt time.Time `json:"-" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"-" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"-" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"-" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"-" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (Clean) TableName() string {
@@ -141,9 +142,9 @@ type GatewayHost struct {
 	PrivateKey string `json:"-" gorm:"column:private_key"`
 	PublicKey  string `json:"-" gorm:"column:public_key"`
 
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 type ErrorLogs struct {
 	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
@@ -156,8 +157,8 @@ type ErrorLogs struct {
 	Module  string `json:"module" gorm:"column:module"`
 	Stack   string `json:"stack" gorm:"column:stack"`
 
-	CreatedAt time.Time `json:"happened" gorm:"column:created_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"happened" gorm:"column:created_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (ErrorLogs) TableName() string {
@@ -196,10 +197,10 @@ type AsyncJob struct {
 	Status    string `gorm:"column:status;type:enum('completed', 'failed', 'pending', 'retried', 'retrying', 'started');not null" json:"status"`
 	Data      string `gorm:"column:data;type:json;not null" json:"data"`
 
-	ExpiredAt time.Time `gorm:"type:datetime;not null" json:"expiredAt"`
-	CreatedAt time.Time `gorm:"type:datetime;not null" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"type:datetime;not null" json:"updatedAt"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	ExpiredAt time.Time    `gorm:"type:datetime;not null" json:"expiredAt"`
+	CreatedAt time.Time    `gorm:"type:datetime;not null" json:"createdAt"`
+	UpdatedAt time.Time    `gorm:"type:datetime;not null" json:"updatedAt"`
+	DeleteAt  sql.NullTime `gorm:"column:deleted_at;type:datetime" json:"deleteAt"`
 	//Meta      string    `gorm:"column:meta;type:json;not null" json:"meta"`
 }
 
@@ -217,9 +218,9 @@ type GatherNodeConfig struct {
 	Config       string `gorm:"type:text;column:config" json:"config"`               // json or yaml
 	EnableConfig string `gorm:"type:text;column:enable_config" json:"enable_config"` // json or yaml
 
-	CreatedAt time.Time `gorm:"type:datetime;not null" json:"createdAt"`
-	UpdatedAt time.Time `gorm:"type:datetime" json:"updatedAt"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `gorm:"type:datetime;not null" json:"createdAt"`
+	UpdatedAt time.Time    `gorm:"type:datetime" json:"updatedAt"`
+	DeleteAt  sql.NullTime `gorm:"column:deleted_at;type:datetime" json:"deleteAt"`
 }
 
 func (GatherNodeConfig) TableName() string {

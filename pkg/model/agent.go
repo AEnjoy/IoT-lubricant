@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -29,9 +30,9 @@ type Agent struct {
 
 	Status string `json:"status" gorm:"column:status;default:'created';enum('offline', 'online', 'error', 'created')"`
 
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 type Device struct {
@@ -40,9 +41,9 @@ type Device struct {
 
 	DeviceBasicInfo
 
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (Device) TableName() string {

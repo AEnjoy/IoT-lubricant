@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
@@ -18,10 +19,10 @@ type Gateway struct {
 	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"`
 	// host information has replaced by model.GatewayHost
 
-	Status    string    `json:"status" gorm:"column:status;default:'created';enum('offline', 'online', 'error', 'created')"`
-	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	Status    string       `json:"status" gorm:"column:status;default:'created';enum('offline', 'online', 'error', 'created')"`
+	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (Gateway) TableName() string {
@@ -51,9 +52,9 @@ type ServerInfo struct { // Gateway system config
 	Tls       bool       `json:"tls" gorm:"column:tls" yaml:"tls"`
 	TlsConfig crypto.Tls `json:"tls_config" gorm:"column:tls_config;type:text;serializer:json" yaml:"tlsConfig"`
 
-	CreatedAt time.Time `json:"-" gorm:"column:created_at;type:datetime" yaml:"-"`
-	UpdatedAt time.Time `json:"-" gorm:"column:updated_at;type:datetime" yaml:"-"`
-	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
+	CreatedAt time.Time    `json:"-" gorm:"column:created_at;type:datetime" yaml:"-"`
+	UpdatedAt time.Time    `json:"-" gorm:"column:updated_at;type:datetime" yaml:"-"`
+	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
 
 func (ServerInfo) TableName() string {
