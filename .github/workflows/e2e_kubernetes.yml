@@ -39,7 +39,7 @@ jobs:
         run: |
           set -e
           # for base images
-          docker pull golang:1.23-alpine &
+          # docker pull golang:1.23-alpine &
           docker pull alpine:latest &
           docker pull kindest/node:v1.32.2 &
           docker pull python:3.9-slim-buster &
@@ -53,7 +53,7 @@ jobs:
             echo "Cache: Saving Docker Images..."
             mkdir -p /tmp/docker-images
             docker save \
-              nginx:1.27 golang:1.23-alpine alpine:latest kindest/node:v1.32.2 \
+              nginx:1.27 alpine:latest kindest/node:v1.32.2 \
               nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
               python:3.9-slim-buster \
               -o /tmp/docker-images/base-images.tar &
@@ -75,7 +75,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-mod-
 
-      - name: Install Kind and Helm
+      - name: Install Kind, Helm and download Go Dependency
         run: |
           set -e
           (
@@ -92,6 +92,7 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
           )&
+          go mod download &
           wait
 
       - name: Load Images to Kind
@@ -126,7 +127,8 @@ jobs:
             make load-test-driver 
             bash test/mock_driver/load-test-driver.sh
           )&
-          make load-to-kind -j3
+          make copy-files
+          FAST_BUILD=1 make load-to-kind -j3
 
       - name: Prepare Lubricant and Test Resources
         run: |

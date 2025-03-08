@@ -55,6 +55,17 @@ mock: install
 	go mod tidy -v
 
 build-agent:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
+		-f cmd/agent/Dockerfile.FastBuild .
+else
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME="$(BUILD_TIME)" \
@@ -64,6 +75,7 @@ build-agent:
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
 		-f cmd/agent/Dockerfile .
+endif
 
 build-gateway: make-output-dir
 	go build -o ./bin/lubricant-gateway \
@@ -80,6 +92,17 @@ build-gateway: make-output-dir
 	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-gateway:nightly \
+		-f cmd/gateway/Dockerfile.FastBuild .
+else
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME="$(BUILD_TIME)" \
@@ -89,8 +112,20 @@ build-gateway-container:
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-gateway:nightly \
 		-f cmd/gateway/Dockerfile .
+endif
 
 build-core:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
+		-f cmd/lubricant/Dockerfile.FastBuild .
+else
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME="$(BUILD_TIME)" \
@@ -100,6 +135,7 @@ build-core:
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
 		-f cmd/lubricant/Dockerfile .
+endif
 
 build-lubricant: build-core
 
@@ -126,3 +162,45 @@ build-test-driver: test-driver-clock
 
 load-test-driver: load-to-kind-test-driver
 
+build-all:
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant-gateway \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/gateway/main.go ./cmd/gateway/start.go
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/lubricant/main.go ./cmd/lubricant/start.go
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant-agent \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/agent/main.go ./cmd/agent/start.go
+
+copy-files: build-all
+	cp bin/lubricant-gateway cmd/gateway/gateway
+	cp bin/lubricant cmd/lubricant/lubricant
+	cp bin/lubricant-agent cmd/agent/agent

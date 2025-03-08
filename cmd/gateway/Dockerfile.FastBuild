@@ -1,0 +1,13 @@
+FROM alpine:latest AS builder
+
+WORKDIR /app
+
+COPY cmd/gateway/gateway ./
+RUN chmod +x ./gateway
+
+FROM alpine:latest
+
+WORKDIR /
+COPY --from=builder /app/gateway ./
+
+CMD ["./gateway"]

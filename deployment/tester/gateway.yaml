@@ -25,7 +25,7 @@ spec:
             - name: CORE_HOST
               value: lubricant-core.lubricant.svc.cluster.local
             - name: CORE_PORT
-              value: "8080"
+              value: "5423"
             - name: RUNNING_LEVEL
               value: "debug"
 ---
