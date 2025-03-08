@@ -80,8 +80,7 @@ build-gateway: make-output-dir
 	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
-	echo "Gateway is not running at container"
-	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
+	docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
 
 build-core:
 	docker build \
@@ -105,7 +104,7 @@ load-to-kind-gateway: build-gateway
 load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
 
-load-to-kind: load-to-kind-agent load-to-kind-core
+load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway
 
 test-driver-clock:
 	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \

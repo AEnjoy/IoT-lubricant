@@ -19,7 +19,7 @@ on:
       - 'LICENSE'
       - 'README.md'
 jobs:
-  test:
+  CloudEnvironment:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     steps:
@@ -50,6 +50,7 @@ jobs:
           docker pull casbin/casdoor:v1.854.0 &
           wait
           if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
+            echo "Cache: Saving Docker Images..."
             mkdir -p /tmp/docker-images
             docker save \
               nginx:1.27 golang:1.23-alpine alpine:latest kindest/node:v1.32.2 \
@@ -62,6 +63,7 @@ jobs:
         if: steps.cache-docker.outputs.cache-hit == 'true'
         run: |
           if [ -f /tmp/docker-images/base-images.tar ]; then
+            echo "Cache(Hit): Loading Docker Images..."
             docker load -i /tmp/docker-images/base-images.tar
           fi
 
@@ -124,7 +126,7 @@ jobs:
             make load-test-driver 
             bash test/mock_driver/load-test-driver.sh
           )&
-          make load-to-kind -j2
+          make load-to-kind -j3
 
       - name: Prepare Lubricant and Test Resources
         run: |
@@ -135,13 +137,13 @@ jobs:
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
+          kubectl apply -f deployment/infra/lubricant-core.yaml
 
-      - name: Deploy Lubricant and Start Test
+      - name: Start Test
         run: |
           set -e 
-          kubectl apply -f deployment/infra/lubricant-core.yaml
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
           kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
-          bash scripts/core-test.sh $lubricant_pod
+          python3 scripts/core-test.py $lubricant_pod

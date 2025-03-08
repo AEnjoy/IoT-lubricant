@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 WORKDIR /app/cmd/agent
-RUN GO_VERSION=`go version | awk '{print $3}'` && \
+RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 && \
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
 	-X 'main.Version=${VERSION}' \

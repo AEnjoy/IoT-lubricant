@@ -51,6 +51,7 @@ jobs:
           version: v1.64
   unit-test:
     runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     strategy:
       matrix:
         go: ['1.23']
