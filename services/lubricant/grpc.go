@@ -341,6 +341,8 @@ func (g *Grpc) Init() error {
 			grpcTlsOption,
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
+			grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+			grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
 				//middlewares.UnaryServerInterceptor,
@@ -352,6 +354,8 @@ func (g *Grpc) Init() error {
 		server = grpc.NewServer(
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
+			grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+			grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)

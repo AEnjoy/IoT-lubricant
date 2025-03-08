@@ -119,6 +119,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 
 			conn, err = grpc.NewClient(address,
 				grpc.WithTransportCredentials(config),
+				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*100), grpc.MaxCallSendMsgSize(1024*1024*100)), // 100 MB
 				//grpc.WithKeepaliveParams(kacp),
 			)
 			if err != nil {
@@ -127,6 +128,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		} else {
 			conn, err = grpc.NewClient(address,
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*100), grpc.MaxCallSendMsgSize(1024*1024*100)), // 100 MB
 				//grpc.WithKeepaliveParams(kacp),
 			)
 			if err != nil {
