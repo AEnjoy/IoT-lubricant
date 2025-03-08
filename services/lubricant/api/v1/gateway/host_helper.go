@@ -32,7 +32,7 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 				exception.ErrNewException(err, exceptionCode.ErrorGatewayHostNeedPasswdOrPrivateKey), c)
 			return nil, nil
 		} else {
-			key, err := ssh.GetLocalSSHPublicKey()
+			key, err := ssh.GetLocalSSHPrivateKey()
 			if err != nil || key == "" {
 				helper.FailedWithJson(http.StatusTooEarly,
 					exception.ErrNewException(err, exceptionCode.ErrorGatewayHostNeedPasswdOrPrivateKey,

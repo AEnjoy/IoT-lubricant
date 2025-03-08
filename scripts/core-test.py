@@ -5,8 +5,11 @@ import sys
 import requests
 
 LOGIN_URL = "http://127.0.0.1:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
+
 CALLBACK_URL = "http://127.0.0.1:8080/api/v1/signin"
 USER_INFO_URL = "http://127.0.0.1:8080/api/v1/user/info"
+CREATE_GATEWAY_URL = "http://127.0.0.1:8080/api/v1/gateway/internal/gateway"
+
 COOKIE_FILE = "cookie.txt"
 
 login_data = {
@@ -97,6 +100,27 @@ def main():
         print("Error: Failed to get user info")
         print(f"Response: {user_info_response.text if 'user_info_response' in locals() else str(e)}")
         sys.exit(1)
+
+    print("Begin Test:")
+
+    # Test CreateGateway
+    print("Creating gateway...")
+    try:
+        create_gateway_response = session.post(CREATE_GATEWAY_URL+"?gateway-id=lubricant-gateway-0", json={
+            "host":"", # set to empty means do not bind host Information.
+            "description":"test_gateway",
+            "username":"username", # Host username
+            "password": "password", # Host password
+            "tls_config": {
+                "enable": False,
+                "skip_verify": False,
+                "from_file": False,
+                "key": "",
+                "cert": "",
+                "ca": ""
+            },
+        })
+    except Exception as e: pass
 
 if __name__ == "__main__":
     main()

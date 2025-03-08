@@ -139,9 +139,10 @@ type GatewayHost struct {
 	UserName   string `json:"username" gorm:"column:username"`
 	PassWd     string `json:"-" gorm:"column:password"`
 	PrivateKey string `json:"-" gorm:"column:private_key"`
+	PublicKey  string `json:"-" gorm:"column:public_key"`
 
-	CreatedAt int64     `json:"created_at" gorm:"column:created_at;type:datetime"`
-	UpdatedAt int64     `json:"updated_at" gorm:"column:updated_at;type:datetime"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 	DeleteAt  time.Time `gorm:"type:datetime" json:"deleteAt"`
 }
 type ErrorLogs struct {

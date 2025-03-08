@@ -113,7 +113,7 @@ func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string)
 }
 
 func (d *CoreDb) UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error {
-	info.UpdatedAt = time.Now().Unix()
+	info.UpdatedAt = time.Now()
 	return txn.WithContext(ctx).Where("host_id = ?", hostid).Save(info).Error
 }
 
@@ -127,7 +127,7 @@ func (d *CoreDb) AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *mod
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
-	info.CreatedAt = time.Now().Unix()
+	info.CreatedAt = time.Now()
 	return txn.WithContext(ctx).Create(info).Error
 }
 

@@ -1,1 +1,1 @@
-{"host":"host","description":"description","username":"username","tls_config":{"enable":false,"skip_verify":false,"from_file":false,"key":"","cert":"","ca":""}}
+{"host":"host","description":"description","username":"username","password": "password","tls_config":{"enable":false,"skip_verify":false,"from_file":false,"key":"","cert":"","ca":""}}
