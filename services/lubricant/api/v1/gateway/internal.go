@@ -11,6 +11,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/xid"
 )
 
 func (a Api) AddGatewayInternal(c *gin.Context) {
@@ -24,7 +25,12 @@ func (a Api) AddGatewayInternal(c *gin.Context) {
 			exception.ErrNewException(err, exceptionCode.AddGatewayHostFailed), c)
 		return
 	}
-	gatewayid := uuid.NewString()
+
+	gatewayid, ok := c.GetQuery("gateway-id")
+	if !ok {
+		gatewayid = xid.New().String()
+	}
+
 	err = a.IGatewayService.AddGatewayInternal(c, gatewayHostInfo.UserID, gatewayid, gatewayHostInfo.Description, tlsConfig)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
