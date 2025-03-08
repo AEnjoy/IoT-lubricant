@@ -14,7 +14,7 @@ else
 PLATFORM_VERSION := unknown
 endif
 
-.PHONY: test test-coverage install mock
+.PHONY: test test-coverage install mock docker-build load-to-kind load-to-kind-test-driver build-test-driver load-test-driver
 
 make-output-dir:
 	rm -rf ./bin
@@ -80,7 +80,7 @@ build-gateway: make-output-dir
 	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
-	docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
+	docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/gateway/Dockerfile .
 
 build-core:
 	docker build \
@@ -99,7 +99,7 @@ docker-build: build-agent build-gateway build-lubricant
 
 load-to-kind-agent: build-agent
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
-load-to-kind-gateway: build-gateway
+load-to-kind-gateway: build-gateway-container
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-gateway:nightly
 load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly

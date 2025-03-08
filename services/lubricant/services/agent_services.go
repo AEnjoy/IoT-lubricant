@@ -9,7 +9,7 @@ import (
 )
 
 func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error) {
-	status, err := a.db.GetGatewayStatus(ctx, gatewayid)
+	gatewayStatus, err := a.db.GetGatewayStatus(ctx, gatewayid)
 	if err != nil {
 		err = exception.NewWithErr(err, exceptionCode.ErrorGetGatewayStatusFailed,
 			exception.WithMsg("Failed to get gateway status"))
@@ -17,8 +17,8 @@ func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids
 	}
 
 	var retVal = make([]model.AgentStatus, len(ids))
-	if status != model.StatusOnline.String() {
-		for i, _ := range retVal {
+	if gatewayStatus != model.StatusOnline.String() {
+		for i := range retVal {
 			retVal[i] = model.StatusOffline
 		}
 		return retVal, nil

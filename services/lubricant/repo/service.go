@@ -40,6 +40,18 @@ func Core(database *gorm.DB) *CoreDb {
 	if err != nil {
 		logger.Fatalf("failed to migrate database: %v", err)
 	}
+
+	if !db.Migrator().HasIndex(&model.Gateway{}, "idx_user_gateway") {
+		err = db.Exec(`
+			CREATE UNIQUE INDEX idx_user_gateway ON gateway(user_id, gateway_id);
+		`).Error
+		if err != nil {
+			logger.Fatalf("failed to create unique index: %v", err)
+		}
+	} else {
+		logger.Debugln("Index idx_user_gateway already exists.")
+	}
+
 	return &CoreDb{db: db}
 }
 func DefaultCoreClient() *CoreDb {

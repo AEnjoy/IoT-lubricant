@@ -80,7 +80,7 @@ jobs:
           set -e
           (
           echo "Installing Kind..."
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
           chmod +x ./kind
           sudo mv ./kind /usr/bin/kind
           sudo mkdir -p /etc/casdoor

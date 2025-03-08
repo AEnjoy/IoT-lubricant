@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lubricant-gateway
+  namespace: lubricant
+spec:
+  serviceName: lubricant-gateway
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lubricant-gateway
+  template:
+    metadata:
+      labels:
+        app: lubricant-gateway
+    spec:
+      containers:
+        - name: lubricant-gateway
+          image: hub.iotroom.top/aenjoy/lubricant-gateway:nightly
+          env:
+            - name: GATEWAY_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CORE_HOST
+              value: lubricant-core.lubricant.svc.cluster.local
+            - name: CORE_PORT
+              value: "8080"
+            - name: RUNNING_LEVEL
+              value: "debug"
+  volumeClaimTemplates: []  # 如需持久化存储，可在此定义
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lubricant-gateway
+  namespace: lubricant
+spec:
+  selector:
+    app: lubricant-gateway
+  clusterIP: None  # 使用 headless service 以支持直接访问 Pod
+  ports:
+    - port: 80  # 根据应用实际端口调整
+      targetPort: 80  # 根据应用实际端口调整

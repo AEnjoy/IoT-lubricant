@@ -8,9 +8,10 @@ import (
 )
 
 type Gateway struct {
-	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
-	GatewayID   string `json:"gateway_id" gorm:"column:gateway_id"`
-	UserId      string `json:"-" gorm:"column:user_id"` //;foreignKey:UserID
+	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
+	UserId    string `json:"-" gorm:"column:user_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"` //;foreignKey:UserID
+	GatewayID string `json:"gateway_id" gorm:"column:gateway_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"`
+
 	BindHost    string `json:"_" gorm:"column:bind_host"`
 	Description string `json:"description" gorm:"column:description"`
 

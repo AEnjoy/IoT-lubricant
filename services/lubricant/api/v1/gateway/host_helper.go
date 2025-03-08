@@ -15,13 +15,11 @@ import (
 )
 
 func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHost) {
-	var req request.AddGatewayRequest
-	err := c.BindJSON(&req)
-	if err != nil {
-		helper.FailedWithJson(http.StatusInternalServerError,
-			exception.ErrNewException(err, exceptionCode.ErrorBind), c)
+	req := helper.RequestBind[request.AddGatewayRequest](c)
+	if req == nil {
 		return nil, nil
 	}
+
 	userInfo, err := helper.GetClaims(c)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
