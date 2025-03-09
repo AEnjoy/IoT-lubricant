@@ -165,11 +165,12 @@ def test_uncreated_gateway(session, gateway_id):
         print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
 
     os.system("kubectl scale statefulset lubricant-gateway --replicas=5 -n lubricant")
-    sleep(15)
+    sleep(10)
 
     # os.system("kubectl get pods -n lubricant")
     subprocess.run(["kubectl", "get", "pods", "-n", "lubricant"],stdout=sys.stdout, stderr=sys.stderr)
-    pod_status1, pod_status2 = check_pod_status(gateway_id + "-1"), check_pod_status(gateway_id + "-3")
+    pod_status1 = check_pod_status("lubricant-gateway-1")
+    pod_status2 = check_pod_status("lubricant-gateway-2")
     if pod_status1 != "Running" or pod_status2 == "Running":
         print("Test Failed:")
         print(f"Pod Status: {pod_status1} {pod_status2} Except: Running,and Error(or CrashLoopBackOff)")
