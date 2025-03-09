@@ -3,25 +3,23 @@ package gateway
 import (
 	"net/http"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/ssh"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
-	helper "github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHost) {
-	var req request.AddGatewayRequest
-	err := c.BindJSON(&req)
-	if err != nil {
-		helper.FailedWithJson(http.StatusInternalServerError,
-			exception.ErrNewException(err, exceptionCode.ErrorBind), c)
+	req := helper.RequestBind[request.AddGatewayRequest](c)
+	if req == nil {
 		return nil, nil
 	}
+
 	userInfo, err := helper.GetClaims(c)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
@@ -34,7 +32,7 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 				exception.ErrNewException(err, exceptionCode.ErrorGatewayHostNeedPasswdOrPrivateKey), c)
 			return nil, nil
 		} else {
-			key, err := ssh.GetLocalSSHPublicKey()
+			key, err := ssh.GetLocalSSHPrivateKey()
 			if err != nil || key == "" {
 				helper.FailedWithJson(http.StatusTooEarly,
 					exception.ErrNewException(err, exceptionCode.ErrorGatewayHostNeedPasswdOrPrivateKey,
@@ -48,7 +46,7 @@ func (a Api) getGatewayHostModel(c *gin.Context) (*crypto.Tls, *model.GatewayHos
 	}
 
 	return req.TlsConfig, &model.GatewayHost{
-		UserID: userInfo.ID,
+		UserID: userInfo.User.Id,
 		HostID: uuid.NewString(),
 
 		Description: req.Description,

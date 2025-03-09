@@ -33,6 +33,8 @@ const (
 	ErrorDecodeJSON
 	ErrorValidation
 	ErrorReadRequestBody
+	ErrorEncodeProtoMessage
+	ErrorDecodeProtoMessage
 )
 
 // core module
@@ -49,6 +51,9 @@ const (
 	AddGatewayHostFailed
 	RemoveGatewayFailed
 	RemoveGatewayHostFailed
+	DescriptionHostFailed
+	ErrorCommunicationWithAuthServer
+	ErrorGetGatewayStatusFailed
 )
 
 // gateway
@@ -130,6 +135,8 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorDecodeFailed:        "Decoding failed due to an error with the data",
 	ErrorEncodeJSON:          "JSON encode failed",
 	ErrorDecodeJSON:          "JSON decode failed",
+	ErrorEncodeProtoMessage:  "Protobuf encode failed",
+	ErrorDecodeProtoMessage:  "Protobuf decode failed",
 	ErrorValidation:          "Validation Error",
 	ErrorInvalidAuthHeader:   "Invalid authorization header",
 	ErrorInvalidAuthKey:      "Invalid authorization key",
@@ -140,12 +147,15 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorPushTaskFailed:      "push task failed",
 
 	// Core
-	ErrorCoreNoTask:         "target has no task",
-	ErrorCoreTaskTimeout:    "get task timeout",
-	AddGatewayHostFailed:    "add gateway host failed",
-	AddGatewayFailed:        "add gateway failed",
-	RemoveGatewayFailed:     "remove gateway failed",
-	RemoveGatewayHostFailed: "remove gateway host failed",
+	ErrorCoreNoTask:                  "target has no task",
+	ErrorCoreTaskTimeout:             "get task timeout",
+	AddGatewayHostFailed:             "add gateway host failed",
+	AddGatewayFailed:                 "add gateway failed",
+	RemoveGatewayFailed:              "remove gateway failed",
+	RemoveGatewayHostFailed:          "remove gateway host failed",
+	DescriptionHostFailed:            "get description host failed",
+	ErrorCommunicationWithAuthServer: "communication with auth service failed",
+	ErrorGetGatewayStatusFailed:      "get gateway status failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",

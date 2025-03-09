@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 
 	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
@@ -47,23 +48,40 @@ func NewApp(opts ...func(*app) error) *app {
 }
 func (a *app) Run() error {
 	a.agent = agent.NewAgentApis(a.IGatewayDb)
+	a.agent.SetReporter(_reportMessage)
 	a.task = async.NewAsyncTask()
 	a.task.SetActor(a.handelTask)
+	agent.SetErrorHandelFunc(a._handelAgentControlError)
 
-	go func() {
-		_ = a.grpcDataApp()
-	}()
+	go a.grpcDataApp()
+	go a.grpcReportApp()
+
 	go func() {
 		_ = a.grpcPingApp()
 	}()
+
 	return a.grpcTaskApp() // gateway <--> core
 }
 
+var _ctxLock sync.Mutex
+
+func (a *app) _getRequestContext(ctx context.Context) context.Context {
+	_ctxLock.Lock()
+	defer _ctxLock.Unlock()
+
+	if a.ctrl == context.TODO() || a.ctrl == nil {
+		if ctx == nil || ctx == context.TODO() {
+			ctx = context.Background()
+		}
+		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
+		a.ctrl = metadata.NewOutgoingContext(ctx, md)
+	}
+	return a.ctrl
+}
 func SetGatewayId(id string) func(*app) error {
 	return func(s *app) error {
 		gatewayId = id
-		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
-		s.ctrl = metadata.NewOutgoingContext(context.Background(), md)
+		s._getRequestContext(context.Background())
 		return nil
 	}
 }
@@ -101,6 +119,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 
 			conn, err = grpc.NewClient(address,
 				grpc.WithTransportCredentials(config),
+				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*100), grpc.MaxCallSendMsgSize(1024*1024*100)), // 100 MB
 				//grpc.WithKeepaliveParams(kacp),
 			)
 			if err != nil {
@@ -109,6 +128,7 @@ func linkToGrpcServer(address string, tls *crypto.Tls) func(*app) error {
 		} else {
 			conn, err = grpc.NewClient(address,
 				grpc.WithTransportCredentials(insecure.NewCredentials()),
+				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*100), grpc.MaxCallSendMsgSize(1024*1024*100)), // 100 MB
 				//grpc.WithKeepaliveParams(kacp),
 			)
 			if err != nil {
@@ -197,6 +217,18 @@ func LinkCoreServer() func(*app) error {
 func UseServerInfo(c *model.ServerInfo) func(*app) error {
 	return func(a *app) error {
 		a.hostConfig = c
+		return nil
+	}
+}
+func UseGrpcDebugServer() func(*app) error {
+	return func(a *app) error {
+		if os.Getenv(def.ENV_RUNNING_LEVEL) == "debug" && os.Getenv(def.ENV_ENABLE_GRPC_DEBUG_SERVER) == "true" {
+			bind, ok := os.LookupEnv(def.ENV_GRPC_DEBUG_SERVER_PORT)
+			if !ok {
+				return fmt.Errorf("grpc debug server port not found, please set %s", def.ENV_GRPC_DEBUG_SERVER_PORT)
+			}
+			go NewDebugServer(fmt.Sprintf(":%s", bind))
+		}
 		return nil
 	}
 }

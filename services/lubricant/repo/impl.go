@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/rs/xid"
 	"golang.org/x/oauth2"
 
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
@@ -18,13 +19,41 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetAgentStatus(ctx context.Context, agentID string) (string, error) {
+	var ag model.Agent
+	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("agent_id = ?", agentID).First(&ag).Error
+	return ag.Status, err
+}
+
+func (d *CoreDb) UpdateAgentStatus(ctx context.Context, txn *gorm.DB, agentID, status string) error {
+	return txn.WithContext(ctx).Model(model.Agent{}).
+		Where("agent_id = ?", agentID).
+		Update("status", status).Update("updated_at", time.Now()).Error
+}
+
+func (d *CoreDb) SaveErrorLog(ctx context.Context, err *model.ErrorLogs) error {
+	err.ErrID = xid.New().String()
+	err.CreatedAt = time.Now()
+	return d.db.WithContext(ctx).Model(model.ErrorLogs{}).Create(err).Error
+}
+
+func (d *CoreDb) GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error) {
+	var ret []model.Gateway
+	err := d.db.WithContext(ctx).Model(model.Gateway{}).Where("user_id = ?", userID).Find(&ret).Error
+	return ret, err
+}
+
 func (d *CoreDb) GetGatewayStatus(ctx context.Context, gatewayID string) (string, error) {
 	var ret model.Gateway
 	return ret.Status, d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).First(&ret).Error
 }
 
 func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error {
-	return txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gatewayID).Update("status", status).Error
+	return txn.WithContext(ctx).Model(model.Gateway{}).
+		Where("gateway_id = ?", gatewayID).
+		Update("status", status).
+		Update("updated_at", time.Now()).
+		Error
 }
 
 func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string, error) {
@@ -56,13 +85,15 @@ func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.Async
 }
 
 func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error {
-	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).Save(&model.AsyncJob{
-		Status: status,
-	}).Error
+	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).
+		Save(&model.AsyncJob{
+			Status:    status,
+			UpdatedAt: time.Now(),
+		}).Error
 }
 
 func (d *CoreDb) DeleteGatewayHostInfo(ctx context.Context, txn *gorm.DB, id string) error {
-	return txn.WithContext(ctx).Where("host_id = ?", id).Delete(&model.GatewayHost{}).Error
+	return txn.WithContext(ctx).Model(model.GatewayHost{}).Where("host_id = ?", id).Update("deleted_at", time.Now()).Error
 }
 
 func (d *CoreDb) GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error) {
@@ -90,8 +121,12 @@ func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string)
 }
 
 func (d *CoreDb) UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error {
-	info.UpdatedAt = time.Now().Unix()
-	return txn.WithContext(ctx).Where("host_id = ?", hostid).Save(info).Error
+	info.UpdatedAt = time.Now()
+	return txn.WithContext(ctx).Model(model.GatewayHost{}).
+		Where("host_id = ?", hostid).
+		Save(info).
+		Update("updated_at", time.Now()).
+		Error
 }
 
 func (d *CoreDb) GetGatewayHostInfo(ctx context.Context, id string) (model.GatewayHost, error) {
@@ -104,12 +139,14 @@ func (d *CoreDb) AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *mod
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
-	info.CreatedAt = time.Now().Unix()
+	info.CreatedAt = time.Now()
+	info.UpdatedAt = time.Now()
 	return txn.WithContext(ctx).Create(info).Error
 }
 
 func (d *CoreDb) SaveToken(ctx context.Context, tk *model.Token) error {
-	tk.CreatedAt = time.Now().Unix()
+	tk.CreatedAt = time.Now()
+	tk.UpdatedAt = time.Now()
 	return d.db.WithContext(ctx).Create(tk).Error
 }
 func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID string) error {
@@ -119,56 +156,68 @@ func (d *CoreDb) SaveTokenOauth2(ctx context.Context, tk *oauth2.Token, userID s
 	mToken.AccessTokenExpiredAt = tk.Expiry.Second()
 	mToken.RefreshTokenExpiredAt = tk.Expiry.Second()
 	mToken.UserId = userID
-	mToken.CreatedAt = time.Now().Unix()
+	mToken.CreatedAt = time.Now()
+	mToken.UpdatedAt = time.Now()
 	return d.SaveToken(ctx, &mToken)
 }
 func (d *CoreDb) QueryUser(ctx context.Context, userName, uuid string) (ret model.User, err error) {
 	// one of these two methods will return the first user
-	err = d.db.Where("username = ? or user_id = ?", userName, uuid).First(&ret).Error
+	err = d.db.WithContext(ctx).Model(model.User{}).Where("username = ? or user_id = ?", userName, uuid).First(&ret).Error
 	return
 }
 
 func (d *CoreDb) GatewayIDGetUserID(ctx context.Context, id string) (string, error) {
 	var ret model.Gateway
-	err := d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
+	err := d.db.WithContext(ctx).Model(model.Gateway{}).Where("id = ?", id).First(&ret).Error
 	return ret.UserId, err
 }
 
 func (d *CoreDb) AgentIDGetGatewayID(ctx context.Context, id string) (string, error) {
 	var ret model.Agent
-	err := d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
+	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("id = ?", id).First(&ret).Error
 	return ret.GatewayId, err
 }
 
 func (d *CoreDb) AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, agent model.Agent) error {
+	agent.CreatedAt = time.Now()
+	agent.UpdatedAt = time.Now()
 	return txn.WithContext(ctx).Create(&agent).Error
 }
 
 func (d *CoreDb) UpdateAgent(ctx context.Context, txn *gorm.DB, agent model.Agent) error {
-	return txn.WithContext(ctx).Where("id = ?", agent.AgentId).Save(&agent).Error
+	agent.UpdatedAt = time.Now()
+	return txn.WithContext(ctx).Model(model.Agent{}).Where("agent_id = ?", agent.AgentId).Save(&agent).Error
 }
 
 func (d *CoreDb) DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error {
+	var _db *gorm.DB
 	if txn == nil {
-		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Agent{}).Error
+		_db = d.db
+	} else {
+		_db = txn
 	}
-	return txn.WithContext(ctx).Where("id = ?", id).Delete(&model.Agent{}).Error
+	return _db.WithContext(ctx).
+		Model(model.Agent{}).
+		Where("agent_id = ?", id).
+		Update("deleted_at", time.Now()).
+		Error
 }
 
 func (d *CoreDb) GetAgentList(ctx context.Context, gatewayID string) ([]model.Agent, error) {
 	var ret []model.Agent
-	err := d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).Find(&ret).Error
+	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("gateway_id = ?", gatewayID).Find(&ret).Error
 	return ret, err
 }
 
 func (d *CoreDb) GetGatewayInfo(ctx context.Context, id string) (*model.Gateway, error) {
 	var ret model.Gateway
-	return &ret, d.db.WithContext(ctx).Where("id = ?", id).First(&ret).Error
+	return &ret, d.db.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", id).First(&ret).Error
 }
 
 func (d *CoreDb) AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error {
 	gateway.UserId = userID
-	gateway.CreatedAt = time.Now().Unix()
+	gateway.CreatedAt = time.Now()
+	gateway.UpdatedAt = time.Now()
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
@@ -179,19 +228,34 @@ func (d *CoreDb) UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
-	return txn.WithContext(ctx).Where("id = ?", gateway.GatewayID).Save(&gateway).Error
+	var m model.Gateway
+	txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gateway.GatewayID).First(&m)
+	gateway.UpdatedAt = time.Now()
+	gateway.CreatedAt = m.CreatedAt
+	gateway.UserId = m.UserId
+	gateway.Status = m.Status
+	gateway.BindHost = m.BindHost
+	gateway.ID = m.ID
+	return txn.WithContext(ctx).Model(model.Gateway{}).Where("gateway_id = ?", gateway.GatewayID).Updates(&gateway).Error
 }
 
 func (d *CoreDb) DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error {
+	var _db *gorm.DB
 	if txn == nil {
-		return d.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Gateway{}).Error
+		_db = d.db
+	} else {
+		_db = txn
 	}
-	return txn.WithContext(ctx).Where("id = ?", id).Delete(&model.Gateway{}).Error
+	return _db.WithContext(ctx).
+		Model(model.Gateway{}).
+		Where("gateway_id = ?", id).
+		Update("deleted_at", time.Now()).
+		Error
 }
 
 func (d *CoreDb) GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error) {
 	var ret []model.Gateway
-	return ret, d.db.WithContext(ctx).Find(&ret).Error
+	return ret, d.db.WithContext(ctx).Model(model.Gateway{}).Find(&ret).Error
 }
 
 func (d *CoreDb) DeleteAgentGatherData(ctx context.Context, txn *gorm.DB, id string, timeStart int64, timeEnd int64) error {
@@ -215,7 +279,7 @@ func (d *CoreDb) Rollback(txn *gorm.DB) {
 
 func (d *CoreDb) GetAgentInfo(id string) (*model.Agent, error) {
 	var agent model.Agent
-	return &agent, d.db.Where("id = ?", id).First(&agent).Error
+	return &agent, d.db.Model(agent).Where("agent_id = ?", id).First(&agent).Error
 }
 
 func (d *CoreDb) Weight() uint16 {
@@ -230,7 +294,7 @@ func (d *CoreDb) IsGatewayIdExists(id string) bool {
 	return d.db.Where("gateway_id = ?", id).First(&model.Gateway{}).Error == nil
 }
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
-	data := &model.Data{AgentID: id, Content: content}
+	data := &model.Data{AgentID: id, Content: content, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	if txn != nil {
 		return txn.WithContext(ctx).Create(data).Error
 	}

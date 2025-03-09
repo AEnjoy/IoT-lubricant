@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	middleware2 "github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
+	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
@@ -20,7 +20,8 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/auth"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
-	ioc "github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -40,6 +41,33 @@ type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 }
 
+func (PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
+	gatewayid, _ := getGatewayID(ctx)
+	logger.Debugf("Recv gateway report request: %s", gatewayid)
+	go HandelReport(req)
+
+	if req.GetAgentStatus() != nil {
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_AgentStatus{
+			AgentStatus: &corepb.AgentStatusResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		},
+		}, nil
+	}
+	return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
+		Error: &corepb.ReportErrorResponse{
+			Resp: &status.Status{Message: "ok"},
+		},
+	},
+	}, nil
+}
+
+func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
+	gatewayid, _ := getGatewayID(ctx)
+	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
+	go HandelRecvData(in)
+	return &corepb.PushDataResponse{Resp: &status.Status{Code: 0, Message: "ok"}}, nil
+}
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := getGatewayID(s.Context())
 
@@ -242,11 +270,19 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			case <-time.After(1500 * time.Millisecond):
 			}
 			// 超时意味着没有创建过任务ch (任务不存在)
-			logger.Debugf("task not found")
+			// logger.Debugf("task not found")
 			_ = s.Send(&corepb.Task{ID: taskReq.ID,
 				Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &corepb.NoTaskResponse{}},
 			})
 			//taskSendErrorMessage(s, 404, errs.ErrTimeout.Error())
+		case *corepb.Task_CoreQueryTaskResultResponse:
+			m := taskReq.GetCoreQueryTaskResultResponse()
+			marshal, err := proto.Marshal(m)
+			if err != nil {
+				logger.Errorf("failed to marshal task data: %v", err)
+				continue
+			}
+			_ = taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s/response", taskTypes.TargetGateway, gatewayID, m.TaskId), marshal)
 		}
 	}
 }
@@ -255,6 +291,7 @@ func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (
 }
 func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := getGatewayID(d.Context())
+	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
 	mq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	for {
 		data, err := d.Recv()
@@ -305,17 +342,21 @@ func (g *Grpc) Init() error {
 			grpcTlsOption,
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
+			grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+			grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(
 				//middlewares.UnaryServerInterceptor,
-				middleware2.GetLoggerInterceptor(),
-				middleware2.GetRecovery(middleware2.GetRegistry(middleware2.GetSrvMetrics())),
+				middleware.GetLoggerInterceptor(),
+				middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
 			),
 		)
 	} else {
 		server = grpc.NewServer(
 			grpc.KeepaliveParams(kasp),
 			grpc.KeepaliveEnforcementPolicy(kaep),
+			grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+			grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
 			grpc.ChainStreamInterceptor(middlewares.StreamServerInterceptor),
 			grpc.ChainUnaryInterceptor(middlewares.UnaryServerInterceptor),
 		)
@@ -327,7 +368,10 @@ func (g *Grpc) Init() error {
 		return err
 	}
 	go func() {
-		_ = server.Serve(lis)
+		err := server.Serve(lis)
+		if err != nil {
+			panic(err)
+		}
 	}()
 	logger.Debugf("core-grpc-server start at: %s", lis.Addr())
 	return nil
@@ -349,8 +393,9 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 	_ = s.Send(&out)
 }
 func gatewayOffline(mq mq.Mq, gatewayid string) error {
-	return mq.Publish(fmt.Sprintf("/monitor/%s/%s/offline", taskTypes.TargetGateway, gatewayid),
-		[]byte(time.Now().Format("2006-01-02 15:04:05")))
+	logger.Debugf("gateway offline: %s", gatewayid)
+	return mq.PublishBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway),
+		[]byte(gatewayid))
 }
 func getGatewayID(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)

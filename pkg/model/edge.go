@@ -23,8 +23,8 @@ type DriverData struct {
 	AgentId string `gorm:"column:agent_id"`
 	Content []byte `gorm:"column:data;type:bytea;not null"` // 由于获取到的数据不一定是string类型,且可能会经过压缩，所以使用bytes存储
 
-	CreatedAt time.Time `gorm:"column:created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at"`
+	CreatedAt time.Time `gorm:"column:created_at;type:datetime"`
+	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime"`
 }
 
 func (DriverData) TableName() string {

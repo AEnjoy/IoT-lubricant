@@ -4,8 +4,8 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
-	"github.com/aenjoy/iot-lubricant/pkg/form/response"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"

@@ -8,12 +8,16 @@ ARG BUILD_HOST_PLATFORM
 ARG PLATFORM_VERSION
 
 WORKDIR /app
-COPY . .
+
 # if you are in China, you can uncomment the following line
 # RUN go env -w GOPROXY=https://goproxy.cn,direct
+
+COPY go.mod go.sum ./
 RUN go mod download
+COPY . .
+
 WORKDIR /app/cmd/agent
-RUN GO_VERSION=`go version | awk '{print $3}'` && \
+RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 && \
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
 	-X 'main.Version=${VERSION}' \

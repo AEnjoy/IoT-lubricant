@@ -15,6 +15,7 @@ type IGatewayDb interface {
 	IsAgentIdExists(_ *gorm.DB, id string) bool
 	GetAllAgentId(_ *gorm.DB) []string
 	GetAllAgents(_ *gorm.DB) ([]model.Agent, error)
+	AddAgent(txn *gorm.DB, agent *model.Agent) error
 	GetAgent(id string) (model.Agent, error)
 	UpdateAgent(txn *gorm.DB, id string, agent *model.Agent) error
 	RemoveAgent(txn *gorm.DB, id ...string) bool

@@ -79,6 +79,14 @@ spec:
               value: "nats"
             - name: NATS_URL
               value: "nats://nats.database.svc.cluster.local:4222"
+          readinessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 3
           volumeMounts:
             - name: casdoor-publickey
               mountPath: /etc/casdoor

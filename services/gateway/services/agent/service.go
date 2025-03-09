@@ -3,24 +3,31 @@ package agent
 import (
 	"sync"
 
-	model2 "github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
-	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 )
 
 type Apis interface {
 	StartAgent(id string) error
 	StopAgent(id string) error
+	StartGather(id string) error
+	StopGather(id string) error
 	KillAgent(id string) error
 	RemoveAgent(id string) error
-	UpdateAgent(id string, optionalConf *model2.CreateAgentRequest) error
-	EditAgent(id string, info *proxypb.EditAgentRequest) error
+	UpdateAgent(id string, optionalConf *model.CreateAgentRequest) error
+	EditAgent(id string, info *gatewaypb.EditAgentRequest) error
 	SetAgent(id string, info *agentpb.AgentInfo) error
 	GetAgentInfo(id string) (*agentpb.AgentInfo, error)
-	GetAgentModel(id string) (*model2.Agent, error)
-	AddAgent(req *model2.CreateAgentRequest) error
-	CreateAgent(req *model2.CreateAgentRequest) error
+	GetAgentModel(id string) (*model.Agent, error)
+	AddAgent(req *model.CreateAgentRequest) error
+	CreateAgent(req *model.CreateAgentRequest) error
+	GetAgentStatus(id string) model.AgentStatus
+	GetPoolIDs() []string
+
+	SetReporter(chan *corepb.ReportRequest)
 }
 
 var (

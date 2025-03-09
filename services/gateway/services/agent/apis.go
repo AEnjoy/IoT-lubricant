@@ -13,19 +13,67 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/bytedance/sonic"
 	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/genproto/googleapis/rpc/status"
 	"gorm.io/gorm"
 )
 
 var _ Apis = (*agentApis)(nil)
 
 type agentApis struct {
-	db repo.IGatewayDb
+	db       repo.IGatewayDb
+	reporter chan *corepb.ReportRequest
 
 	*pool
+}
+
+func (a *agentApis) SetReporter(requests chan *corepb.ReportRequest) {
+	a.reporter = requests
+}
+
+func (a *agentApis) StopGather(id string) error {
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	return ctrl.StopGather()
+}
+
+func (a *agentApis) StartGather(id string) error {
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	return ctrl.StartGather()
+}
+
+func (a *agentApis) GetPoolIDs() []string {
+	var retVal []string
+	a.pool.p.Range(func(key, _ interface{}) bool {
+		retVal = append(retVal, key.(string))
+		return true
+	})
+	return retVal
+}
+func (a *agentApis) GetAgentStatus(id string) model.AgentStatus {
+	if !a.db.IsAgentIdExists(nil, id) {
+		return model.StatusNotExist
+	}
+
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return model.StatusCreated
+	}
+
+	if ctrl.IsStarted() {
+		return model.StatusRunning
+	} else {
+		return model.StatusStopped
+	}
 }
 
 func (a *agentApis) init() {
@@ -38,7 +86,7 @@ func (a *agentApis) init() {
 	for _, agent := range agents {
 		go func(agent *model.Agent) {
 			ins := a.db.GetAgentInstance(nil, agent.AgentId)
-			control := newAgentControl(agent)
+			control := newAgentControl(agent, a.reporter)
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
@@ -49,6 +97,15 @@ func (a *agentApis) init() {
 
 			if err := a.pool.JoinAgent(ctx, control); err != nil {
 				logger.Error("agent join to handel pool failed", agent.AgentId, err)
+				return
+			}
+			a.reporter <- &corepb.ReportRequest{
+				AgentId: agent.AgentId,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "online"},
+					},
+				},
 			}
 		}(&agent)
 		time.Sleep(100 * time.Millisecond) //避免Goroutine启动过快失败
@@ -331,10 +388,24 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
 	}
-	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo))
+
+	err = a.db.AddAgent(txn, req.AgentInfo)
+	if err != nil {
+		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent information failed", true)
+		return err
+	}
+	err = a.pool.JoinAgent(context.Background(), newAgentControl(req.AgentInfo, a.reporter))
 	if err != nil {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)
 		return err
+	}
+	a.reporter <- &corepb.ReportRequest{
+		AgentId: req.AgentInfo.AgentId,
+		Req: &corepb.ReportRequest_AgentStatus{
+			AgentStatus: &corepb.AgentStatusRequest{
+				Req: &status.Status{Message: "online"},
+			},
+		},
 	}
 	return nil
 }

@@ -52,6 +52,15 @@ type Config struct {
 	KaPartition int    `yaml:"kafka_partition" env:"KAFKA_PARTITION"`
 	NatUrl      string `yaml:"nats_url" env:"NATS_URL"`
 	// if set MqType to `redis`,need to set RedisHost,RedisPort,RedisPassword, and RedisDB
+
+	// Auth Provider
+	AuthProvider        string `yaml:"auth_provider" env:"AUTH_MODE" envDefault:"casdoor"`
+	AuthEndpoint        string `yaml:"auth_endpoint" env:"AUTH_ENDPOINT"`
+	AuthClientID        string `yaml:"auth_client_id" env:"AUTH_CLIENT_ID"`
+	AuthClientSecret    string `yaml:"auth_client_secret" env:"AUTH_CLIENT_SECRET"`
+	AuthOrganization    string `yaml:"auth_organization" env:"AUTH_ORGANIZATION"`
+	AuthPublicKeyFile   string `yaml:"auth_public_key_file" env:"AUTH_PUBLICKEYFILE" `
+	AuthApplicationName string `yaml:"auth_application_name" env:"AUTH_APPLICATION_NAME" envDefault:"application_lubricant"`
 }
 
 func (c *Config) Init() error {

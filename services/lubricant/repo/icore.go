@@ -26,6 +26,7 @@ type ICoreDb interface {
 	UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error             // need txn
 	DeleteGateway(ctx context.Context, txn *gorm.DB, id string) error
 	GetAllGatewayInfo(ctx context.Context) ([]model.Gateway, error)
+	GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error)
 	AddGatewayHostInfo(ctx context.Context, txn *gorm.DB, info *model.GatewayHost) error
 	GetGatewayHostInfo(ctx context.Context, hostid string) (model.GatewayHost, error)
 	UpdateGatewayHostInfo(ctx context.Context, txn *gorm.DB, hostid string, info *model.GatewayHost) error
@@ -36,6 +37,8 @@ type ICoreDb interface {
 	GetAgentInfo(id string) (*model.Agent, error)
 	AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, agent model.Agent) error
 	UpdateAgent(ctx context.Context, txn *gorm.DB, agent model.Agent) error
+	UpdateAgentStatus(ctx context.Context, txn *gorm.DB, agentID, status string) error
+	GetAgentStatus(ctx context.Context, agentID string) (string, error)
 	DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error
 	GetAgentList(ctx context.Context, gatewayID string) ([]model.Agent, error)
 
@@ -52,6 +55,7 @@ type ICoreDb interface {
 	// ErrorLog:
 	GetErrorLogs(ctx context.Context, gatewayid string, from, to time.Time, limit int) ([]model.ErrorLogs, error)
 	GetErrorLogByErrorID(ctx context.Context, errID string) (model.ErrorLogs, error)
+	SaveErrorLog(ctx context.Context, err *model.ErrorLogs) error
 
 	// User:
 	QueryUser(ctx context.Context, userName, uuid string) (model.User, error)

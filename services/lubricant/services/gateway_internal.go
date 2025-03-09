@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
@@ -21,9 +22,73 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var _ IGatewayService = (*GatewayService)(nil)
+
 type GatewayService struct {
 	db    repo.ICoreDb
 	store *datastore.DataStore
+}
+
+func (s *GatewayService) EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error {
+	txn, errorCh, commit := s.txnHelper()
+	defer commit()
+
+	var info model.Gateway
+	if tls != nil {
+		marshalString, err := sonic.MarshalString(tls)
+		if err != nil {
+			err = exception.ErrNewException(err,
+				exceptionCode.ErrorEncodeJSON,
+				exception.WithMsg("Failed to marshall json result"),
+			)
+			errorCh.Report(err, exceptionCode.ErrorEncodeJSON, "Failed to marshall json result", true)
+			return err
+		}
+		info.TlsConfig = marshalString
+	}
+
+	info.Description = description
+	info.GatewayID = gatewayid
+	err := s.db.UpdateGateway(ctx, txn, info)
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.DbUpdateGatewayInfoFailed,
+			exception.WithMsg("Failed to update gateway information to database"),
+		)
+		return err
+	}
+	return nil
+}
+
+func (s *GatewayService) DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error) {
+	var retVal response.DescriptionGatewayResponse
+	info, err := s.db.GetGatewayInfo(ctx, gatewayid)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.DbGetGatewayFailed, exception.WithMsg("Failed to get gateway information from database"))
+	}
+	retVal.Gateway = info
+
+	agents, err := s.db.GetAgentList(ctx, gatewayid)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.GetAgentFailed, exception.WithMsg("Failed to get gateway information from database"))
+	}
+	retVal.Agents = agents
+	return &retVal, nil
+}
+
+func (s *GatewayService) DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error) {
+	var retVal response.DescriptionHostResponse
+	info, err := s.db.GetGatewayHostInfo(ctx, hostid)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.DbGetGatewayFailed, exception.WithMsg("Failed to get gateway host information from database"))
+	}
+	retVal.Host = info
+	gateways, err := s.db.GetAllGatewayByUserID(ctx, info.UserID)
+	if err != nil {
+		return &retVal, exception.ErrNewException(err, exceptionCode.DbGetGatewayFailed, exception.WithMsg("Failed to get gateway information from database"))
+	}
+	retVal.GatewayList = gateways
+	return &retVal, nil
 }
 
 func (s *GatewayService) AddHostInternal(ctx context.Context, info *model.GatewayHost) error {
@@ -127,6 +192,9 @@ func (s *GatewayService) RemoveGatewayHostInternal(ctx context.Context, hostid s
 
 func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, gatewayid string,
 	req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error) {
+	txn, errorCh, commit := s.txnHelper()
+	defer commit()
+
 	agentID := uuid.NewString()
 
 	var conf = model.CreateAgentConf{AgentContainerInfo: req.AgentContainerInfo, DriverContainerInfo: req.DriverContainerInfo}
@@ -162,12 +230,28 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		CreateAgentRequest: &pb,
 	}
 
+	err = s.db.AddAgent(ctx, txn, gatewayid, model.Agent{
+		AgentId:     agentID,
+		GatewayId:   gatewayid,
+		Description: req.Description,
+		Algorithm:   req.DataCompressAlgorithm,
+		GatherCycle: int(req.GatherCycle),
+	})
+	if err != nil {
+		err = exception.ErrNewException(err,
+			exceptionCode.AddAgentFailed,
+			exception.WithMsg("Failed to add agent information to database"),
+		)
+		return "", err
+	}
+
 	pbData, err := proto.Marshal(&td)
 	if err != nil {
 		err = exception.ErrNewException(err,
-			exceptionCode.ErrorEncodeJSON,
+			exceptionCode.ErrorEncodeProtoMessage,
 			exception.WithMsg("Failed to marshal agent information by proto"),
 		)
+		errorCh.Report(err, exceptionCode.ErrorEncodeProtoMessage, "Failed to marshal agent information by proto", false)
 		return "", err
 	}
 
@@ -177,6 +261,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 			exceptionCode.ErrorPushTaskFailed,
 			exception.WithMsg("Failed to push agent information to gateway"),
 		)
+		errorCh.Report(err, exceptionCode.ErrorPushTaskFailed, "Failed to push agent information to gateway", false)
 		return "", err
 	}
 	return agentID, nil

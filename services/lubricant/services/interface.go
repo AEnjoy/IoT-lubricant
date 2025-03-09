@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -14,6 +15,9 @@ type IGatewayService interface {
 	AddHost(ctx context.Context, info *model.GatewayHost) error
 	EditHost(ctx context.Context, hostid string, info *model.GatewayHost) error
 	GetHost(ctx context.Context, hostid string) (model.GatewayHost, error)
+	EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error
+	DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error)
+	DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error)
 	UserGetHosts(ctx context.Context, userid string) ([]model.GatewayHost, error)
 	DeployGatewayInstance(ctx context.Context, hostid string, description string, tls *crypto.Tls) (string, error)
 
@@ -50,4 +54,6 @@ type IAgentService interface {
 	//  return task-topic, taskID and error
 	// if taskid is "", system will create a random taskid
 	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
+
+	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
 }

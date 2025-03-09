@@ -1,7 +1,7 @@
 package groups
 
 import (
-	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1"
+	v1 "github.com/aenjoy/iot-lubricant/services/lubricant/api"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +14,9 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup) {
 
 	gateway.POST("/add-host", controller.AddHost)
 	gateway.POST("/host", controller.AddHost)
+	gateway.GET("/host", controller.DescriptionHost)
+	gateway.GET("/host/description", controller.DescriptionHost)
+	gateway.GET("/list-host", controller.ListHosts)
 
 	gateway.POST("/internal/add-gateway", controller.AddGatewayInternal)
 	gateway.POST("/internal/gateway", controller.AddGatewayInternal)
@@ -23,4 +26,6 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup) {
 	gateway.POST("/:gatewayid/agent/internal/push-task", controller.AgentPushTask)
 	gateway.POST("/:gatewayid/agent/internal/task", controller.AgentPushTask)
 	gateway.POST("/:gatewayid/agent/internal/add", controller.AddAgentInternal)
+	gateway.GET("/:gatewayid/description", controller.DescriptionGateway)
+	gateway.POST("/:gatewayid/edit", controller.EditGateway)
 }

@@ -1,0 +1,87 @@
+syntax = "proto3";
+package lubricant.gateway;
+option go_package = "protobuf/gateway";
+
+import "protobuf/gateway/api_agent.proto";
+import "protobuf/agent/agent.proto";
+import "google/protobuf/any.proto";
+import "google/rpc/status.proto";
+
+
+service debugService {
+  rpc mockCoreTask(mockCoreTaskRequest) returns (mockCoreTaskResponse);
+  rpc GatewayResources(GetGatewayResourcesApiRequest) returns (GetGatewayResourcesApiResponse);
+}
+
+message mockCoreTaskRequest{
+  string taskId = 1;
+  optional int32 timeout = 2;
+  optional bool isQuery = 3;
+  oneof task{
+    StartAgentRequest startAgentRequest = 4;
+    CreateAgentRequest createAgentRequest=5;
+    EditAgentRequest editAgentRequest=6;
+    RemoveAgentRequest removeAgentRequest=7;
+    StopAgentRequest stopAgentRequest=8;
+    UpdateAgentRequest updateAgentRequest=9;
+    GetAgentStatusRequest getAgentStatusRequest=10;
+    ReloadAgentControlRequest reloadAgentControlRequest = 11; // WIP
+  }
+}
+message mockCoreTaskResponse{
+  string taskId = 1;
+  oneof result{
+    google.protobuf.Any finish = 2; // 任务完成
+    google.rpc.Status failed = 3; // 任务失败 错误信息
+    google.rpc.Status working = 4; // 任务进行中 进度信息
+    google.rpc.Status pending = 5; // 任务阻塞中 阻塞原因
+
+    google.rpc.Status notFound = 6;
+  }
+}
+message GetGatewayResourcesApiRequest{
+  int32 timeout = 4;
+  oneof resources{
+      GetAgentPool pool = 1;
+      AgentPoolOperator agentOperator = 2;
+      DataPoolOperator dataOperator = 3;
+  }
+}
+message GetGatewayResourcesApiResponse{
+  google.protobuf.Any resources = 1;
+}
+
+message GetAgentPool{}
+
+message AgentPoolResources{
+  repeated string agentID = 1;
+}
+message AgentPoolOperator{
+    oneof operator{
+      gateway.StartAgentRequest startAgentRequest = 1;
+      gateway.CreateAgentRequest createAgentRequest=2;
+      gateway.EditAgentRequest editAgentRequest=3;
+      gateway.RemoveAgentRequest removeAgentRequest=4;
+      gateway.StopAgentRequest stopAgentRequest=5;
+      gateway.UpdateAgentRequest updateAgentRequest=6;
+      gateway.GetAgentStatusRequest getAgentStatusRequest=7;
+      gateway.StartGatherRequest startGatherRequest=8;
+      gateway.StopGatherRequest stopGatherRequest=9;
+    }
+}
+message DataPoolOperator{
+  string agentID = 1;
+  oneof operator{
+    agent.DataMessage storeDataRequest = 2;
+    DataGetRequest getDataRequest = 3;
+    DataPopRequest popDataRequest = 4;
+    DataTopRequest topDataRequest = 5;
+    DataCleanRequest cleanDataRequest = 6;
+    DataSizeRequest sizeDataRequest = 7;
+  }
+}
+message DataGetRequest{}
+message DataPopRequest{}
+message DataTopRequest{}
+message DataCleanRequest{}
+message DataSizeRequest{}

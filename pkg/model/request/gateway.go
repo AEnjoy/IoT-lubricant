@@ -20,3 +20,9 @@ type RemoveGatewayRequest struct {
 	RemoveAgents   bool   `json:"remove_agents"`
 	RemoveHostInfo bool   `json:"remove_host_info"`
 }
+type EditGatewayRequest struct {
+	GatewayID string `json:"gateway_id"`
+
+	Description string      `json:"description,omitempty"`
+	TlsConfig   *crypto.Tls `json:"tls_config,omitempty"`
+}

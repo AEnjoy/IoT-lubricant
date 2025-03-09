@@ -16,10 +16,21 @@ type Exception struct {
 	Reason       interface{}           `json:"reason,omitempty"`
 	DetailReason interface{}           `json:"detail_reason,omitempty"`
 	Data         interface{}           `json:"data,omitempty"`
+	Context      map[string]any        `json:"context,omitempty"`
 	Operation    Operation             `json:"-"`
 	ShowLog      bool                  `json:"-"`
 	doOperation  bool
 }
+
+func (e *Exception) Get(key string) any {
+	if e.Context != nil {
+		if v, ok := e.Context[key]; ok {
+			return v
+		}
+	}
+	return nil
+}
+
 type Option func(*Exception)
 
 func (e *Exception) Error() string {
@@ -100,6 +111,9 @@ func New(c exceptionCode.ResCode, opts ...Option) *Exception {
 	}
 	return exception
 }
+func NewWithErr(err error, code exceptionCode.ResCode, opts ...Option) *Exception {
+	return ErrNewException(err, code, opts...)
+}
 func ErrNewException(err error, code exceptionCode.ResCode, opts ...Option) *Exception {
 	if err == nil {
 		return nil
@@ -126,5 +140,13 @@ func CheckException(err error) (*Exception, error) {
 func WithLogShow() Option {
 	return func(e *Exception) {
 		e.ShowLog = true
+	}
+}
+func WithContext(key string, value any) Option {
+	return func(e *Exception) {
+		if e.Context == nil {
+			e.Context = make(map[string]any)
+		}
+		e.Context[key] = value
 	}
 }

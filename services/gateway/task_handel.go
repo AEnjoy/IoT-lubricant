@@ -24,7 +24,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		TaskId: task.TaskId,
 		Result: working,
 	}
-	c.Set(task.GetTaskId(), "", cache.NewStoreResult(cache.NeverExpired, result))
+	c.Set(task.GetTaskId(), task.GetTaskId(), cache.NewStoreResult(cache.NeverExpired, result))
 
 	setWorkingStatus := func(status string) {
 		wor, _ := anypb.New(wrapperspb.String(status))
@@ -132,6 +132,13 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			return
 		}
 		setWorkingStatus("done")
+	case *corepb.TaskDetail_GetAgentStatusRequest:
+		ids := t.GetAgentStatusRequest.GetAgentId()
+		working.Working.Details = make([]*anypb.Any, len(ids))
+		for i, id := range ids {
+			working.Working.Details[i], _ = anypb.New(
+				wrapperspb.String(a.agent.GetAgentStatus(id).String()))
+		}
 	}
 
 	finish.Finish, _ = anypb.New(working.Working)

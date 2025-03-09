@@ -29,3 +29,13 @@ message CreateAgentRequest{
   agent.AgentInfo info = 1;
   bytes conf = 2;
 }
+message GetAgentStatusRequest{
+  repeated string agentId =1;
+}
+message StartGatherRequest{
+  string agentId =1;
+}
+message StopGatherRequest{
+  string agentId =1;
+}
+message ReloadAgentControlRequest{} // todo

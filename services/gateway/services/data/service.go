@@ -8,6 +8,7 @@ import (
 )
 
 type Apis interface {
+	Size() int
 	// Store and Push are the same API
 	Store(*agentpb.DataMessage) error
 	// Push and Store is the same API

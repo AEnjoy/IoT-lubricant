@@ -4,13 +4,14 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"github.com/aenjoy/iot-lubricant/pkg/form/request"
-	"github.com/aenjoy/iot-lubricant/pkg/form/response"
+	"github.com/aenjoy/iot-lubricant/pkg/model/request"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/rs/xid"
 )
 
 func (a Api) AddGatewayInternal(c *gin.Context) {
@@ -24,7 +25,12 @@ func (a Api) AddGatewayInternal(c *gin.Context) {
 			exception.ErrNewException(err, exceptionCode.AddGatewayHostFailed), c)
 		return
 	}
-	gatewayid := uuid.NewString()
+
+	gatewayid, ok := c.GetQuery("gateway-id")
+	if !ok {
+		gatewayid = xid.New().String()
+	}
+
 	err = a.IGatewayService.AddGatewayInternal(c, gatewayHostInfo.UserID, gatewayid, gatewayHostInfo.Description, tlsConfig)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,

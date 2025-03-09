@@ -8,6 +8,7 @@ import (
 var CommonGroups = []CommonRouter{
 	groups.UserRoute{},
 	groups.GatewayRoute{},
+	groups.MonitorRoute{},
 }
 
 type CommonRouter interface {

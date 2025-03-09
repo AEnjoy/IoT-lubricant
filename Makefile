@@ -14,7 +14,7 @@ else
 PLATFORM_VERSION := unknown
 endif
 
-.PHONY: test test-coverage install mock
+.PHONY: test test-coverage install mock docker-build load-to-kind load-to-kind-test-driver build-test-driver load-test-driver
 
 make-output-dir:
 	rm -rf ./bin
@@ -47,6 +47,7 @@ mock: install
 	mockgen \
 		-source=services/lubricant/repo/icore.go -destination=pkg/mock/db/mockdb-lubricant.go \
 		-package=db
+	mockery --dir=services/gateway/services/async --name=Task --output=pkg/mock/async --outpkg=async
 	mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
 	mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
@@ -54,6 +55,17 @@ mock: install
 	go mod tidy -v
 
 build-agent:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
+		-f cmd/agent/Dockerfile.FastBuild .
+else
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME="$(BUILD_TIME)" \
@@ -63,6 +75,7 @@ build-agent:
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-agent:nightly \
 		-f cmd/agent/Dockerfile .
+endif
 
 build-gateway: make-output-dir
 	go build -o ./bin/lubricant-gateway \
@@ -79,10 +92,40 @@ build-gateway: make-output-dir
 	./cmd/gateway/main.go ./cmd/gateway/start.go
 
 build-gateway-container:
-	echo "Gateway is not running at container"
-	# docker build -t hub.iotroom.top/aenjoy/lubricant-gateway:nightly -f cmd/agent_proxy/Dockerfile .
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-gateway:nightly \
+		-f cmd/gateway/Dockerfile.FastBuild .
+else
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-gateway:nightly \
+		-f cmd/gateway/Dockerfile .
+endif
 
 build-core:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
+		-f cmd/lubricant/Dockerfile.FastBuild .
+else
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME="$(BUILD_TIME)" \
@@ -92,6 +135,7 @@ build-core:
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
 		-t hub.iotroom.top/aenjoy/lubricant-core:nightly \
 		-f cmd/lubricant/Dockerfile .
+endif
 
 build-lubricant: build-core
 
@@ -99,9 +143,64 @@ docker-build: build-agent build-gateway build-lubricant
 
 load-to-kind-agent: build-agent
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
-load-to-kind-gateway: build-gateway
+load-to-kind-gateway: build-gateway-container
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-gateway:nightly
 load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
 
-load-to-kind: load-to-kind-agent load-to-kind-core
+load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway
+
+test-driver-clock:
+	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
+		-f test/mock_driver/clock/Dockerfile test/mock_driver/clock
+load-to-kind-test-driver-clock: test-driver-clock
+	kind load docker-image hub.iotroom.top/aenjoy/test-driver-clock:nightly
+
+load-to-kind-test-driver: load-to-kind-test-driver-clock
+
+build-test-driver: test-driver-clock
+
+load-test-driver: load-to-kind-test-driver
+
+build-all:
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant-gateway \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/gateway/main.go ./cmd/gateway/start.go
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/lubricant/main.go ./cmd/lubricant/start.go
+	CGO_ENABLED=0 go build -v -o ./bin/lubricant-agent \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/agent/main.go ./cmd/agent/start.go
+
+copy-files: build-all
+	cp bin/lubricant-gateway cmd/gateway/gateway
+	cp bin/lubricant cmd/lubricant/lubricant
+	cp bin/lubricant-agent cmd/agent/agent

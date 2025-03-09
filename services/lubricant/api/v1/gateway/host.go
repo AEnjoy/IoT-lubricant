@@ -31,3 +31,33 @@ func (a Api) AddHost(c *gin.Context) {
 	}
 	helper.SuccessJson(gatewayHostInfo, c)
 }
+func (a Api) ListHosts(c *gin.Context) {
+	claimsUser, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedByServer(err, c)
+		return
+	}
+	hosts, err := a.IGatewayService.UserGetHosts(c, claimsUser.User.Id)
+	if err != nil {
+		helper.FailedWithJson(http.StatusNotFound, exception.ErrNewException(err,
+			exceptionCode.ErrorNotFound), c)
+		return
+	}
+	helper.SuccessJson(hosts, c)
+}
+
+func (a Api) DescriptionHost(c *gin.Context) {
+	hostid, ok := c.GetQuery("host_id")
+	if !ok {
+		helper.FailedWithJson(http.StatusBadRequest, exception.New(
+			exceptionCode.ErrorBadRequest, exception.WithMsg("host_id is required")), c)
+		return
+	}
+	host, err := a.IGatewayService.DescriptionHost(c, hostid)
+	if err != nil {
+		helper.FailedWithJson(http.StatusBadRequest, exception.ErrNewException(err,
+			exceptionCode.DescriptionHostFailed, exception.WithData(host)), c)
+		return
+	}
+	helper.SuccessJson(host, c)
+}

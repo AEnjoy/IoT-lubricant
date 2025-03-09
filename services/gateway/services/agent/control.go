@@ -15,9 +15,13 @@ import (
 	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	object "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
-	data2 "github.com/aenjoy/iot-lubricant/services/gateway/services/data"
+	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
+
+	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
 const exceptionSigMaxSize = 10
@@ -28,13 +32,15 @@ type agentControl struct {
 
 	AgentCli    agentpb.EdgeServiceClient
 	AgentInfo   *model.Agent
-	dataCollect data2.Apis
+	dataCollect data.Apis
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	rootCtx context.Context
+	ctx     context.Context
+	cancel  context.CancelFunc
 
 	exitSig   chan struct{} // 销毁信号
 	exceptSig chan *exception.Exception
+	reporter  chan *corepb.ReportRequest
 
 	gatherLock sync.Mutex
 	online     bool // online/offline
@@ -43,6 +49,12 @@ type agentControl struct {
 	_exitOnce sync.Once
 }
 
+func (c *agentControl) setCtx(ctx context.Context) {
+	if ctx == nil || ctx == context.TODO() {
+		ctx = c.rootCtx
+	}
+	c.ctx, c.cancel = context.WithCancel(ctx)
+}
 func (c *agentControl) tryConnect() (cli agentpb.EdgeServiceClient, closeCallBack func(), err error) {
 	cli, closeCallBack, err = edge.NewAgentCliWithClose(c.AgentInfo.Address)
 	if err != nil {
@@ -60,12 +72,16 @@ func (c *agentControl) tryConnect() (cli agentpb.EdgeServiceClient, closeCallBac
 }
 func (c *agentControl) init(ctx context.Context) {
 	c._initOnce.Do(func() {
+		c.rootCtx = ctx
 		c.id = c.AgentInfo.AgentId
-		c.ctx, c.cancel = context.WithCancel(ctx)
+		c.setCtx(context.TODO())
 		c.exitSig = make(chan struct{})
 		c.exceptSig = make(chan *exception.Exception, exceptionSigMaxSize)
-		c.dataCollect = data2.NewDataStoreApis(c.id)
+		c.dataCollect = data.NewDataStoreApis(c.id)
 
+		if handelFunc != nil {
+			go handelFunc(c.exceptSig)
+		}
 		if len(c.Slot) == 0 {
 			c.Slot = []int{0}
 		}
@@ -76,19 +92,45 @@ func (c *agentControl) init(ctx context.Context) {
 					return
 				default:
 				}
-				_, err := c.AgentCli.Ping(c.ctx, &metapb.Ping{})
-				if err != nil {
-					if c.online {
-						c.online = false
-						c._offlineWarn()
-					}
-				} else {
-					c.online = true
-				}
+				c._checkOnline()
 				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+1))
 			}
 		}()
 	})
+}
+
+var _ping = &metapb.Ping{}
+
+func (c *agentControl) _checkOnline() bool {
+	_, err := c.AgentCli.Ping(c.ctx, _ping)
+	if err != nil {
+		if c.online {
+			c.reporter <- &corepb.ReportRequest{
+				AgentId: c.id,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "offline"},
+					},
+				},
+			}
+			c.online = false
+			c._offlineWarn()
+		}
+	} else {
+		if !c.online {
+			logger.Debug("agent online")
+			c.reporter <- &corepb.ReportRequest{
+				AgentId: c.id,
+				Req: &corepb.ReportRequest_AgentStatus{
+					AgentStatus: &corepb.AgentStatusRequest{
+						Req: &status.Status{Message: "online"},
+					},
+				},
+			}
+		}
+		c.online = true
+	}
+	return c.online
 }
 func (c *agentControl) IsStarted() bool {
 	return c.online
@@ -100,7 +142,7 @@ func (c *agentControl) _checkOut() {
 	c._exitOnce.Do(func() {
 		close(c.exitSig)
 		close(c.exceptSig)
-		data2.ManualPushAgentData(c.id)
+		data.ManualPushAgentData(c.id)
 	})
 }
 func (c *agentControl) _stopGather() error {
@@ -108,7 +150,7 @@ func (c *agentControl) _stopGather() error {
 	if err != nil {
 		return err
 	}
-	c.cancel()
+	//c.cancel()
 
 	if resp.GetMessage() != "success" && resp.GetMessage() != "" && resp.GetMessage() != "Gather is not working" {
 		return errors.New(resp.GetMessage())
@@ -122,7 +164,7 @@ func (c *agentControl) _start() error {
 func (c *agentControl) _offlineWarn() {
 	c.exceptSig <- exception.ErrNewException(nil, exceptionCode.WarnAgentOffline,
 		exception.WithLevel(errLevel.Warn),
-		exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
+		exception.WithContext(string(object.TargetAgent), c.id),
 	)
 }
 func (c *agentControl) _gather(wg *sync.WaitGroup) {
@@ -158,7 +200,8 @@ func (c *agentControl) Start(ctx context.Context) error {
 }
 
 func (c *agentControl) StartGather() error {
-	if !c.online {
+	c.setCtx(context.TODO())
+	if !c._checkOnline() {
 		return errors.New("agent is not started or has been offline")
 	}
 	if !c.gatherLock.TryLock() {
@@ -197,7 +240,9 @@ func (c *agentControl) StartGather() error {
 	return nil
 }
 func (c *agentControl) StopGather() error {
-	return c._stopGather()
+	err := c._stopGather()
+	c.cancel()
+	return err
 }
 
 // Exit 销毁
@@ -206,11 +251,12 @@ func (c *agentControl) Exit() {
 	c.exitSig <- struct{}{}
 	c._checkOut()
 }
-func (c *agentControl) GetDataApi() data2.Apis {
+func (c *agentControl) GetDataApi() data.Apis {
 	return c.dataCollect
 }
-func newAgentControl(a *model.Agent) *agentControl {
+func newAgentControl(a *model.Agent, reporter chan *corepb.ReportRequest) *agentControl {
 	return &agentControl{
 		AgentInfo: a,
+		reporter:  reporter,
 	}
 }

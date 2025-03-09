@@ -1,0 +1,15 @@
+FROM alpine:latest AS builder
+
+WORKDIR /app
+
+COPY cmd/lubricant/lubricant ./
+RUN chmod +x ./lubricant
+
+FROM alpine:latest
+
+WORKDIR /
+COPY --from=builder /app/lubricant ./
+
+EXPOSE 8080
+EXPOSE 5423
+CMD ["./lubricant"]
