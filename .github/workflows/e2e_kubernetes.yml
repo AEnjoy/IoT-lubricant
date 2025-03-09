@@ -148,4 +148,5 @@ jobs:
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
           kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          sleep 2
           python3 scripts/core-test.py $lubricant_pod

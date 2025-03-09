@@ -38,6 +38,9 @@ func main() {
 	}
 	id := os.Getenv(GATEWAY_ID_STR)
 
+	if id == "" && confFilePath == "" {
+		id, _ = os.Hostname() // In the kubernetes environment, hostname can be used as the Gateway-ID
+	}
 	var config *model.ServerInfo
 	if confFilePath != "" {
 		config = new(model.ServerInfo)

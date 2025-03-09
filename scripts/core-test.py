@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 import sys
+from time import sleep
+
 import requests
 
 LOGIN_URL = "http://127.0.0.1:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
@@ -21,7 +24,20 @@ login_data = {
     "signinMethod": "Password",
     "type": "code"
 }
-
+create_gateway_data={
+    "host":"", # set to empty means do not bind host Information.
+    "description":"test_gateway",
+    "username":"username", # Host username
+    "password": "password", # Host password
+    "tls_config": {
+        "enable": False,
+        "skip_verify": False,
+        "from_file": False,
+        "key": "",
+        "cert": "",
+        "ca": ""
+    },
+}
 def main():
     global response
     if len(sys.argv) != 2:
@@ -104,23 +120,61 @@ def main():
     print("Begin Test:")
 
     # Test CreateGateway
-    print("Creating gateway...")
+    print("API:Creating gateway...")
     try:
-        create_gateway_response = session.post(CREATE_GATEWAY_URL+"?gateway-id=lubricant-gateway-0", json={
-            "host":"", # set to empty means do not bind host Information.
-            "description":"test_gateway",
-            "username":"username", # Host username
-            "password": "password", # Host password
-            "tls_config": {
-                "enable": False,
-                "skip_verify": False,
-                "from_file": False,
-                "key": "",
-                "cert": "",
-                "ca": ""
-            },
-        })
-    except Exception as e: pass
+        create_gateway_response = session.post(CREATE_GATEWAY_URL+"?gateway-id=lubricant-gateway-0", json=create_gateway_data)
+        create_gateway_response.raise_for_status()
+
+        msg = create_gateway_response.json().get("msg")
+        if msg != "success":
+            print(f"Error: Failed to create gateway, msg={msg}")
+            print(f"Response: {create_gateway_response.text}")
+            sys.exit(1)
+
+    except Exception as e:
+        print("Error: Failed to create gateway")
+        print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
+    print("kubernetes: Deploy Gateway")
+    os.system("kubectl apply -f deployment/tester/gateway.yaml")
+    sleep(5)
+
+    pod_status = check_pod_status("lubricant-gateway-0")
+    if pod_status == "Running":
+        print("Gateway Deploy Success")
+    else:
+        print("Gateway Deploy Failed")
+        print(f"Pod Status: {pod_status}")
+        sys.exit(1)
+    print("kubernetes: Test Uncreated Gateway -- Should be error.")
+    create_gateway_response = session.post(CREATE_GATEWAY_URL+"?gateway-id=lubricant-gateway-1", json=create_gateway_data)
+    create_gateway_response.raise_for_status()
+    os.system("kubectl scale statefulset lubricant-gateway --replicas=3 -n lubricant")
+    sleep(5)
+    pod_status1,pod_status2 = check_pod_status("lubricant-gateway-1"), check_pod_status("lubricant-gateway-2")
+    if pod_status1 != "Running" or pod_status2 == "Running":
+        print("Test Failed:")
+        print(f"Pod Status: {pod_status1} {pod_status2} Except: Running,and Error(or CrashLoopBackOff)")
+        sys.exit(1)
+    else:
+        print("Gateway Deploy Success")
+    print("kubernetes: Test Gateway")
+
 
 if __name__ == "__main__":
     main()
+
+def check_pod_status(pod_name, namespace='lubricant'):
+    try:
+        # Get Pod status using kubectl
+        result = subprocess.run(
+            ["kubectl", "get", "pods", "-n", namespace, pod_name, "-o", "jsonpath='{.status.phase}'"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout.strip().strip("'")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Failed to get Pod status")
+        print(f"Output: {e.output}")
+        print(f"Error: {e.stderr}")
+        sys.exit(1)
