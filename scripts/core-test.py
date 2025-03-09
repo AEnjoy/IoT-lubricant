@@ -42,14 +42,14 @@ create_gateway_data={
 
 def check_pod_status(pod_name, namespace='lubricant'):
     try:
-        # Get Pod status using kubectl
         result = subprocess.run(
-            ["kubectl", "get", "pods", "-n", namespace, pod_name, "-o", "jsonpath='{.status.phase}'"],
+            ["kubectl", "get", "pods", "-n", namespace, pod_name, "-o", "jsonpath='{.status.conditions[?(@.type==\"Ready\")].status}'"],
             capture_output=True,
             text=True,
             check=True
         )
-        return result.stdout.strip().strip("'")
+        status = result.stdout.strip().strip("'")
+        return "Running" if status == "True" else "Not Running"
     except subprocess.CalledProcessError as e:
         print(f"Error: Failed to get Pod status")
         print(f"Output: {e.output}")
@@ -164,7 +164,7 @@ def test_uncreated_gateway(session, gateway_id):
         print("Expected error occurred while creating uncreated gateway")
         print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
 
-    os.system("kubectl scale statefulset lubricant-gateway --replicas=5 -n lubricant")
+    os.system("kubectl scale statefulset lubricant-gateway --replicas=3 -n lubricant")
     sleep(10)
 
     # os.system("kubectl get pods -n lubricant")
