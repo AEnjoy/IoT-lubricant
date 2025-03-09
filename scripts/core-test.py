@@ -158,13 +158,13 @@ def test_create_gateway(session, gateway_id):
 def test_uncreated_gateway(session, gateway_id):
     print("kubernetes: Test Uncreated Gateway -- Gateway Status should be error.")
     try:
-        create_gateway_response = session.post(CREATE_GATEWAY_URL + f"?gateway-id={gateway_id}", json=create_gateway_data)
+        create_gateway_response = session.post(CREATE_GATEWAY_URL + f"?gateway-id={gateway_id + "-1"}", json=create_gateway_data)
         create_gateway_response.raise_for_status()
     except Exception as e:
         print("Expected error occurred while creating uncreated gateway")
         print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
 
-    os.system("kubectl scale statefulset lubricant-gateway --replicas=3 -n lubricant")
+    os.system("kubectl scale statefulset lubricant-gateway --replicas=2 -n lubricant")
     sleep(5)
 
     pod_status1, pod_status2 = check_pod_status(gateway_id + "-1"), check_pod_status(gateway_id + "-2")
@@ -179,7 +179,7 @@ def main():
     get_user_info(session)
     print("Begin Test:")
     test_create_gateway(session, "lubricant-gateway-0")
-    test_uncreated_gateway(session, "lubricant-gateway-1")
+    test_uncreated_gateway(session, "lubricant-gateway")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
