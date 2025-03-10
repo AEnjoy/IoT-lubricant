@@ -9,6 +9,7 @@ var CommonGroups = []CommonRouter{
 	groups.UserRoute{},
 	groups.GatewayRoute{},
 	groups.MonitorRoute{},
+	groups.AgentRoute{},
 }
 
 type CommonRouter interface {

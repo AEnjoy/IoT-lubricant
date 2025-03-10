@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/agent"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/gateway"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/monitor"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/user"
@@ -15,11 +16,13 @@ var (
 	_ IGateway = (*gateway.Api)(nil)
 	_ IUser    = (*user.Api)(nil)
 	_ IMonitor = (*monitor.Api)(nil)
+	_ IAgent   = (*agent.Api)(nil)
 
 	_gateway IGateway
 	_user    IUser
 	_auth    IAuth
 	_monitor IMonitor
+	_agent   IAgent
 )
 
 func NewGateway() IGateway {
@@ -54,4 +57,13 @@ func NewMonitor() IMonitor {
 		}
 	}
 	return _monitor
+}
+func NewAgent() IAgent {
+	if _agent == nil {
+		_agent = agent.Api{
+			DataStore:     ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore),
+			IAgentService: ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(services.IAgentService),
+		}
+	}
+	return _agent
 }

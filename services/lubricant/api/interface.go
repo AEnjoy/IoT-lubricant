@@ -31,3 +31,10 @@ type IMonitor interface {
 	// BaseInfo 返回网关个数，agent个数，离线个数信息，node个数信息
 	BaseInfo(c *gin.Context)
 }
+type IAgent interface {
+	// Operator : start-agent,stop-agent,start-gather,stop-agent,get-openapidoc
+	Operator(*gin.Context)
+	// Set : set agent gather config
+	Set(*gin.Context)
+	GetData(*gin.Context)
+}
