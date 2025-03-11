@@ -89,7 +89,9 @@ message QueryTaskResultResponse{
     google.rpc.Status notFound = 6;
   }
 }
-
+message TaskResultRequest{
+    QueryTaskResultResponse msg = 1;
+}
 message MessageIdInfo {
   string messageId = 1; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;pushMessageId req.messageId应该与返回的resp.messageId一致
   string gatewayId = 2;
@@ -130,6 +132,7 @@ message ReportRequest{
   oneof req{
       reportErrorRequest error = 3;
       AgentStatusRequest agentStatus = 4;
+      TaskResultRequest taskResult = 5;
   }
 }
 message ReportResponse{
@@ -139,11 +142,15 @@ message ReportResponse{
   oneof resp{
       reportErrorResponse error = 3;
       AgentStatusResponse agentStatus = 4;
+      TaskResultResponse taskResult = 5;
   }
 }
 message AgentStatusRequest{
   google.rpc.Status req = 1;
 }
 message AgentStatusResponse{
+  google.rpc.Status resp = 1;
+}
+message TaskResultResponse{
   google.rpc.Status resp = 1;
 }
