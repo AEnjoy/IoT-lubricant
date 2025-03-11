@@ -15,5 +15,10 @@ const (
 	CoreGatewayService
 	CoreGatewayAgentService
 
+	GatewayStatusGuard
+	BackendHandlerReport
+	BackendHandlerErrLogs
+	BackendHandlerDataUpload
+
 	CoreWebServer
 )

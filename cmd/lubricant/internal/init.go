@@ -13,6 +13,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/router"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/services"
+	backendService "github.com/aenjoy/iot-lubricant/services/lubricant/services/backend"
 )
 
 var once sync.Once
@@ -34,7 +35,12 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &services.GatewayService{},
 			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &services.AgentService{},
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
-			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:   &mqService.MqService{},
+
+			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:           &mqService.MqService{},
+			ioc.APP_NAME_CORE_Internal_Handler_DataUpload:   &backendService.DataHandler{},
+			ioc.APP_NAME_CORE_Internal_Handler_Report:       &backendService.ReportHandler{},
+			ioc.APP_NAME_CORE_Internal_Handler_ErrLogs:      &backendService.ErrLogCollect{},
+			ioc.APP_NAME_CORE_Internal_Gateway_Status_Guard: &backendService.GatewayGuard{},
 		}
 
 		ioc.Controller.LoadObject(objects)

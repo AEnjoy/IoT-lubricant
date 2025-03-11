@@ -18,9 +18,9 @@ import (
 // taskID -> task([]bytes)
 
 func CreateTask(taskID string, targetType task.Target, targetDeviceID string, taskBin []byte) error {
-	dataCli := dataCli()
+	dataCli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
 
-	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+	taskMq := dataCli.Mq
 	e1 := taskMq.Publish(fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID), []byte(taskID))     // 创建任务
 	e2 := taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID), taskBin) // 发送任务
 	if errors.Join(e1, e2) != nil {
