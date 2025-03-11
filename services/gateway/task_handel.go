@@ -15,7 +15,6 @@ import (
 
 func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.QueryTaskResultResponse]) {
 	logger.Debugf("running task ID:%s Message:%s Type:%v", task.TaskId, task.MessageId, task.GetTask())
-	// todo:impl me
 	working := new(corepb.QueryTaskResultResponse_Working)
 	finish := new(corepb.QueryTaskResultResponse_Finish)
 	failed := new(corepb.QueryTaskResultResponse_Failed)
@@ -24,6 +23,16 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		TaskId: task.TaskId,
 		Result: working,
 	}
+	defer func() {
+		_reportMessage <- &corepb.ReportRequest{
+			Req: &corepb.ReportRequest_TaskResult{
+				TaskResult: &corepb.TaskResultRequest{
+					Msg: result,
+				},
+			},
+		}
+	}()
+
 	c.Set(task.GetTaskId(), task.GetTaskId(), cache.NewStoreResult(cache.NeverExpired, result))
 
 	setWorkingStatus := func(status string) {
