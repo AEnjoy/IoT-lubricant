@@ -56,4 +56,9 @@ type IAgentService interface {
 	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
 
 	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
+	StartAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error)
+	StopAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error)
+	StartGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error)
+	StopGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error)
+	GetOpenApiDoc(ctx context.Context, gatewayid, agentid string) (result string, err error)
 }

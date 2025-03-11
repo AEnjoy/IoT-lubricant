@@ -51,6 +51,9 @@ func Core(database *gorm.DB) *CoreDb {
 	} else {
 		logger.Debugln("Index idx_user_gateway already exists.")
 	}
+	db.Exec(`UPDATE async_job
+				SET status = 'failed',updated_at = NOW()
+				WHERE expired_at < NOW() AND status != 'completed';`)
 
 	return &CoreDb{db: db}
 }

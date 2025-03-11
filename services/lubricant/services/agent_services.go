@@ -35,3 +35,28 @@ func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids
 
 	return retVal, nil
 }
+
+func (a *AgentService) StartAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AgentService) StopAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AgentService) StartGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AgentService) StopGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AgentService) GetOpenApiDoc(ctx context.Context, gatewayid, agentid string) (result string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
