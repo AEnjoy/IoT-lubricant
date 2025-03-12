@@ -17,10 +17,10 @@ func (a *AgentService) PushTaskAgent(ctx context.Context, taskid *string, userID
 		a.db.AddAsyncJob,
 		taskid,
 		user.RoleAgent,
-		agentID,
+		gatewayID, //agentID,
 		userID,
 		string(taskTypes.TargetAgent),
-		fmt.Sprintf("/task/%s/%s/%s", taskTypes.TargetGateway, gatewayID, taskTypes.TargetAgent),
+		fmt.Sprintf("/task/%s", taskTypes.TargetGateway), //fmt.Sprintf("/task/%s/%s/%s", taskTypes.TargetGateway, gatewayID, taskTypes.TargetAgent),
 		bin,
 	)
 }

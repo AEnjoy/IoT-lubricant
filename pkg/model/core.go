@@ -199,9 +199,9 @@ type AsyncJob struct {
 	Data       string `gorm:"column:data;type:json;not null" json:"data"`
 	ResultData string `gorm:"column:result_data;type:text" json:"resultData"`
 
-	ExpiredAt sql.NullTime `gorm:"type:datetime;not null" json:"expiredAt"`
-	CreatedAt sql.NullTime `gorm:"type:datetime;not null" json:"createdAt"`
-	UpdatedAt sql.NullTime `gorm:"type:datetime;not null" json:"updatedAt"`
+	ExpiredAt time.Time    `gorm:"type:datetime;not null" json:"expiredAt"`
+	CreatedAt time.Time    `gorm:"type:datetime;not null" json:"createdAt"`
+	UpdatedAt time.Time    `gorm:"type:datetime;not null" json:"updatedAt"`
 	DeleteAt  sql.NullTime `gorm:"column:deleted_at;type:datetime" json:"deleteAt"`
 	//Meta      string    `gorm:"column:meta;type:json;not null" json:"meta"`
 }

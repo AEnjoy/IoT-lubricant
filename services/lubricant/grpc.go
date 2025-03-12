@@ -151,7 +151,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 			if tryPing && resp.Flag == 1 {
 				tryPing = false
 			}
-			logger.Debugf("Recv: Pong from Gateway: ID:%s", gatewayID)
+			// logger.Debugf("Recv: Pong from Gateway: ID:%s", gatewayID)
 			recSig <- struct{}{}
 			time.Sleep(5 * time.Second)
 		}
@@ -251,7 +251,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			// todo: handel error message more detail
 			return err
 		}
-		logger.Debugf("Recv: %v", taskReq)
+		// logger.Debugf("Recv: %v", taskReq)
 
 		// HandelRecvGetTask(task) [Gateway->Core]
 		switch taskReq.GetTask().(type) {

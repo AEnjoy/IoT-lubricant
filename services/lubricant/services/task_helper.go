@@ -68,9 +68,9 @@ func _taskHelper(
 
 	go func() {
 		// 任务数据发送需要异步操作(在其它线程订阅这个topic后)，否则可能会导致获取任务失败
+		time.Sleep(500 * time.Millisecond)
 		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
 		logger.Debugf("send task data to %s", pbTopic)
-		time.Sleep(500 * time.Millisecond)
 		_ = storeMq.PublishBytes(pbTopic, bin)
 	}()
 
