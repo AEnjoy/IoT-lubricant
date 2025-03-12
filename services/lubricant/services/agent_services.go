@@ -40,7 +40,7 @@ func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids
 	return retVal, nil
 }
 
-func (a *AgentService) StartAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+func (a *AgentService) StartAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
 		TaskId: id,
@@ -50,11 +50,11 @@ func (a *AgentService) StartAgent(ctx context.Context, gatewayid, agentid string
 			},
 		},
 	}
-	_, _, err = a.PushTaskAgentPb(ctx, &id, gatewayid, agentid, td)
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
 	return id, err
 }
 
-func (a *AgentService) StopAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+func (a *AgentService) StopAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
 		TaskId: id,
@@ -64,11 +64,11 @@ func (a *AgentService) StopAgent(ctx context.Context, gatewayid, agentid string)
 			},
 		},
 	}
-	_, _, err = a.PushTaskAgentPb(ctx, &id, gatewayid, agentid, td)
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
 	return id, err
 }
 
-func (a *AgentService) StartGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+func (a *AgentService) StartGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
 		TaskId: id,
@@ -78,11 +78,11 @@ func (a *AgentService) StartGather(ctx context.Context, gatewayid, agentid strin
 			},
 		},
 	}
-	_, _, err = a.PushTaskAgentPb(ctx, &id, gatewayid, agentid, td)
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
 	return id, err
 }
 
-func (a *AgentService) StopGather(ctx context.Context, gatewayid, agentid string) (taskid string, err error) {
+func (a *AgentService) StopGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
 		TaskId: id,
@@ -92,7 +92,7 @@ func (a *AgentService) StopGather(ctx context.Context, gatewayid, agentid string
 			},
 		},
 	}
-	_, _, err = a.PushTaskAgentPb(ctx, &id, gatewayid, agentid, td)
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
 	return id, err
 }
 

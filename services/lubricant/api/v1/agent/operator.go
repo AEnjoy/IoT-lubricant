@@ -24,9 +24,16 @@ func (a Api) Operator(c *gin.Context) {
 		return
 	}
 
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
+
 	var (
 		taskid string
-		err    error
 		resp   response.AgentAsyncExecuteOperatorResponse
 	)
 
@@ -36,14 +43,14 @@ func (a Api) Operator(c *gin.Context) {
 			exception.New(exceptionCode.ErrorBadRequest, exception.WithMsg("operator is empty")), c)
 		return
 	case startAgent:
-		taskid, err = a.IAgentService.StartAgent(c, gatewayID, agentID)
+		taskid, err = a.IAgentService.StartAgent(c, userid, gatewayID, agentID)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.NewWithErr(err, exceptionCode.StartAgentFailed), c)
 			return
 		}
 	case stopAgent:
-		taskid, err = a.IAgentService.StopAgent(c, gatewayID, agentID)
+		taskid, err = a.IAgentService.StopAgent(c, userid, gatewayID, agentID)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.NewWithErr(err, exceptionCode.StopAgentFailed), c)
@@ -52,14 +59,14 @@ func (a Api) Operator(c *gin.Context) {
 	case restartAgent:
 		// todo
 	case startGather:
-		taskid, err = a.IAgentService.StartGather(c, gatewayID, agentID)
+		taskid, err = a.IAgentService.StartGather(c, userid, gatewayID, agentID)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.NewWithErr(err, exceptionCode.StopAgentFailed), c)
 			return
 		}
 	case stopGather:
-		taskid, err = a.IAgentService.StopGather(c, gatewayID, agentID)
+		taskid, err = a.IAgentService.StopGather(c, userid, gatewayID, agentID)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.NewWithErr(err, exceptionCode.StopAgentFailed), c)

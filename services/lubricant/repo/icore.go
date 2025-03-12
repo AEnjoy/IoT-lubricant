@@ -69,6 +69,7 @@ type ICoreDb interface {
 	// Async Job
 	AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error
 	GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
+	//GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
 	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, result string) error
 
 	// internal

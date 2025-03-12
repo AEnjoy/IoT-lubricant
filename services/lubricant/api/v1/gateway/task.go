@@ -28,7 +28,15 @@ func (a Api) AgentPushTask(c *gin.Context) {
 				exception.WithMsg("error in task file")), c)
 		return
 	}
-	_, _, err = a.IAgentService.PushTaskAgent(c, taskid, gatewayID, req.AgentID, task)
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
+
+	_, _, err = a.IAgentService.PushTaskAgent(c, taskid, userid, gatewayID, req.AgentID, task)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
 			exception.ErrNewException(err, exceptionCode.ErrorPushTaskFailed), c,

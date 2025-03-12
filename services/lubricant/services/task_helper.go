@@ -12,8 +12,9 @@ import (
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/types/user"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+
 	"github.com/bytedance/sonic"
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +28,7 @@ func _taskHelper(
 	taskID *string,
 	executorType user.Role,
 	executorID string,
+	userID string,
 	taskName string,
 	topicPrefix string,
 	bin []byte,
@@ -36,7 +38,7 @@ func _taskHelper(
 
 	taskId := func() string {
 		if taskID == nil {
-			id := uuid.NewString()
+			id := xid.New().String()
 			taskID = &id
 			return id
 		}
@@ -52,6 +54,7 @@ func _taskHelper(
 	taskString, _ := sonic.MarshalString(task)
 	err := dbAddAsyncJob(ctx, txn, &model.AsyncJob{
 		RequestID: taskId,
+		UserID:    userID,
 		Name:      taskName,
 		Status:    "pending",
 		Data:      taskString,
