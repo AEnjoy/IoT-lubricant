@@ -12,6 +12,7 @@ const (
 	CoreMqService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
+	CoreSyncTaskSystem
 	CoreGatewayService
 	CoreGatewayAgentService
 

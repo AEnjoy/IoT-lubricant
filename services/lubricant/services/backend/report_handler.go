@@ -9,12 +9,14 @@ import (
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/services"
 
 	"google.golang.org/protobuf/proto"
 )
 
 type ReportHandler struct {
 	dataCli *datastore.DataStore
+	*services.SyncTaskQueue
 	//*services.AgentService
 }
 
@@ -76,6 +78,9 @@ func (r *ReportHandler) _reportPayload(payload any) {
 	case *corepb.ReportRequest_TaskResult:
 		msg := data.TaskResult.GetMsg()
 		taskid := msg.GetTaskId()
+		if err := r.SyncTaskQueue.FinshTask(taskid, msg); err != nil {
+			logger.Errorf("Failed to send task finsh result to message middleware: %v", err)
+		}
 
 		switch result := msg.GetResult().(type) {
 		case *corepb.QueryTaskResultResponse_Finish:

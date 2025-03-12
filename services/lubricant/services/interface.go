@@ -8,6 +8,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/proto"
@@ -65,5 +66,5 @@ type IAgentService interface {
 	StopAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
 	StartGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
 	StopGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
-	GetOpenApiDoc(ctx context.Context, gatewayid, agentid string) (result string, err error)
+	GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result string, err error)
 }

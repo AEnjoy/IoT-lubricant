@@ -25,17 +25,19 @@ message TaskDetail {
   string taskId = 1;
   string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
   bytes content = 3; // json格式 []byte
+  optional bool isSynchronousTask = 4; // 是否为同步任务
   oneof task{
-    gateway.StartAgentRequest startAgentRequest = 4;
-    gateway.CreateAgentRequest createAgentRequest=5;
-    gateway.EditAgentRequest editAgentRequest=6;
-    gateway.RemoveAgentRequest removeAgentRequest=7;
-    gateway.StopAgentRequest stopAgentRequest=8;
-    gateway.UpdateAgentRequest updateAgentRequest=9;
-    gateway.GetAgentStatusRequest getAgentStatusRequest=10;
-    gateway.StartGatherRequest startGatherRequest = 11;
-    gateway.StopGatherRequest stopGatherRequest = 12;
-    gateway.ReloadAgentControlRequest reloadAgentControlRequest = 13; //WIP
+    gateway.StartAgentRequest startAgentRequest = 5;
+    gateway.CreateAgentRequest createAgentRequest=6;
+    gateway.EditAgentRequest editAgentRequest=7;
+    gateway.RemoveAgentRequest removeAgentRequest=8;
+    gateway.StopAgentRequest stopAgentRequest=9;
+    gateway.UpdateAgentRequest updateAgentRequest=10;
+    gateway.GetAgentStatusRequest getAgentStatusRequest=11;
+    gateway.StartGatherRequest startGatherRequest = 12;
+    gateway.StopGatherRequest stopGatherRequest = 13;
+    gateway.ReloadAgentControlRequest reloadAgentControlRequest = 14; //WIP
+    gateway.GetAgentOpenAPIDocRequest getAgentOpenAPIDocRequest = 15;
   }
 }
 

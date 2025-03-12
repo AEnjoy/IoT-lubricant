@@ -62,7 +62,7 @@ func (a Api) Operator(c *gin.Context) {
 		taskid, err = a.IAgentService.StartGather(c, userid, gatewayID, agentID)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
-				exception.NewWithErr(err, exceptionCode.StopAgentFailed), c)
+				exception.NewWithErr(err, exceptionCode.StartAgentFailed, exception.WithMsg("failed to start gather")), c)
 			return
 		}
 	case stopGather:
@@ -73,7 +73,13 @@ func (a Api) Operator(c *gin.Context) {
 			return
 		}
 	case getOpenapiDoc:
-		// todo
+		doc, err := a.IAgentService.GetOpenApiDoc(c, userid, gatewayID, agentID, 0)
+		if err != nil {
+			helper.FailedWithJson(http.StatusInternalServerError,
+				exception.NewWithErr(err, exceptionCode.GetOpenAPIDocFailed), c)
+			return
+		}
+		helper.SuccessJson(doc, c)
 	}
 	resp.TaskID = taskid
 	helper.SuccessJson(resp, c)

@@ -7,6 +7,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+
 	"github.com/bytedance/sonic"
 	grpcStatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -175,6 +176,24 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			return
 		}
 		setWorkingStatus("done")
+	case *corepb.TaskDetail_GetAgentOpenAPIDocRequest:
+		logger.Debugf("GetAgentOpenAPIDocRequest")
+		setWorkingStatus("getting")
+		doc, err := a.agent.GetAgentOpenApiDoc(t.GetAgentOpenAPIDocRequest.GetReq())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+
+		origin, _ := anypb.New(wrapperspb.String(string(doc.GetOriginalFile())))
+		enable, _ := anypb.New(wrapperspb.String(string(doc.GetEnableFile())))
+		var slots []*anypb.Any
+		for _, kvInt := range doc.GetEnableSlot() {
+			slot, _ := anypb.New(kvInt)
+			slots = append(slots, slot)
+		}
+		working.Working.Details = append(slots, origin, enable)
 	default:
 		logger.Errorf("upsupport task type: %v", t)
 		setWorkingStatus(fmt.Sprintf("failed due to: upsupport task type: %v", t))

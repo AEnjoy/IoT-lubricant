@@ -39,3 +39,6 @@ message StopGatherRequest{
   string agentId =1;
 }
 message ReloadAgentControlRequest{} // todo
+message GetAgentOpenAPIDocRequest{
+  agent.GetOpenapiDocRequest req = 1;
+}

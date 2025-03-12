@@ -3,6 +3,7 @@ package backend
 import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/services"
 )
 
 var (
@@ -19,6 +20,7 @@ func (ReportHandler) Weight() uint16 {
 func (r *ReportHandler) Init() error {
 	//r.AgentService = ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(*services.AgentService)
 	r.dataCli = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
+	r.SyncTaskQueue = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE).(*services.SyncTaskQueue)
 	go r.handler()
 	return nil
 }

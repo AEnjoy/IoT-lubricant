@@ -31,6 +31,15 @@ type agentApis struct {
 	*pool
 }
 
+func (a *agentApis) GetAgentOpenApiDoc(req *agentpb.GetOpenapiDocRequest) (*agentpb.OpenapiDoc, error) {
+	ctrl := a.pool.GetAgentControl(req.GetAgentID())
+	if ctrl == nil {
+		return nil, exception.New(exceptionCode.ErrorGatewayAgentNotFound,
+			exception.WithMsg(fmt.Sprintf("agentID:%s", req.GetAgentID())))
+	}
+	return ctrl.AgentCli.GetOpenapiDoc(context.Background(), req)
+}
+
 func (a *agentApis) SetReporter(requests chan *corepb.ReportRequest) {
 	a.reporter = requests
 }

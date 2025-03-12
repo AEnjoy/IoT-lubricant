@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 
@@ -96,7 +99,34 @@ func (a *AgentService) StopGather(ctx context.Context, userid, gatewayid, agenti
 	return id, err
 }
 
-func (a *AgentService) GetOpenApiDoc(ctx context.Context, gatewayid, agentid string) (result string, err error) {
-	//TODO implement me
-	panic("implement me")
+func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result string, err error) {
+	_true := true
+	id := xid.New().String()
+	td := &corepb.TaskDetail{
+		TaskId:            id,
+		IsSynchronousTask: &_true,
+		Task: &corepb.TaskDetail_GetAgentOpenAPIDocRequest{
+			GetAgentOpenAPIDocRequest: &gatewaypb.GetAgentOpenAPIDocRequest{
+				Req: &agentpb.GetOpenapiDocRequest{
+					AgentID: agentid,
+					DocType: docType,
+				},
+			},
+		},
+	}
+
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
+	if err != nil {
+		return "", err
+	}
+
+	response, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
+	if err != nil {
+		return "", err
+	}
+
+	if response.GetFinish() != nil {
+		return response.GetFinish().String(), nil
+	}
+	return "", fmt.Errorf("get openapi doc failed: %v", response.GetResult())
 }

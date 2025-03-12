@@ -10,4 +10,5 @@ var _ IAgentService = (*AgentService)(nil)
 type AgentService struct {
 	db    repo.ICoreDb
 	store *datastore.DataStore
+	*SyncTaskQueue
 }
