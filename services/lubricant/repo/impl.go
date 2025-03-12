@@ -20,6 +20,26 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetAsyncJobResult(ctx context.Context, requestId string) (status, result string, err error) {
+	var ret model.AsyncJob
+	err = d.db.WithContext(ctx).
+		Model(model.AsyncJob{}).
+		Where("request_id = ?", requestId).
+		First(&ret).Error
+	return ret.Status, ret.ResultData, err
+}
+
+func (d *CoreDb) UserGetAsyncJobs(ctx context.Context, userID string, currentPage, limitSize int) ([]model.AsyncJob, error) {
+	var ret []model.AsyncJob
+	err := d.db.WithContext(ctx).
+		Model(model.AsyncJob{}).
+		Where("user_id = ?", userID).
+		Offset(currentPage * limitSize).
+		Limit(limitSize).
+		Find(&ret).Error
+	return ret, err
+}
+
 func (d *CoreDb) GetAgentStatus(ctx context.Context, agentID string) (string, error) {
 	var ag model.Agent
 	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("agent_id = ?", agentID).First(&ag).Error
