@@ -7,21 +7,13 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
-	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"google.golang.org/protobuf/proto"
 )
-
-var _ ioc.Object = (*ReportHandler)(nil)
 
 type ReportHandler struct {
 	dataCli *datastore.DataStore
 }
 
-func (r *ReportHandler) Init() error {
-	r.dataCli = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
-	go r.handler()
-	return nil
-}
 func (r *ReportHandler) handler() {
 	sub, err := r.dataCli.Mq.SubscribeBytes("/handler/report")
 	if err != nil {
@@ -68,11 +60,4 @@ func (r *ReportHandler) _reportPayload(payload any) {
 		}
 		r.dataCli.Commit(txn)
 	}
-}
-func (ReportHandler) Weight() uint16 {
-	return ioc.BackendHandlerReport
-}
-
-func (ReportHandler) Version() string {
-	return ""
 }

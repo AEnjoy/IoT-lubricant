@@ -10,8 +10,6 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 )
 
-var _ ioc.Object = (*GatewayGuard)(nil)
-
 type GatewayGuard struct {
 	dataCli *datastore.DataStore
 }
@@ -36,11 +34,4 @@ func (g *GatewayGuard) handler() {
 			}
 		}(string(ch.([]byte)))
 	}
-}
-func (GatewayGuard) Weight() uint16 {
-	return ioc.GatewayStatusGuard
-}
-
-func (GatewayGuard) Version() string {
-	return ""
 }
