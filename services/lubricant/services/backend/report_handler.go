@@ -3,15 +3,19 @@ package backend
 import (
 	"context"
 
+	errChHandel "github.com/aenjoy/iot-lubricant/pkg/error"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
+
 	"google.golang.org/protobuf/proto"
 )
 
 type ReportHandler struct {
 	dataCli *datastore.DataStore
+	//*services.AgentService
 }
 
 func (r *ReportHandler) handler() {
@@ -30,6 +34,18 @@ func (r *ReportHandler) _reportPayload(payload any) {
 		logger.Errorf("failed to unmarshal report: %v", err)
 		return
 	}
+	ctx := context.Background()
+	txn := r.dataCli.ICoreDb.Begin()
+	errorCh := errChHandel.NewErrorChan()
+	defer errChHandel.HandleErrorCh(errorCh).
+		ErrorWillDo(func(error) {
+			r.dataCli.ICoreDb.Rollback(txn)
+		}).
+		SuccessWillDo(func() {
+			r.dataCli.ICoreDb.Commit(txn)
+		}).
+		Do()
+
 	switch data := req.GetReq().(type) {
 	case *corepb.ReportRequest_Error:
 		e := data.Error.GetErrorMessage()
@@ -53,11 +69,31 @@ func (r *ReportHandler) _reportPayload(payload any) {
 			Stack: e.GetStack(),
 		}
 	case *corepb.ReportRequest_AgentStatus:
-		txn := r.dataCli.Begin()
-		err := r.dataCli.UpdateAgentStatus(context.Background(), txn, req.GetAgentId(), req.GetAgentStatus().GetReq().GetMessage())
+		err := r.dataCli.UpdateAgentStatus(ctx, txn, req.GetAgentId(), req.GetAgentStatus().GetReq().GetMessage())
 		if err != nil {
-			logger.Errorf("failed to update agent status: %v", err)
+			errorCh.Report(err, exceptionCode.UpdateAgentStatusFailed, "database error", true)
 		}
-		r.dataCli.Commit(txn)
+	case *corepb.ReportRequest_TaskResult:
+		msg := data.TaskResult.GetMsg()
+		taskid := msg.GetTaskId()
+
+		switch result := msg.GetResult().(type) {
+		case *corepb.QueryTaskResultResponse_Finish:
+			if err := r.dataCli.SetAsyncJobStatus(ctx, txn, taskid, "completed", result.Finish.String()); err != nil {
+				errorCh.Report(err, exceptionCode.UpdateTaskStatusFailed, "database error", true)
+			}
+		case *corepb.QueryTaskResultResponse_Failed:
+			if err := r.dataCli.SetAsyncJobStatus(ctx, txn, taskid, "failed", result.Failed.String()); err != nil {
+				errorCh.Report(err, exceptionCode.UpdateTaskStatusFailed, "database error", true)
+			}
+		case *corepb.QueryTaskResultResponse_Pending:
+			if err := r.dataCli.SetAsyncJobStatus(ctx, txn, taskid, "pending", result.Pending.String()); err != nil {
+				errorCh.Report(err, exceptionCode.UpdateTaskStatusFailed, "database error", true)
+			}
+		default:
+			if err := r.dataCli.SetAsyncJobStatus(ctx, txn, taskid, "started", ""); err != nil {
+				errorCh.Report(err, exceptionCode.UpdateTaskStatusFailed, "database error", true)
+			}
+		}
 	}
 }

@@ -8,7 +8,9 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+
 	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 type IGatewayService interface {
@@ -54,6 +56,9 @@ type IAgentService interface {
 	//  return task-topic, taskID and error
 	// if taskid is "", system will create a random taskid
 	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
+	// PushTaskAgentPb send task(the marshalled result) to agent, it like PushTaskAgent, but it will marshal pb to bin
+	//  and pb type is core.TaskDetail
+	PushTaskAgentPb(ctx context.Context, taskid *string, gatewayID, agentID string, pb proto.Message) (string, string, error)
 
 	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
 	StartAgent(ctx context.Context, gatewayid, agentid string) (taskid string, err error)

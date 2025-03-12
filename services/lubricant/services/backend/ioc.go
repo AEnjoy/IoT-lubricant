@@ -17,6 +17,7 @@ func (ReportHandler) Weight() uint16 {
 }
 
 func (r *ReportHandler) Init() error {
+	//r.AgentService = ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(*services.AgentService)
 	r.dataCli = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
 	go r.handler()
 	return nil

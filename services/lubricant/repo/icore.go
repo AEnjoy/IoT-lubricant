@@ -6,6 +6,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
@@ -68,7 +69,7 @@ type ICoreDb interface {
 	// Async Job
 	AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error
 	GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
-	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error
+	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, result string) error
 
 	// internal
 	SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error

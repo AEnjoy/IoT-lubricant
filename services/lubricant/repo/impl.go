@@ -2,14 +2,15 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
-	"github.com/rs/xid"
-	"golang.org/x/oauth2"
-
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+
+	"github.com/rs/xid"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
@@ -63,10 +64,10 @@ func (d *CoreDb) GetUserRefreshToken(ctx context.Context, userID string) (string
 }
 
 func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.AsyncJob) error {
-	task.CreatedAt = time.Now()
-	task.UpdatedAt = time.Now()
-	if task.ExpiredAt.IsZero() {
-		task.ExpiredAt = task.CreatedAt.Add(time.Hour * 2)
+	task.CreatedAt = sql.NullTime{Time: time.Now()}
+	task.UpdatedAt = sql.NullTime{Time: time.Now()}
+	if task.ExpiredAt.Time.IsZero() {
+		task.ExpiredAt.Time = task.CreatedAt.Time.Add(time.Hour * 2)
 	}
 	return txn.WithContext(ctx).Model(model.AsyncJob{}).Create(task).Error
 }
@@ -74,21 +75,21 @@ func (d *CoreDb) AddAsyncJob(ctx context.Context, txn *gorm.DB, task *model.Asyn
 func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error) {
 	var ret model.AsyncJob
 	err := d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).First(&ret).Error
-	if ret.ExpiredAt.Before(time.Now()) && ret.Status != "completed" {
+	if ret.ExpiredAt.Time.Before(time.Now()) && ret.Status != "completed" {
 		ret.Status = "failed"
 		// update
-		d.db.WithContext(ctx).Where("request_id = ?", requestId).Save(&model.AsyncJob{
-			Status: "failed",
-		})
+		d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).Update(
+			"status", "failed")
 	}
 	return ret, err
 }
 
-func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error {
+func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, resultData string) error {
 	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).
-		Save(&model.AsyncJob{
-			Status:    status,
-			UpdatedAt: time.Now(),
+		UpdateColumns(map[string]interface{}{
+			"status":      status,
+			"updated_at":  time.Now(),
+			"result_data": resultData,
 		}).Error
 }
 

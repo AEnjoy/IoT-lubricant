@@ -7,3 +7,7 @@ type AddAgentResponse struct {
 	AgentID string `json:"agent_id"`
 	PushAgentTaskResponse
 }
+type AgentAsyncExecuteOperatorResponse struct {
+	TaskID string `json:"taskId"`
+	Data   string `json:"data,omitempty"`
+}
