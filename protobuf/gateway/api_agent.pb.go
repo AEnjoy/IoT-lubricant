@@ -530,6 +530,50 @@ func (x *GetAgentOpenAPIDocRequest) GetReq() *agent.GetOpenapiDocRequest {
 	return nil
 }
 
+type GetAgentInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AgentId       string                 `protobuf:"bytes,1,opt,name=agentId,proto3" json:"agentId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentInfoRequest) Reset() {
+	*x = GetAgentInfoRequest{}
+	mi := &file_protobuf_gateway_api_agent_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentInfoRequest) ProtoMessage() {}
+
+func (x *GetAgentInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protobuf_gateway_api_agent_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentInfoRequest) Descriptor() ([]byte, []int) {
+	return file_protobuf_gateway_api_agent_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetAgentInfoRequest) GetAgentId() string {
+	if x != nil {
+		return x.AgentId
+	}
+	return ""
+}
+
 var File_protobuf_gateway_api_agent_proto protoreflect.FileDescriptor
 
 var file_protobuf_gateway_api_agent_proto_rawDesc = string([]byte{
@@ -581,9 +625,12 @@ var file_protobuf_gateway_api_agent_proto_rawDesc = string([]byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x37, 0x0a, 0x03, 0x72, 0x65, 0x71, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x6c, 0x75, 0x62, 0x72, 0x69, 0x63, 0x61, 0x6e, 0x74, 0x2e,
 	0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x4f, 0x70, 0x65, 0x6e, 0x61, 0x70, 0x69,
-	0x44, 0x6f, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x03, 0x72, 0x65, 0x71, 0x42,
-	0x12, 0x5a, 0x10, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x67, 0x61, 0x74, 0x65,
-	0x77, 0x61, 0x79, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x44, 0x6f, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x03, 0x72, 0x65, 0x71, 0x22,
+	0x2f, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x49,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x64,
+	0x42, 0x12, 0x5a, 0x10, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x67, 0x61, 0x74,
+	0x65, 0x77, 0x61, 0x79, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -598,7 +645,7 @@ func file_protobuf_gateway_api_agent_proto_rawDescGZIP() []byte {
 	return file_protobuf_gateway_api_agent_proto_rawDescData
 }
 
-var file_protobuf_gateway_api_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_protobuf_gateway_api_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_protobuf_gateway_api_agent_proto_goTypes = []any{
 	(*StartAgentRequest)(nil),          // 0: lubricant.gateway.StartAgentRequest
 	(*StopAgentRequest)(nil),           // 1: lubricant.gateway.StopAgentRequest
@@ -611,13 +658,14 @@ var file_protobuf_gateway_api_agent_proto_goTypes = []any{
 	(*StopGatherRequest)(nil),          // 8: lubricant.gateway.StopGatherRequest
 	(*ReloadAgentControlRequest)(nil),  // 9: lubricant.gateway.ReloadAgentControlRequest
 	(*GetAgentOpenAPIDocRequest)(nil),  // 10: lubricant.gateway.GetAgentOpenAPIDocRequest
-	(*agent.AgentInfo)(nil),            // 11: lubricant.agent.AgentInfo
-	(*agent.GetOpenapiDocRequest)(nil), // 12: lubricant.agent.GetOpenapiDocRequest
+	(*GetAgentInfoRequest)(nil),        // 11: lubricant.gateway.GetAgentInfoRequest
+	(*agent.AgentInfo)(nil),            // 12: lubricant.agent.AgentInfo
+	(*agent.GetOpenapiDocRequest)(nil), // 13: lubricant.agent.GetOpenapiDocRequest
 }
 var file_protobuf_gateway_api_agent_proto_depIdxs = []int32{
-	11, // 0: lubricant.gateway.EditAgentRequest.info:type_name -> lubricant.agent.AgentInfo
-	11, // 1: lubricant.gateway.CreateAgentRequest.info:type_name -> lubricant.agent.AgentInfo
-	12, // 2: lubricant.gateway.GetAgentOpenAPIDocRequest.req:type_name -> lubricant.agent.GetOpenapiDocRequest
+	12, // 0: lubricant.gateway.EditAgentRequest.info:type_name -> lubricant.agent.AgentInfo
+	12, // 1: lubricant.gateway.CreateAgentRequest.info:type_name -> lubricant.agent.AgentInfo
+	13, // 2: lubricant.gateway.GetAgentOpenAPIDocRequest.req:type_name -> lubricant.agent.GetOpenapiDocRequest
 	3,  // [3:3] is the sub-list for method output_type
 	3,  // [3:3] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
@@ -638,7 +686,7 @@ func file_protobuf_gateway_api_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protobuf_gateway_api_agent_proto_rawDesc), len(file_protobuf_gateway_api_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

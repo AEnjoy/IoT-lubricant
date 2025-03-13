@@ -308,15 +308,9 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 		return err
 	}
 
-	setResp, err := ctrl.AgentCli.SetAgent(context.Background(),
-		&agentpb.SetAgentRequest{AgentID: req.GetAgentId(), AgentInfo: req.Info})
+	err := a.SetAgent(req.GetAgentId(), req.GetInfo())
 	if err != nil {
 		errorCh.Report(err, exceptionCode.SetAgentFailed, "set agent failed due to:%v", true)
-		return err
-	}
-	if grpcCode.Code(setResp.GetInfo().GetCode()) != grpcCode.Code_OK ||
-		(grpcCode.Code(setResp.GetInfo().GetCode()) == grpcCode.Code_INVALID_ARGUMENT && setResp.GetInfo().GetMessage() != "Gather is not working") {
-		errorCh.Report(err, exceptionCode.SetAgentFailed, "set agent failed due to:%s", true, setResp.GetInfo().GetMessage())
 		return err
 	}
 
@@ -328,10 +322,32 @@ func (a *agentApis) EditAgent(_ string, req *proxypb.EditAgentRequest) error {
 	return nil
 }
 func (a *agentApis) SetAgent(id string, info *agentpb.AgentInfo) error {
-	panic("implement me")
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	setResp, err := ctrl.AgentCli.SetAgent(context.Background(),
+		&agentpb.SetAgentRequest{AgentID: id, AgentInfo: info})
+	if err != nil {
+		return err
+	}
+	if grpcCode.Code(setResp.GetInfo().GetCode()) != grpcCode.Code_OK ||
+		(grpcCode.Code(setResp.GetInfo().GetCode()) == grpcCode.Code_INVALID_ARGUMENT && setResp.GetInfo().GetMessage() != "Gather is not working") {
+		return err
+	}
+	return nil
 }
 func (a *agentApis) GetAgentInfo(id string) (*agentpb.AgentInfo, error) {
-	panic("implement me")
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return nil, exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+
+	infoResp, err := ctrl.AgentCli.GetAgentInfo(context.Background(), &agentpb.GetAgentInfoRequest{AgentID: id})
+	if err != nil {
+		return nil, err
+	}
+	return infoResp.GetAgentInfo(), nil
 }
 func (a *agentApis) GetAgentModel(id string) (*model.Agent, error) {
 	panic("implement me")

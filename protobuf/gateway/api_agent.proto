@@ -42,3 +42,6 @@ message ReloadAgentControlRequest{} // todo
 message GetAgentOpenAPIDocRequest{
   agent.GetOpenapiDocRequest req = 1;
 }
+message GetAgentInfoRequest{
+  string agentId =1;
+}

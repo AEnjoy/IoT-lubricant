@@ -84,3 +84,33 @@ func (a Api) Operator(c *gin.Context) {
 	resp.TaskID = taskid
 	helper.SuccessJson(resp, c)
 }
+func (a Api) GetAgentInfo(c *gin.Context) {
+	agentID := c.Query("agent-id")
+	if agentID == "" {
+		helper.FailedWithJson(http.StatusBadRequest,
+			exception.New(exceptionCode.ErrorBadRequest, exception.WithMsg("agent-id is empty")), c)
+		return
+	}
+	gatewayID := c.Query("gateway-id")
+	if gatewayID == "" {
+		helper.FailedWithJson(http.StatusBadRequest,
+			exception.New(exceptionCode.ErrorBadRequest, exception.WithMsg("gateway-id is empty")), c)
+		return
+	}
+
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
+
+	agentInfo, err := a.IAgentService.GetAgentInfo(c, userid, gatewayID, agentID, true)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.NewWithErr(err, exceptionCode.GetAgentInfoFailed), c)
+		return
+	}
+	helper.SuccessJson(agentInfo, c)
+}

@@ -188,6 +188,18 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 
 		a, _ := anypb.New(doc)
 		working.Working.Details = []*anypb.Any{a}
+	case *corepb.TaskDetail_GetAgentInfoRequest:
+		logger.Debugf("GetAgentInfoRequest")
+		setWorkingStatus("getting")
+		info, err := a.agent.GetAgentInfo(t.GetAgentInfoRequest.GetAgentId())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+
+		a, _ := anypb.New(info)
+		working.Working.Details = []*anypb.Any{a}
 	default:
 		logger.Errorf("upsupport task type: %v", t)
 		setWorkingStatus(fmt.Sprintf("failed due to: upsupport task type: %v", t))

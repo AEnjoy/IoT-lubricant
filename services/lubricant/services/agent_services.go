@@ -17,6 +17,57 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
+//func (a *AgentService) GetAgentInfoByTaskID(ctx context.Context, userid, gatewayID, agentID, id string) (*agentpb.AgentInfo, error) {
+//	if id == "" {
+//		return a.GetAgentInfo(ctx, userid, gatewayID, agentID, true)
+//	}
+//	a.store.ICoreDb.GetAsyncJobResult(ctx, id) // todo:need refact database store
+//
+//}
+
+func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error) {
+	id := xid.New().String()
+	td := &corepb.TaskDetail{
+		TaskId:            id,
+		IsSynchronousTask: &sync,
+		Task: &corepb.TaskDetail_GetAgentInfoRequest{
+			GetAgentInfoRequest: &gatewaypb.GetAgentInfoRequest{
+				AgentId: agentID,
+			},
+		},
+	}
+	_, _, err := a.PushTaskAgentPb(ctx, &id, userid, gatewayID, agentID, td)
+	if err != nil {
+		return nil, err
+	}
+	if !sync {
+		return nil, nil
+	}
+
+	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.GetFinish() != nil {
+		var s status.Status
+		var info agentpb.AgentInfo
+
+		if err := resp.GetFinish().UnmarshalTo(&s); err != nil {
+			return nil, err
+		}
+		if len(s.Details) == 0 {
+			return nil, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+		}
+
+		if err := s.Details[0].UnmarshalTo(&info); err != nil {
+			return nil, err
+		}
+		return &info, nil
+	}
+	return nil, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+}
+
 func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error) {
 	gatewayStatus, err := a.db.GetGatewayStatus(ctx, gatewayid)
 	if err != nil {

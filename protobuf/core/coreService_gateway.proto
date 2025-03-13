@@ -38,6 +38,7 @@ message TaskDetail {
     gateway.StopGatherRequest stopGatherRequest = 13;
     gateway.ReloadAgentControlRequest reloadAgentControlRequest = 14; //WIP
     gateway.GetAgentOpenAPIDocRequest getAgentOpenAPIDocRequest = 15;
+    gateway.GetAgentInfoRequest getAgentInfoRequest = 16;
   }
 }
 
