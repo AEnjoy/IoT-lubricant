@@ -48,7 +48,8 @@ func (a *app) grpcTaskApp() error {
 		// send - async task result
 		go func() {
 			for taskId := range a.task.GetNotifyCh() {
-				result := a.task.Query(taskId).GetResult()
+				logger.Debug("Task:", taskId)
+				/*result := a.task.Query(taskId).GetResult()
 				err := task.Send(&corepb.Task{
 					ID: taskId,
 					Task: &corepb.Task_CoreQueryTaskResultResponse{
@@ -83,7 +84,7 @@ func (a *app) grpcTaskApp() error {
 				if _, ok := result.(*corepb.QueryTaskResultResponse_Finish); ok {
 					logger.Debugf("Task %s finish", taskId)
 					a.task.RemoveResult(taskId)
-				}
+				}*/
 			}
 		}()
 
@@ -150,34 +151,34 @@ func (a *app) grpcTaskApp() error {
 				a.handelGatewayGetTaskResponse(t)
 			case *corepb.Task_CorePushTaskRequest:
 				logger.Debug("Task Type is:", "CorePushTaskRequest")
-				resp := a.handelCorePushTaskAsync(t)
-				err := task.Send(&corepb.Task{ID: resp.TaskId,
-					Task: &corepb.Task_CorePushTaskResponse{
-						CorePushTaskResponse: resp,
-					},
-				})
-				if err != nil {
-					st, ok := status.FromError(err)
-					if ok {
-						if st.Code() == codes.Unavailable || st.Code() == codes.Canceled || st.Code() == codes.DeadlineExceeded || err == io.EOF {
-							logger.Errorf("Send goroutine exiting due to error: %v", err)
-							continue
-						} else {
-							logger.Errorf("Unrecoverable gRPC Send error: %v", err)
-						}
-					} else {
-						logger.Errorf("Send error: %v", err)
-						if errors.Is(err, io.EOF) {
-							logger.Errorln("grpc stream closed")
-							continue
-						}
-						if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-							logger.Errorln("net timeout")
-						}
-						continue
-					}
-					continue
-				}
+				_ = a.handelCorePushTaskAsync(t)
+				//err := task.Send(&corepb.Task{ID: resp.TaskId,
+				//	Task: &corepb.Task_CorePushTaskResponse{
+				//		CorePushTaskResponse: resp,
+				//	},
+				//})
+				//if err != nil {
+				//	st, ok := status.FromError(err)
+				//	if ok {
+				//		if st.Code() == codes.Unavailable || st.Code() == codes.Canceled || st.Code() == codes.DeadlineExceeded || err == io.EOF {
+				//			logger.Errorf("Send goroutine exiting due to error: %v", err)
+				//			continue
+				//		} else {
+				//			logger.Errorf("Unrecoverable gRPC Send error: %v", err)
+				//		}
+				//	} else {
+				//		logger.Errorf("Send error: %v", err)
+				//		if errors.Is(err, io.EOF) {
+				//			logger.Errorln("grpc stream closed")
+				//			continue
+				//		}
+				//		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				//			logger.Errorln("net timeout")
+				//		}
+				//		continue
+				//	}
+				//	continue
+				//}
 			case *corepb.Task_CoreQueryTaskResultRequest:
 				resp := a.task.Query(t.CoreQueryTaskResultRequest.GetTaskId())
 				err := task.Send(&corepb.Task{ID: resp.TaskId,

@@ -54,6 +54,10 @@ const (
 	DescriptionHostFailed
 	ErrorCommunicationWithAuthServer
 	ErrorGetGatewayStatusFailed
+	UpdateAgentStatusFailed
+	UpdateTaskStatusFailed
+	GetAgentInfoFailed
+	ErrorSetAgentInfoFailed
 )
 
 // gateway
@@ -76,6 +80,7 @@ const (
 	SetAgentFailed
 	StartAgentFailed
 	StopAgentFailed
+	GetOpenAPIDocFailed
 	RemoveAgentFailed
 	ErrorNoAgentContainerConfSet
 	ErrorAgentUpdateFailed
@@ -156,6 +161,10 @@ var StatusMsgMap = map[ResCode]string{
 	DescriptionHostFailed:            "get description host failed",
 	ErrorCommunicationWithAuthServer: "communication with auth service failed",
 	ErrorGetGatewayStatusFailed:      "get gateway status failed",
+	UpdateAgentStatusFailed:          "update agent status failed",
+	UpdateTaskStatusFailed:           "update task status failed",
+	GetAgentInfoFailed:               "get agent info failed",
+	ErrorSetAgentInfoFailed:          "set agent info failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
@@ -179,6 +188,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorAgentUpdateFailed:                "update agent failed",
 	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
 	ErrGaterStartFailed:                   "agent start gather failed",
+	GetOpenAPIDocFailed:                   "get openapi doc failed",
 
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",

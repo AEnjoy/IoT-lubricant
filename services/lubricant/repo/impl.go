@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
-	"github.com/rs/xid"
-	"golang.org/x/oauth2"
-
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+
+	"github.com/rs/xid"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
@@ -17,6 +17,26 @@ var _ ICoreDb = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
+}
+
+func (d *CoreDb) GetAsyncJobResult(ctx context.Context, requestId string) (status, result string, err error) {
+	var ret model.AsyncJob
+	err = d.db.WithContext(ctx).
+		Model(model.AsyncJob{}).
+		Where("request_id = ?", requestId).
+		First(&ret).Error
+	return ret.Status, ret.ResultData, err
+}
+
+func (d *CoreDb) UserGetAsyncJobs(ctx context.Context, userID string, currentPage, limitSize int) ([]model.AsyncJob, error) {
+	var ret []model.AsyncJob
+	err := d.db.WithContext(ctx).
+		Model(model.AsyncJob{}).
+		Where("user_id = ?", userID).
+		Offset(currentPage * limitSize).
+		Limit(limitSize).
+		Find(&ret).Error
+	return ret, err
 }
 
 func (d *CoreDb) GetAgentStatus(ctx context.Context, agentID string) (string, error) {
@@ -77,18 +97,18 @@ func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.Async
 	if ret.ExpiredAt.Before(time.Now()) && ret.Status != "completed" {
 		ret.Status = "failed"
 		// update
-		d.db.WithContext(ctx).Where("request_id = ?", requestId).Save(&model.AsyncJob{
-			Status: "failed",
-		})
+		d.db.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).Update(
+			"status", "failed")
 	}
 	return ret, err
 }
 
-func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status string) error {
+func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, resultData string) error {
 	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).
-		Save(&model.AsyncJob{
-			Status:    status,
-			UpdatedAt: time.Now(),
+		UpdateColumns(map[string]interface{}{
+			"status":      status,
+			"updated_at":  time.Now(),
+			"result_data": resultData,
 		}).Error
 }
 

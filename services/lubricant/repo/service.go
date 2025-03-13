@@ -2,13 +2,17 @@ package repo
 
 import (
 	"fmt"
+	"os"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 func Core(database *gorm.DB) *CoreDb {
@@ -27,7 +31,12 @@ func Core(database *gorm.DB) *CoreDb {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%v)/%s?charset=utf8&parseTime=True&loc=Local", user, password, address, port, databaseName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.DefualtLog(),
+		Logger: func() gormLogger.Interface {
+			if os.Getenv(def.ENV_RUNNING_LEVEL) == "debug" {
+				return logger.DefualtLog()
+			}
+			return nil
+		}(),
 	})
 	if err != nil {
 		logger.Debugln("dsn:", dsn)
@@ -51,6 +60,9 @@ func Core(database *gorm.DB) *CoreDb {
 	} else {
 		logger.Debugln("Index idx_user_gateway already exists.")
 	}
+	db.Exec(`UPDATE async_job
+				SET status = 'failed',updated_at = NOW()
+				WHERE expired_at < NOW() AND status != 'completed';`)
 
 	return &CoreDb{db: db}
 }

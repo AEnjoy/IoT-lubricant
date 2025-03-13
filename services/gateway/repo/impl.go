@@ -42,7 +42,7 @@ func (d *GatewayDb) GetAgent(id string) (retVal model.Agent, err error) {
 }
 
 func (d *GatewayDb) UpdateAgent(txn *gorm.DB, id string, agent *model.Agent) error {
-	return txn.Where("agent_id = ?", id).Updates(agent).Error
+	return txn.Model(model.Agent{}).Where("agent_id = ?", id).Updates(agent).Error
 }
 
 func (d *GatewayDb) Begin() *gorm.DB {

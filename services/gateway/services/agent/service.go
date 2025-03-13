@@ -22,6 +22,7 @@ type Apis interface {
 	SetAgent(id string, info *agentpb.AgentInfo) error
 	GetAgentInfo(id string) (*agentpb.AgentInfo, error)
 	GetAgentModel(id string) (*model.Agent, error)
+	GetAgentOpenApiDoc(req *agentpb.GetOpenapiDocRequest) (*agentpb.OpenapiDoc, error)
 	AddAgent(req *model.CreateAgentRequest) error
 	CreateAgent(req *model.CreateAgentRequest) error
 	GetAgentStatus(id string) model.AgentStatus

@@ -18,7 +18,7 @@ type ApiInfo struct {
 	filename string
 	l        *sync.Mutex
 
-	OpenAPICli `json:"open_api_cli"`
+	OpenAPICli `json:"open_api_json"`
 	Enable     `json:"enable"`
 }
 

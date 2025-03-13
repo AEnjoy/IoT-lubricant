@@ -190,7 +190,7 @@ func (s *GatewayService) RemoveGatewayHostInternal(ctx context.Context, hostid s
 	panic("implement me")
 }
 
-func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, gatewayid string,
+func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, userid, gatewayid string,
 	req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error) {
 	txn, errorCh, commit := s.txnHelper()
 	defer commit()
@@ -255,7 +255,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, g
 		return "", err
 	}
 
-	_, _, err = s.PushTask(ctx, taskid, gatewayid, pbData)
+	_, _, err = s.PushTask(ctx, taskid, userid, gatewayid, pbData)
 	if err != nil {
 		err = exception.ErrNewException(err,
 			exceptionCode.ErrorPushTaskFailed,

@@ -22,3 +22,8 @@ type PushTaskRequest struct {
 
 	Task string `json:"task"` // base64 encode
 }
+type SetOpenApiDocRequest struct {
+	Doc          []byte         `json:"doc"`          // base64 encode
+	EnableConfig []byte         `json:"enableConfig"` // base64 encode
+	EnableSlot   map[int]string `json:"enableSlot"`
+}

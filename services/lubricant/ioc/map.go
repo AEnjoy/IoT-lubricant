@@ -38,7 +38,6 @@ func (c *MapContainer) Registry(name string, obj Object) {
 }
 
 func (c *MapContainer) Get(name string) any {
-	logger.Debugf("Get object: %s", name)
 	return c.storge[name]
 }
 

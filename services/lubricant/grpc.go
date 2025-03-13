@@ -24,8 +24,10 @@ import (
 
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	status2 "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -44,11 +46,31 @@ type PbCoreServiceImpl struct {
 func (PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
 	gatewayid, _ := getGatewayID(ctx)
 	logger.Debugf("Recv gateway report request: %s", gatewayid)
-	go HandelReport(req)
+
+	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+	data, err := proto.Marshal(req)
+	if err != nil {
+		logger.Errorf("failed to marshal protobuf: %v", err)
+		return nil, status2.Errorf(codes.Internal, "failed to marshal protobuf: %v", err)
+	}
+
+	err = taskMq.PublishBytes("/handler/report", data)
+	if err != nil {
+		logger.Errorf("failed to publish data: %v", err)
+		return nil, status2.Errorf(codes.Internal, "failed to publish data: %v", err)
+	}
 
 	if req.GetAgentStatus() != nil {
 		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_AgentStatus{
 			AgentStatus: &corepb.AgentStatusResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		},
+		}, nil
+	}
+	if req.GetTaskResult() != nil {
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_TaskResult{
+			TaskResult: &corepb.TaskResultResponse{
 				Resp: &status.Status{Message: "ok"},
 			},
 		},
@@ -129,7 +151,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 			if tryPing && resp.Flag == 1 {
 				tryPing = false
 			}
-			logger.Debugf("Recv: Pong from Gateway: ID:%s", gatewayID)
+			// logger.Debugf("Recv: Pong from Gateway: ID:%s", gatewayID)
 			recSig <- struct{}{}
 			time.Sleep(5 * time.Second)
 		}
@@ -229,7 +251,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			// todo: handel error message more detail
 			return err
 		}
-		logger.Debugf("Recv: %v", taskReq)
+		// logger.Debugf("Recv: %v", taskReq)
 
 		// HandelRecvGetTask(task) [Gateway->Core]
 		switch taskReq.GetTask().(type) {

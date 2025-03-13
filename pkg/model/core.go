@@ -191,11 +191,13 @@ func PbErrorMessage2ModelErrorLogs(message *metapb.ErrorMessage) *ErrorLogs {
 }
 
 type AsyncJob struct {
-	ID        int    `gorm:"column:id;primaryKey;autoIncrement" json:"-"`
-	Name      string `gorm:"type:varchar(255);not null;column:name" json:"name"`
-	RequestID string `gorm:"type:varchar(255);not null;unique;column:request_id" json:"requestId"`
-	Status    string `gorm:"column:status;type:enum('completed', 'failed', 'pending', 'retried', 'retrying', 'started');not null" json:"status"`
-	Data      string `gorm:"column:data;type:json;not null" json:"data"`
+	ID         int    `gorm:"column:id;primaryKey;autoIncrement" json:"-"`
+	UserID     string `gorm:"column:user_id" json:"-"`
+	Name       string `gorm:"type:varchar(255);not null;column:name" json:"name"` // task name
+	RequestID  string `gorm:"type:varchar(255);not null;unique;column:request_id" json:"requestId"`
+	Status     string `gorm:"column:status;type:enum('completed', 'failed', 'pending', 'retried', 'retrying', 'started');not null" json:"status"`
+	Data       string `gorm:"column:data;type:json;not null" json:"data"`
+	ResultData string `gorm:"column:result_data;type:text" json:"resultData"`
 
 	ExpiredAt time.Time    `gorm:"type:datetime;not null" json:"expiredAt"`
 	CreatedAt time.Time    `gorm:"type:datetime;not null" json:"createdAt"`

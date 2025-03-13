@@ -101,6 +101,9 @@ func New(c exceptionCode.ResCode, opts ...Option) *Exception {
 	for _, opt := range opts {
 		opt(exception)
 	}
+	if exception.Level == code.Unknown {
+		exception.Level = code.Error
+	}
 
 	if exception.Operation != nil && exception.doOperation {
 		_ = exception.Operation.Do(exception)

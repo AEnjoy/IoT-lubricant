@@ -7,6 +7,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+
 	"github.com/bytedance/sonic"
 	grpcStatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -15,7 +16,6 @@ import (
 
 func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.QueryTaskResultResponse]) {
 	logger.Debugf("running task ID:%s Message:%s Type:%v", task.TaskId, task.MessageId, task.GetTask())
-	// todo:impl me
 	working := new(corepb.QueryTaskResultResponse_Working)
 	finish := new(corepb.QueryTaskResultResponse_Finish)
 	failed := new(corepb.QueryTaskResultResponse_Failed)
@@ -24,6 +24,16 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		TaskId: task.TaskId,
 		Result: working,
 	}
+	defer func() {
+		_reportMessage <- &corepb.ReportRequest{
+			Req: &corepb.ReportRequest_TaskResult{
+				TaskResult: &corepb.TaskResultRequest{
+					Msg: result,
+				},
+			},
+		}
+	}()
+
 	c.Set(task.GetTaskId(), task.GetTaskId(), cache.NewStoreResult(cache.NeverExpired, result))
 
 	setWorkingStatus := func(status string) {
@@ -32,6 +42,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 	}
 	switch t := task.GetTask().(type) {
 	case *corepb.TaskDetail_StartAgentRequest:
+		logger.Debugf("StartAgentRequest")
 		ids := t.StartAgentRequest.GetAgentId()
 		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i := 0; i < len(ids); i++ {
@@ -54,6 +65,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_CreateAgentRequest:
+		logger.Debugf("CreateAgentRequest")
 		setWorkingStatus("creating")
 		req := model.ProxypbCreateAgentRequest2CreateAgentRequest(t.CreateAgentRequest)
 		err := a.agent.CreateAgent(req)
@@ -65,6 +77,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		}
 		setWorkingStatus("done")
 	case *corepb.TaskDetail_EditAgentRequest:
+		logger.Debugf("EditAgentRequest")
 		setWorkingStatus("editing")
 		err := a.agent.EditAgent(t.EditAgentRequest.GetAgentId(), t.EditAgentRequest)
 		if err != nil {
@@ -75,6 +88,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		}
 		setWorkingStatus("done")
 	case *corepb.TaskDetail_RemoveAgentRequest:
+		logger.Debugf("RemoveAgentRequest")
 		// todo:这里可以优化为并发执行
 		ids := t.RemoveAgentRequest.GetAgentId()
 		working.Working.Details = make([]*anypb.Any, len(ids))
@@ -96,6 +110,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_StopAgentRequest:
+		logger.Debugf("StopAgentRequest")
 		ids := t.StopAgentRequest.GetAgentId()
 		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i := 0; i < len(ids); i++ {
@@ -116,6 +131,7 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			}
 		}
 	case *corepb.TaskDetail_UpdateAgentRequest:
+		logger.Debugf("UpdateAgentRequest")
 		setWorkingStatus("updating")
 		var conf *model.CreateAgentRequest
 		if data := t.UpdateAgentRequest.GetConf(); len(data) > 0 {
@@ -133,12 +149,73 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 		}
 		setWorkingStatus("done")
 	case *corepb.TaskDetail_GetAgentStatusRequest:
+		logger.Debugf("GetAgentStatusRequest")
 		ids := t.GetAgentStatusRequest.GetAgentId()
 		working.Working.Details = make([]*anypb.Any, len(ids))
 		for i, id := range ids {
 			working.Working.Details[i], _ = anypb.New(
 				wrapperspb.String(a.agent.GetAgentStatus(id).String()))
 		}
+	case *corepb.TaskDetail_StartGatherRequest:
+		logger.Debugf("StartGatherRequest")
+		setWorkingStatus("starting")
+		err := a.agent.StartGather(t.StartGatherRequest.GetAgentId())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+		setWorkingStatus("done")
+	case *corepb.TaskDetail_StopGatherRequest:
+		logger.Debugf("StopGatherRequest")
+		setWorkingStatus("stopping")
+		err := a.agent.StopGather(t.StopGatherRequest.GetAgentId())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+		setWorkingStatus("done")
+	case *corepb.TaskDetail_GetAgentOpenAPIDocRequest:
+		logger.Debugf("GetAgentOpenAPIDocRequest")
+		setWorkingStatus("getting")
+		doc, err := a.agent.GetAgentOpenApiDoc(t.GetAgentOpenAPIDocRequest.GetReq())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+
+		a, _ := anypb.New(doc)
+		working.Working.Details = []*anypb.Any{a}
+	case *corepb.TaskDetail_GetAgentInfoRequest:
+		logger.Debugf("GetAgentInfoRequest")
+		setWorkingStatus("getting")
+		info, err := a.agent.GetAgentInfo(t.GetAgentInfoRequest.GetAgentId())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+
+		a, _ := anypb.New(info)
+		working.Working.Details = []*anypb.Any{a}
+	case *corepb.TaskDetail_SetAgentInfoRequest:
+		logger.Debugf("SetAgentInfoRequest")
+		setWorkingStatus("setting")
+		req := t.SetAgentInfoRequest.GetInfo()
+		err := a.agent.SetAgent(req.GetAgentID(), req)
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+		setWorkingStatus("done")
+	default:
+		logger.Errorf("upsupport task type: %v", t)
+		setWorkingStatus(fmt.Sprintf("failed due to: upsupport task type: %v", t))
+		result.Result = failed
+		return
 	}
 
 	finish.Finish, _ = anypb.New(working.Working)

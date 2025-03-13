@@ -8,7 +8,10 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
+
 	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 type IGatewayService interface {
@@ -37,7 +40,7 @@ type IGatewayService interface {
 	AddHostInternal(ctx context.Context, info *model.GatewayHost) error
 	AddGatewayInternal(ctx context.Context, userID, gatewayID, description string, tls *crypto.Tls) error
 	// AddAgentInternal add an agent to gateway(for internal called or debug), return agentID, and error
-	AddAgentInternal(ctx context.Context, taskid *string, gatewayid string, req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error)
+	AddAgentInternal(ctx context.Context, taskid *string, userid, gatewayid string, req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error)
 	RemoveGatewayInternal(ctx context.Context, gatewayid string) error
 	//RemoveGatewayHostInternal(ctx context.Context, hostid string) error
 
@@ -46,14 +49,24 @@ type IGatewayService interface {
 	// PushTask send task(the marshalled result) to gateway，
 	//  return task-topic, taskID and error
 	// if taskid is "", system will create a random taskid
-	PushTask(ctx context.Context, taskID *string, gatewayID string, bin []byte) (string, string, error)
+	PushTask(ctx context.Context, taskID *string, gatewayID, userID string, bin []byte) (string, string, error)
 }
 
 type IAgentService interface {
 	// PushTaskAgent send task(the marshalled result) to agent,
 	//  return task-topic, taskID and error
 	// if taskid is "", system will create a random taskid
-	PushTaskAgent(_ context.Context, taskid *string, gatewayID, agentID string, bin []byte) (string, string, error)
+	PushTaskAgent(_ context.Context, taskid *string, userID, gatewayID, agentID string, bin []byte) (string, string, error)
+	// PushTaskAgentPb send task(the marshalled result) to agent, it like PushTaskAgent, but it will marshal pb to bin
+	//  and pb type is core.TaskDetail
+	PushTaskAgentPb(ctx context.Context, taskid *string, userID, gatewayID, agentID string, pb proto.Message) (string, string, error)
 
 	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
+	StartAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
+	StopAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
+	StartGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
+	StopGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
+	GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error)
+	GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error)
+	SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error)
 }

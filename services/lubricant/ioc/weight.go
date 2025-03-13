@@ -12,8 +12,14 @@ const (
 	CoreMqService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
+	CoreSyncTaskSystem
 	CoreGatewayService
 	CoreGatewayAgentService
+
+	GatewayStatusGuard
+	BackendHandlerReport
+	BackendHandlerErrLogs
+	BackendHandlerDataUpload
 
 	CoreWebServer
 )

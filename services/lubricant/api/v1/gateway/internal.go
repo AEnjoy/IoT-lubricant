@@ -83,11 +83,17 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 			return
 		}
 	}
-
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
 	_id := uuid.NewString()
 	var taskID = &_id
 
-	agentID, err := a.IGatewayService.AddAgentInternal(c, taskID, gatewayID, req, openapidoc, enableFile)
+	agentID, err := a.IGatewayService.AddAgentInternal(c, taskID, userid, gatewayID, req, openapidoc, enableFile)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError, err.(*exception.Exception), c)
 		return

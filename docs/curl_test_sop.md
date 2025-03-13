@@ -51,3 +51,16 @@ curl 'http://127.0.0.1:8080/api/v1/gateway/internal/gateway' -X POST -b cookie.t
 ```shell
 curl 'http://127.0.0.1:8080/api/v1/gateway/2988e18e-6861-4d7d-8be1-5c539faad0f1/agent/internal/add' -X POST -b cookie.txt -H 'Content-Type: application/json' -d @test/request/add_agent_internal_request.json
 ```
+
+对Agent的操作：
+
+operator:
+
+- start-gather
+- stop-gather
+- start-agent
+- stop-agent
+
+```shell
+curl 'http://127.0.0.1:8080/api/v1/agent/operator?agent-id=c9c603ff-5a9e-4362-abbc-284045aa2cf3&gateway-id=2988e18e-6861-4d7d-8be1-5c539faad0f1&operator=start-gather' -X GET  -v -i -b cookie.txt
+```

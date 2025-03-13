@@ -7,4 +7,6 @@ type QueryMonitorBaseInfoResponse struct {
 
 	OfflineGateway int32 `json:"offlineGateway"`
 	OfflineAgent   int32 `json:"offlineAgent"`
+
+	Warnings int32 `json:"warnings"`
 }

@@ -12,8 +12,9 @@ import (
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/types/user"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+
 	"github.com/bytedance/sonic"
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +28,7 @@ func _taskHelper(
 	taskID *string,
 	executorType user.Role,
 	executorID string,
+	userID string,
 	taskName string,
 	topicPrefix string,
 	bin []byte,
@@ -36,7 +38,7 @@ func _taskHelper(
 
 	taskId := func() string {
 		if taskID == nil {
-			id := uuid.NewString()
+			id := xid.New().String()
 			taskID = &id
 			return id
 		}
@@ -52,6 +54,7 @@ func _taskHelper(
 	taskString, _ := sonic.MarshalString(task)
 	err := dbAddAsyncJob(ctx, txn, &model.AsyncJob{
 		RequestID: taskId,
+		UserID:    userID,
 		Name:      taskName,
 		Status:    "pending",
 		Data:      taskString,
@@ -65,9 +68,9 @@ func _taskHelper(
 
 	go func() {
 		// 任务数据发送需要异步操作(在其它线程订阅这个topic后)，否则可能会导致获取任务失败
+		time.Sleep(500 * time.Millisecond)
 		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
 		logger.Debugf("send task data to %s", pbTopic)
-		time.Sleep(500 * time.Millisecond)
 		_ = storeMq.PublishBytes(pbTopic, bin)
 	}()
 
