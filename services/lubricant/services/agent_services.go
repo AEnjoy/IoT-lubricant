@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
@@ -13,6 +14,7 @@ import (
 	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 
 	"github.com/rs/xid"
+	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
 func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error) {
@@ -99,7 +101,7 @@ func (a *AgentService) StopGather(ctx context.Context, userid, gatewayid, agenti
 	return id, err
 }
 
-func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result string, err error) {
+func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error) {
 	_true := true
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
@@ -117,16 +119,32 @@ func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, age
 
 	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	response, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
+	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if response.GetFinish() != nil {
-		return response.GetFinish().String(), nil
+	if resp.GetFinish() != nil {
+		var s status.Status
+		var doc agentpb.OpenapiDoc
+
+		if err := resp.GetFinish().UnmarshalTo(&s); err != nil {
+			return nil, err
+		}
+		if len(s.Details) == 0 {
+			return nil, fmt.Errorf("get openapi doc failed: %v", resp.GetResult())
+		}
+
+		if err := s.Details[0].UnmarshalTo(&doc); err != nil {
+			return nil, err
+		}
+		return &response.GetOpenApiDocResponse{
+			AgentID: agentid,
+			Doc:     doc.GetOriginalFile(),
+		}, nil
 	}
-	return "", fmt.Errorf("get openapi doc failed: %v", response.GetResult())
+	return nil, fmt.Errorf("get openapi doc failed: %v", resp.GetResult())
 }

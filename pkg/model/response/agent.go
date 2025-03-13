@@ -11,3 +11,8 @@ type AgentAsyncExecuteOperatorResponse struct {
 	TaskID string `json:"taskId"`
 	Data   string `json:"data,omitempty"`
 }
+type GetOpenApiDocResponse struct {
+	AgentID string `json:"agentId"`
+
+	Doc []byte `json:"doc"` // base64 encode it is openapi.ApiInfo
+}

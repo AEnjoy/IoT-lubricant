@@ -186,14 +186,8 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			return
 		}
 
-		origin, _ := anypb.New(wrapperspb.String(string(doc.GetOriginalFile())))
-		enable, _ := anypb.New(wrapperspb.String(string(doc.GetEnableFile())))
-		var slots []*anypb.Any
-		for _, kvInt := range doc.GetEnableSlot() {
-			slot, _ := anypb.New(kvInt)
-			slots = append(slots, slot)
-		}
-		working.Working.Details = append(slots, origin, enable)
+		a, _ := anypb.New(doc)
+		working.Working.Details = []*anypb.Any{a}
 	default:
 		logger.Errorf("upsupport task type: %v", t)
 		setWorkingStatus(fmt.Sprintf("failed due to: upsupport task type: %v", t))
