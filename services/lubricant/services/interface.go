@@ -68,4 +68,5 @@ type IAgentService interface {
 	StopGather(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
 	GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error)
 	GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error)
+	SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error)
 }

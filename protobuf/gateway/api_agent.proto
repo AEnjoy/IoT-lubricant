@@ -45,3 +45,6 @@ message GetAgentOpenAPIDocRequest{
 message GetAgentInfoRequest{
   string agentId =1;
 }
+message SetAgentInfoRequest{
+  agent.AgentInfo info = 1;
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
@@ -24,7 +25,12 @@ func (s *SyncTaskQueue) WaitTask(taskid string, timeout time.Duration) (*corepb.
 	if err != nil {
 		return nil, err
 	}
-	defer s.Mq.Unsubscribe(fmt.Sprintf("/task/%s/sync/%s", taskTypes.TargetCore, taskid), ch)
+	defer func(Mq mq.Mq, topic string, sub <-chan any) {
+		err := Mq.Unsubscribe(topic, sub)
+		if err != nil {
+			logger.Errorf("failed to unsubscribe from message queue: %v", err)
+		}
+	}(s.Mq, fmt.Sprintf("/task/%s/sync/%s", taskTypes.TargetCore, taskid), ch)
 
 	select {
 	case data := <-ch:

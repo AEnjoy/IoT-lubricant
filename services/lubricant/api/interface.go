@@ -35,7 +35,7 @@ type IAgent interface {
 	// Operator : start-agent,stop-agent,start-gather,stop-agent,get-openapidoc
 	Operator(*gin.Context)
 	// Set : set agent gather config
-	Set(*gin.Context)     //todo
+	Set(*gin.Context)
 	GetData(*gin.Context) //todo
 	GetAgentInfo(c *gin.Context)
 }

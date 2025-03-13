@@ -57,6 +57,7 @@ const (
 	UpdateAgentStatusFailed
 	UpdateTaskStatusFailed
 	GetAgentInfoFailed
+	ErrorSetAgentInfoFailed
 )
 
 // gateway
@@ -163,6 +164,7 @@ var StatusMsgMap = map[ResCode]string{
 	UpdateAgentStatusFailed:          "update agent status failed",
 	UpdateTaskStatusFailed:           "update task status failed",
 	GetAgentInfoFailed:               "get agent info failed",
+	ErrorSetAgentInfoFailed:          "set agent info failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",

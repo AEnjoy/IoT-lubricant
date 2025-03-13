@@ -95,7 +95,19 @@ func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids
 
 	return retVal, nil
 }
-
+func (a *AgentService) SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error) {
+	id := xid.New().String()
+	td := &corepb.TaskDetail{
+		TaskId: id,
+		Task: &corepb.TaskDetail_SetAgentInfoRequest{
+			SetAgentInfoRequest: &gatewaypb.SetAgentInfoRequest{
+				Info: info,
+			},
+		},
+	}
+	_, _, err = a.PushTaskAgentPb(ctx, &id, userid, gatewayid, agentid, td)
+	return id, err
+}
 func (a *AgentService) StartAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
