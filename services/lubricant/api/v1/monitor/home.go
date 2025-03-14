@@ -23,8 +23,8 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 		helper.FailedByServer(err, c)
 		return
 	}
-
-	key := fmt.Sprintf("baseinfo-query-user-%s", claims.User.Id)
+	userid := claims.User.Id
+	key := fmt.Sprintf("baseinfo-query-user-%s", userid)
 
 	// dev stg, ignore cache
 	//result, _ := a.DataStore.CacheCli.Get(c, key)
@@ -42,7 +42,7 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 		output response.QueryMonitorBaseInfoResponse
 	)
 
-	gateways, err = a.DataStore.ICoreDb.GetAllGatewayByUserID(c, claims.User.Id)
+	gateways, err = a.DataStore.ICoreDb.GetAllGatewayByUserID(c, userid)
 	if err != nil {
 		e := exception.ErrNewException(err, exceptionCode.GetGatewayFailed)
 		logger.Errorf("GetAllGatewayByUserID failed err: %v", e)
@@ -55,7 +55,7 @@ func (a Api) BaseInfo(c *gin.Context) { // 这个要加缓存中间件
 		if gateway.Status != "online" {
 			output.OfflineGateway++
 		}
-		list, err := a.DataStore.ICoreDb.GetAgentList(c, gateway.GatewayID)
+		list, err := a.DataStore.ICoreDb.GetAgentList(c, userid, gateway.GatewayID)
 		if err != nil {
 			logger.Errorf("GetAgentList failed,err: %v", err)
 			continue

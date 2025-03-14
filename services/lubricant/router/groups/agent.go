@@ -15,4 +15,5 @@ func (AgentRoute) InitRouter(router *gin.RouterGroup) {
 	agent.POST("/set", controller.Set)
 	agent.GET("/get-data", controller.GetData)
 	agent.GET("/info", controller.GetAgentInfo)
+	agent.GET("/list", controller.List)
 }

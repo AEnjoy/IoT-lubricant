@@ -13,7 +13,7 @@ type Gateway struct {
 	UserId    string `json:"-" gorm:"column:user_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"` //;foreignKey:UserID
 	GatewayID string `json:"gateway_id" gorm:"column:gateway_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"`
 
-	BindHost    string `json:"_" gorm:"column:bind_host"`
+	BindHost    string `json:"-" gorm:"column:bind_host"`
 	Description string `json:"description" gorm:"column:description"`
 
 	TlsConfig string `json:"tls_config" gorm:"column:tls_config;serializer:json"`

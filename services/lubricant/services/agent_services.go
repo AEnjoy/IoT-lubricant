@@ -67,7 +67,9 @@ func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayI
 	}
 	return nil, fmt.Errorf("get agent info failed: %v", resp.GetResult())
 }
-
+func (a *AgentService) ListAgents(ctx context.Context, userID, gatewayid string) ([]model.Agent, error) {
+	return a.store.GetAgentList(ctx, userID, gatewayid)
+}
 func (a *AgentService) GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error) {
 	gatewayStatus, err := a.db.GetGatewayStatus(ctx, gatewayid)
 	if err != nil {

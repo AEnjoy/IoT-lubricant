@@ -60,7 +60,7 @@ func (s *GatewayService) EditGateway(ctx context.Context, gatewayid, description
 	return nil
 }
 
-func (s *GatewayService) DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error) {
+func (s *GatewayService) DescriptionGateway(ctx context.Context, userid, gatewayid string) (*response.DescriptionGatewayResponse, error) {
 	var retVal response.DescriptionGatewayResponse
 	info, err := s.db.GetGatewayInfo(ctx, gatewayid)
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *GatewayService) DescriptionGateway(ctx context.Context, gatewayid strin
 	}
 	retVal.Gateway = info
 
-	agents, err := s.db.GetAgentList(ctx, gatewayid)
+	agents, err := s.db.GetAgentList(ctx, userid, gatewayid)
 	if err != nil {
 		return &retVal, exception.ErrNewException(err, exceptionCode.GetAgentFailed, exception.WithMsg("Failed to get gateway information from database"))
 	}

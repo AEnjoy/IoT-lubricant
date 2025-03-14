@@ -38,6 +38,7 @@ type IAgent interface {
 	Set(*gin.Context)
 	GetData(*gin.Context) //todo
 	GetAgentInfo(c *gin.Context)
+	List(*gin.Context)
 }
 type ITask interface {
 	QueryTask(*gin.Context)

@@ -114,3 +114,27 @@ func (a Api) GetAgentInfo(c *gin.Context) {
 	}
 	helper.SuccessJson(agentInfo, c)
 }
+func (a Api) List(c *gin.Context) {
+	gatewayID := c.Query("gateway-id")
+	if gatewayID == "" {
+		helper.FailedWithJson(http.StatusBadRequest,
+			exception.New(exceptionCode.ErrorBadRequest, exception.WithMsg("gateway-id is empty")), c)
+		return
+	}
+
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
+	//var resp response.ListAgentResponse
+	agents, err := a.IAgentService.ListAgents(c, userid, gatewayID)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.NewWithErr(err, exceptionCode.ListAgentFailed), c)
+		return
+	}
+	helper.SuccessJson(response.ListAgentResponse{Agents: agents, GatewayID: gatewayID}, c)
+}

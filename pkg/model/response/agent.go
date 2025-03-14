@@ -1,5 +1,7 @@
 package response
 
+import "github.com/aenjoy/iot-lubricant/pkg/model"
+
 type PushAgentTaskResponse struct {
 	TaskID string `json:"task_id"`
 }
@@ -15,4 +17,8 @@ type GetOpenApiDocResponse struct {
 	AgentID string `json:"agentId"`
 
 	Doc []byte `json:"doc"` // base64 encode it is openapi.ApiInfo
+}
+type ListAgentResponse struct {
+	GatewayID string        `json:"gatewayId"`
+	Agents    []model.Agent `json:"agentList"`
 }

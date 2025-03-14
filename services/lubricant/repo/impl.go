@@ -223,9 +223,13 @@ func (d *CoreDb) DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error
 		Error
 }
 
-func (d *CoreDb) GetAgentList(ctx context.Context, gatewayID string) ([]model.Agent, error) {
+func (d *CoreDb) GetAgentList(ctx context.Context, userID, gatewayID string) ([]model.Agent, error) {
 	var ret []model.Agent
-	err := d.db.WithContext(ctx).Model(model.Agent{}).Where("gateway_id = ?", gatewayID).Find(&ret).Error
+	err := d.db.WithContext(ctx).
+		Model(model.Agent{}).
+		Joins("JOIN gateway ON agent.gateway_id = gateway.gateway_id").
+		Where("gateway.user_id = ? AND agent.gateway_id = ?", userID, gatewayID).
+		Find(&ret).Error
 	return ret, err
 }
 
