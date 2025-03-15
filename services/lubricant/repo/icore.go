@@ -21,7 +21,7 @@ type ICoreDb interface {
 	AgentIDGetGatewayID(ctx context.Context, id string) (string, error)
 
 	// Gateway:
-	IsGatewayIdExists(id string) bool
+	IsGatewayIdExists(userID, gatewayID string) bool
 	GetGatewayInfo(ctx context.Context, id string) (*model.Gateway, error)
 	AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error // need txn
 	UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error             // need txn
@@ -74,6 +74,6 @@ type ICoreDb interface {
 	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, result string) error
 
 	// internal
-	SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error
+	SetGatewayStatus(ctx context.Context, txn *gorm.DB, userid, gatewayID, status string) error
 	GetGatewayStatus(ctx context.Context, gatewayID string) (string, error)
 }

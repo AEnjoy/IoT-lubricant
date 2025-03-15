@@ -68,9 +68,10 @@ func (d *CoreDb) GetGatewayStatus(ctx context.Context, gatewayID string) (string
 	return ret.Status, d.db.WithContext(ctx).Where("gateway_id = ?", gatewayID).First(&ret).Error
 }
 
-func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error {
+func (d *CoreDb) SetGatewayStatus(ctx context.Context, txn *gorm.DB, userid, gatewayID, status string) error {
 	return txn.WithContext(ctx).Model(model.Gateway{}).
 		Where("gateway_id = ?", gatewayID).
+		Where("user_id = ?", userid).
 		Update("status", status).
 		Update("updated_at", time.Now()).
 		Error
@@ -314,9 +315,13 @@ func (d *CoreDb) Version() string {
 	return "dev"
 }
 
-func (d *CoreDb) IsGatewayIdExists(id string) bool {
-	return d.db.Where("gateway_id = ?", id).First(&model.Gateway{}).Error == nil
+func (d *CoreDb) IsGatewayIdExists(userID, gatewayID string) bool {
+	return d.db.
+		Joins("JOIN token ON gateway.user_id = token.user_id").
+		Where("gateway.gateway_id = ? AND token.user_id = ?", gatewayID, userID).
+		First(&model.Gateway{}).Error == nil
 }
+
 func (d *CoreDb) StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error {
 	data := &model.Data{AgentID: id, Content: content, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	if txn != nil {

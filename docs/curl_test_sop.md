@@ -60,6 +60,7 @@ operator:
 - stop-gather
 - start-agent
 - stop-agent
+- get-openapidoc
 
 ```shell
 curl 'http://127.0.0.1:8080/api/v1/agent/operator?agent-id=c9c603ff-5a9e-4362-abbc-284045aa2cf3&gateway-id=2988e18e-6861-4d7d-8be1-5c539faad0f1&operator=start-gather' -X GET  -v -i -b cookie.txt

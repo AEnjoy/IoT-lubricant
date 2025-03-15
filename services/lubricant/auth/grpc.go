@@ -4,6 +4,7 @@ package auth
 import (
 	"fmt"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
@@ -82,14 +83,18 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 		logger.Errorf("get auth failed")
 		return nil, fmt.Errorf("get auth failed")
 	}
-	ul := md.Get("gatewayid")
-	if len(ul) == 0 {
+	gwID := md.Get("gatewayid")
+	if len(gwID) == 0 {
 		logger.Errorf("gateway_id not present")
 		return nil, fmt.Errorf("gateway_id not present")
 	}
-
-	if !i.db.IsGatewayIdExists(ul[0]) {
-		logger.Errorf("error gateway client:%s", ul[0])
+	userID := md.Get(def.USER_ID)
+	if len(userID) == 0 {
+		logger.Errorf("user_id not present")
+		return nil, fmt.Errorf("user_id not present")
+	}
+	if !i.db.IsGatewayIdExists(userID[0], gwID[0]) {
+		logger.Errorf("error gateway client:%s", gwID[0])
 		return nil, fmt.Errorf("error gateway client")
 	}
 
@@ -104,20 +109,24 @@ func (i *InterceptorImpl) StreamServerInterceptor(srv any, ss grpc.ServerStream,
 		logger.Errorf("get auth failed")
 		return fmt.Errorf("get auth failed")
 	}
-	ul := md.Get("gatewayid")
-	if len(ul) == 0 {
+	gwID := md.Get("gatewayid")
+	if len(gwID) == 0 {
 		logger.Errorf("gateway_id not present")
 		return fmt.Errorf("gateway_id not present")
 	}
-
-	if !i.db.IsGatewayIdExists(ul[0]) {
-		logger.Errorf("error gateway client:%s", ul[0])
+	userID := md.Get(def.USER_ID)
+	if len(userID) == 0 {
+		logger.Errorf("user_id not present")
+		return fmt.Errorf("user_id not present")
+	}
+	if !i.db.IsGatewayIdExists(userID[0], gwID[0]) {
+		logger.Errorf("error gateway client:%s", gwID[0])
 		return fmt.Errorf("error gateway client")
 	}
 
 	// todo: 需要处理，如果状态为online，则不允许连接
 	txn := i.db.Begin()
-	err := i.db.SetGatewayStatus(ss.Context(), txn, ul[0], "online")
+	err := i.db.SetGatewayStatus(ss.Context(), txn, userID[0], gwID[0], "online")
 	if err != nil {
 		logger.Errorf("set gateway status error:%s", err)
 		i.db.Rollback(txn)

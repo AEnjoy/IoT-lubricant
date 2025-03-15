@@ -10,8 +10,8 @@ import (
 
 type Gateway struct {
 	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
-	UserId    string `json:"-" gorm:"column:user_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"` //;foreignKey:UserID
-	GatewayID string `json:"gateway_id" gorm:"column:gateway_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"`
+	UserId    string `json:"userId" gorm:"column:user_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"`        //;foreignKey:UserID
+	GatewayID string `json:"gateway_id" gorm:"column:gateway_id;not null;uniqueIndex:idx_user_gateway;type:varchar(255)"` // todo: 这个实际上是不唯一的,可由用户自己设置.应该叫做gatewayName,后续需要重构,增加一个唯一的gatewayID
 
 	BindHost    string `json:"-" gorm:"column:bind_host"`
 	Description string `json:"description" gorm:"column:description"`

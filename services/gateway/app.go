@@ -69,11 +69,18 @@ func (a *app) _getRequestContext(ctx context.Context) context.Context {
 	_ctxLock.Lock()
 	defer _ctxLock.Unlock()
 
+	userid, ok := os.LookupEnv(def.ENV_GATEWAY_USER_ID)
+	if !ok {
+		panic("gateway `USER_ID` is not set!")
+	}
 	if a.ctrl == context.TODO() || a.ctrl == nil {
 		if ctx == nil || ctx == context.TODO() {
 			ctx = context.Background()
 		}
-		md := metadata.New(map[string]string{string(types.NameGatewayID): gatewayId})
+		md := metadata.New(map[string]string{
+			string(types.NameGatewayID): gatewayId,
+			def.USER_ID:                 userid,
+		})
 		a.ctrl = metadata.NewOutgoingContext(ctx, md)
 	}
 	return a.ctrl

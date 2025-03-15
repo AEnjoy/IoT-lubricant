@@ -13,3 +13,6 @@ const (
 	AgentDefaultOpenapiFileName = "api.json"
 	AgentGrpcPort               = 5436
 )
+const (
+	USER_ID = "USER_ID"
+)
