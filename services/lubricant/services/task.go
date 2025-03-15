@@ -50,3 +50,10 @@ func (s *GatewayService) PushTask(ctx context.Context, taskid *string, gatewayID
 		bin,
 	)
 }
+func (s *GatewayService) PushTaskPb(ctx context.Context, taskid *string, userID, gatewayID string, pb proto.Message) (string, string, error) {
+	bin, err := proto.Marshal(pb)
+	if err != nil {
+		return "", "", err
+	}
+	return s.PushTask(ctx, taskid, gatewayID, userID, bin)
+}

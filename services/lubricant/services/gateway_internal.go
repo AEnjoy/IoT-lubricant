@@ -19,7 +19,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/proto"
+	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
 var _ IGatewayService = (*GatewayService)(nil)
@@ -27,6 +27,7 @@ var _ IGatewayService = (*GatewayService)(nil)
 type GatewayService struct {
 	db    repo.ICoreDb
 	store *datastore.DataStore
+	*SyncTaskQueue
 }
 
 func (s *GatewayService) EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error {
@@ -193,9 +194,6 @@ func (s *GatewayService) RemoveGatewayHostInternal(ctx context.Context, hostid s
 func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, userid, gatewayid string,
 	req *request.AddAgentRequest, openapidoc, enableFile []byte) (string, error) {
 	txn, errorCh, commit := s.txnHelper()
-	defer commit()
-
-	agentID := uuid.NewString()
 
 	var conf = model.CreateAgentConf{AgentContainerInfo: req.AgentContainerInfo, DriverContainerInfo: req.DriverContainerInfo}
 	confData, err := sonic.Marshal(&conf)
@@ -206,8 +204,14 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 		)
 		return "", err
 	}
-	var td corepb.TaskDetail
-	var pb proxypb.CreateAgentRequest
+
+	var (
+		td      corepb.TaskDetail
+		pb      proxypb.CreateAgentRequest
+		_true   = true
+		agentID = uuid.NewString()
+	)
+
 	pb.Info = &agentpb.AgentInfo{
 		AgentID:     agentID,
 		GatewayID:   &gatewayid,
@@ -226,6 +230,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 	pb.Conf = confData
 
 	td.TaskId = *taskid
+	td.IsSynchronousTask = &_true
 	td.Task = &corepb.TaskDetail_CreateAgentRequest{
 		CreateAgentRequest: &pb,
 	}
@@ -245,17 +250,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 		return "", err
 	}
 
-	pbData, err := proto.Marshal(&td)
-	if err != nil {
-		err = exception.ErrNewException(err,
-			exceptionCode.ErrorEncodeProtoMessage,
-			exception.WithMsg("Failed to marshal agent information by proto"),
-		)
-		errorCh.Report(err, exceptionCode.ErrorEncodeProtoMessage, "Failed to marshal agent information by proto", false)
-		return "", err
-	}
-
-	_, _, err = s.PushTask(ctx, taskid, gatewayid, userid, pbData)
+	_, _, err = s.PushTaskPb(ctx, taskid, gatewayid, userid, &td)
 	if err != nil {
 		err = exception.ErrNewException(err,
 			exceptionCode.ErrorPushTaskFailed,
@@ -264,5 +259,25 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 		errorCh.Report(err, exceptionCode.ErrorPushTaskFailed, "Failed to push agent information to gateway", false)
 		return "", err
 	}
+
+	go func() {
+		defer commit()
+		resp, err := s.SyncTaskQueue.WaitTask(*taskid, 10*time.Second)
+		if err != nil {
+			errorCh.Report(err, exceptionCode.AddAgentFailed, "timeout", false)
+			return
+		}
+		if resp.GetFinish() != nil {
+			var s status.Status
+			if err := resp.GetFinish().UnmarshalTo(&s); err != nil {
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "Failed to add agent information to database", false)
+				return
+			}
+			if len(s.Details) == 0 {
+				errorCh.Report(err, exceptionCode.AddAgentFailed, "Failed to add agent information to database", false)
+				return
+			}
+		}
+	}()
 	return agentID, nil
 }
