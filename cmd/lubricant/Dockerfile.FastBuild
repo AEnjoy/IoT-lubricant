@@ -1,11 +1,11 @@
-FROM alpine:latest AS builder
+FROM alpine:3.21.3 AS builder
 
 WORKDIR /app
 
 COPY cmd/lubricant/lubricant ./
 RUN chmod +x ./lubricant
 
-FROM alpine:latest
+FROM alpine:3.21.3
 
 WORKDIR /
 COPY --from=builder /app/lubricant ./
