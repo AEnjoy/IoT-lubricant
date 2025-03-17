@@ -24,7 +24,7 @@ require (
 	github.com/nats-io/nats.go v1.39.1
 	github.com/panjf2000/ants/v2 v2.11.2
 	github.com/pierrec/lz4/v4 v4.1.22
-	github.com/pkg/sftp v1.13.7
+	github.com/pkg/sftp v1.13.8
 	github.com/prometheus/client_golang v1.21.1
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/robfig/cron/v3 v3.0.1
