@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 ARG VERSION
 ARG BUILD_TIME
@@ -29,7 +29,7 @@ RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 && \
 	-X 'main.PlatformVersion=${PLATFORM_VERSION}' \
     " -o /gateway
 
-FROM alpine:latest
+FROM alpine:3.21.3
 WORKDIR /root/
 COPY --from=builder /gateway .
 EXPOSE 5436
