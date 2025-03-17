@@ -1,12 +1,16 @@
 package agent
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
+	"github.com/bytedance/sonic"
 	"github.com/gin-gonic/gin"
 )
 
@@ -106,13 +110,29 @@ func (a Api) GetAgentInfo(c *gin.Context) {
 	}
 	userid := claims.User.Id
 
+	key := fmt.Sprintf("getAgentInfo-user-%s-agent-%s-gateway-%s", userid, agentID, gatewayID)
+	//dev stg, ignore cache
+	result, _ := a.DataStore.CacheCli.Get(c, key)
+	if result != "" {
+		if helper.JsonString(http.StatusOK, result, "success", "0000", c) {
+			return
+		}
+		// no cache or cache expired/failed
+	}
 	agentInfo, err := a.IAgentService.GetAgentInfo(c, userid, gatewayID, agentID, true)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
 			exception.NewWithErr(err, exceptionCode.GetAgentInfoFailed), c)
 		return
 	}
-	helper.SuccessJson(agentInfo, c)
+
+	str, _ := sonic.MarshalString(&agentInfo)
+
+	err = a.CacheCli.SetEx(c, key, str, 10*time.Minute)
+	if err != nil {
+		logger.Errorf("set cache failed,err: %v", err)
+	}
+	helper.JsonString(http.StatusOK, str, "success", "0000", c)
 }
 func (a Api) List(c *gin.Context) {
 	gatewayID := c.Query("gateway-id")
