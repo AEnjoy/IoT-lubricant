@@ -59,7 +59,12 @@ func (d *CoreDb) SaveErrorLog(ctx context.Context, err *model.ErrorLogs) error {
 
 func (d *CoreDb) GetAllGatewayByUserID(ctx context.Context, userID string) ([]model.Gateway, error) {
 	var ret []model.Gateway
-	err := d.db.WithContext(ctx).Model(model.Gateway{}).Where("user_id = ?", userID).Find(&ret).Error
+	err := d.db.WithContext(ctx).
+		Model(model.Gateway{}).
+		Where("user_id = ?", userID).
+		Order("created_at desc").
+		Where("deleted_at IS NULL").
+		Find(&ret).Error
 	return ret, err
 }
 
@@ -137,7 +142,12 @@ func (d *CoreDb) GetErrorLogs(ctx context.Context, gatewayid string, from, to ti
 
 func (d *CoreDb) ListGatewayHostInfoByUserID(ctx context.Context, userID string) ([]model.GatewayHost, error) {
 	var ret []model.GatewayHost
-	err := d.db.WithContext(ctx).Where("user_id = ?", userID).Find(&ret).Error
+	err := d.db.WithContext(ctx).
+		Model(model.GatewayHost{}).
+		Where("user_id = ?", userID).
+		Order("created_at desc").
+		Where("deleted_at IS NULL").
+		Find(&ret).Error
 	return ret, err
 }
 
@@ -230,6 +240,8 @@ func (d *CoreDb) GetAgentList(ctx context.Context, userID, gatewayID string) ([]
 		Model(model.Agent{}).
 		Joins("JOIN gateway ON agent.gateway_id = gateway.gateway_id").
 		Where("gateway.user_id = ? AND agent.gateway_id = ?", userID, gatewayID).
+		Order("agent.created_at desc").
+		Where("agent.deleted_at IS NULL").
 		Find(&ret).Error
 	return ret, err
 }
