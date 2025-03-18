@@ -12,19 +12,58 @@ import (
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/rs/xid"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
 
-//func (a *AgentService) GetAgentInfoByTaskID(ctx context.Context, userid, gatewayID, agentID, id string) (*agentpb.AgentInfo, error) {
-//	if id == "" {
-//		return a.GetAgentInfo(ctx, userid, gatewayID, agentID, true)
-//	}
-//	a.store.ICoreDb.GetAsyncJobResult(ctx, id) // todo:need refact database store
-//
-//}
+var _true = true
 
+//	func (a *AgentService) GetAgentInfoByTaskID(ctx context.Context, userid, gatewayID, agentID, id string) (*agentpb.AgentInfo, error) {
+//		if id == "" {
+//			return a.GetAgentInfo(ctx, userid, gatewayID, agentID, true)
+//		}
+//		a.store.ICoreDb.GetAsyncJobResult(ctx, id) // todo:need refact database store
+//
+// }
+func (a *AgentService) IsGathering(ctx context.Context, userid, gatewayID, agentID string) (bool, error) {
+	id := xid.New().String()
+	td := &corepb.TaskDetail{
+		TaskId:            id,
+		IsSynchronousTask: &_true,
+		Task: &corepb.TaskDetail_GetAgentIsGatheringRequest{
+			GetAgentIsGatheringRequest: &gatewaypb.GetAgentIsGatheringRequest{
+				AgentId: agentID,
+			},
+		},
+	}
+	_, _, err := a.PushTaskAgentPb(ctx, &id, userid, gatewayID, agentID, td)
+	if err != nil {
+		return false, err
+	}
+	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
+	if err != nil {
+		return false, err
+	}
+	if resp.GetFinish() != nil {
+		var s status.Status
+		var isGathering wrapperspb.BoolValue
+
+		if err := resp.GetFinish().UnmarshalTo(&s); err != nil {
+			return false, err
+		}
+		if len(s.Details) == 0 {
+			return false, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+		}
+
+		if err := s.Details[0].UnmarshalTo(&isGathering); err != nil {
+			return false, err
+		}
+		return isGathering.GetValue(), nil
+	}
+	return false, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+}
 func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error) {
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
@@ -167,7 +206,6 @@ func (a *AgentService) StopGather(ctx context.Context, userid, gatewayid, agenti
 }
 
 func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error) {
-	_true := true
 	id := xid.New().String()
 	td := &corepb.TaskDetail{
 		TaskId:            id,

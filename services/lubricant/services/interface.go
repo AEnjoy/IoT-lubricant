@@ -70,4 +70,5 @@ type IAgentService interface {
 	GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error)
 	GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error)
 	SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error)
+	IsGathering(ctx context.Context, userid, gatewayid, agentid string) (bool, error)
 }

@@ -16,13 +16,13 @@ const (
 	startGather
 	stopGather
 	getOpenapiDoc
+	getGatherStatus
 )
 
 func (a Api) _getOperator(c *gin.Context) operator {
 	o := c.Query("operator")
 	o = strings.ToLower(o)
 	switch o {
-	// start-agent,stop-agent,start-gather,stop-agent,get-openapidoc
 	case "start-agent":
 		return startAgent
 	case "stop-agent":
@@ -33,6 +33,8 @@ func (a Api) _getOperator(c *gin.Context) operator {
 		return stopGather
 	case "get-openapidoc":
 		return getOpenapiDoc
+	case "get-gather-status":
+		return getGatherStatus
 	default:
 		return unknownOperator
 	}

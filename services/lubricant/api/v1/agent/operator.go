@@ -84,6 +84,16 @@ func (a Api) Operator(c *gin.Context) {
 			return
 		}
 		helper.SuccessJson(doc, c)
+		return
+	case getGatherStatus:
+		isGathering, err := a.IAgentService.IsGathering(c, userid, gatewayID, agentID)
+		if err != nil {
+			helper.FailedWithJson(http.StatusInternalServerError,
+				exception.NewWithErr(err, exceptionCode.GetAgentGatherStatusFailed), c)
+			return
+		}
+		helper.SuccessJson(isGathering, c)
+		return
 	}
 	resp.TaskID = taskid
 	helper.SuccessJson(resp, c)

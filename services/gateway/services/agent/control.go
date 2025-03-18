@@ -198,7 +198,13 @@ func (c *agentControl) Start(ctx context.Context) error {
 	}
 	return nil
 }
-
+func (c *agentControl) IsGathering() bool {
+	if c.gatherLock.TryLock() {
+		defer c.gatherLock.Unlock()
+		return false
+	}
+	return true
+}
 func (c *agentControl) StartGather() error {
 	c.setCtx(context.TODO())
 	if !c._checkOnline() {
@@ -209,6 +215,7 @@ func (c *agentControl) StartGather() error {
 	}
 
 	go func() {
+		defer c.gatherLock.Unlock()
 		if err := c._start(); err != nil {
 			if !strings.Contains(err.Error(), "Gather is working now") {
 				logger.Errorln("agent: Gather start failed", err)
@@ -220,7 +227,6 @@ func (c *agentControl) StartGather() error {
 			}
 			logger.Warnln("agent: Gather is working now", err)
 		}
-		defer c.gatherLock.Unlock()
 
 		ticker := time.NewTicker(time.Duration(c.AgentInfo.GatherCycle) * time.Second)
 		defer ticker.Stop()

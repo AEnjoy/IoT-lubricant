@@ -81,6 +81,7 @@ const (
 	SetAgentFailed
 	StartAgentFailed
 	StopAgentFailed
+	GetAgentGatherStatusFailed
 	GetOpenAPIDocFailed
 	RemoveAgentFailed
 	ErrorNoAgentContainerConfSet
@@ -191,6 +192,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
 	ErrGaterStartFailed:                   "agent start gather failed",
 	GetOpenAPIDocFailed:                   "get openapi doc failed",
+	GetAgentGatherStatusFailed:            "get agent gather status failed",
 
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",

@@ -211,6 +211,17 @@ func (a *app) handelTask(task *corepb.TaskDetail, c *cache.MemoryCache[*corepb.Q
 			return
 		}
 		setWorkingStatus("done")
+	case *corepb.TaskDetail_GetAgentIsGatheringRequest:
+		logger.Debugf("GetAgentIsGatheringRequest")
+		setWorkingStatus("getting")
+		gatheringStatusResult, err := a.agent.IsGathering(t.GetAgentIsGatheringRequest.GetAgentId())
+		if err != nil {
+			setWorkingStatus(fmt.Sprintf("failed due to:%v", err))
+			result.Result = failed
+			return
+		}
+		a, _ := anypb.New(wrapperspb.Bool(gatheringStatusResult))
+		working.Working.Details = []*anypb.Any{a}
 	default:
 		logger.Errorf("upsupport task type: %v", t)
 		setWorkingStatus(fmt.Sprintf("failed due to: upsupport task type: %v", t))

@@ -48,3 +48,6 @@ message GetAgentInfoRequest{
 message SetAgentInfoRequest{
   agent.AgentInfo info = 1;
 }
+message GetAgentIsGatheringRequest{
+  string agentId =1;
+}
