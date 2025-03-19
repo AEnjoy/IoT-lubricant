@@ -44,6 +44,7 @@ func (a *app) grpcTaskApp() error {
 			}
 			return fmt.Errorf("GetTask failed after %d attempts: %w\n", retryAttempts, err)
 		}
+		i--
 
 		// send - async task result
 		go func() {
@@ -273,11 +274,13 @@ func (a *app) grpcPingApp() error {
 			logger.Errorf("Failed to send ping request to server: %v", err)
 			return err
 		}
+		i--
+
 		for {
 			if err := stream.Send(&metapb.Ping{Flag: 0}); err != nil {
 				if err == io.EOF {
 					logger.Errorln("grpc stream closed", "lost link with server")
-					return nil
+					break
 				}
 				time.Sleep(time.Second)
 				logger.Errorf("Failed to send ping request to server: %v", err)
@@ -287,13 +290,11 @@ func (a *app) grpcPingApp() error {
 			if err != nil {
 				if err == io.EOF {
 					logger.Errorln("grpc stream closed", "lost link with server")
-					return nil
+					break
 				}
 				logger.Errorf("Failed to receive response from server: %v", err)
-				return err
 			}
 		}
-
 	}
 	return nil
 }
