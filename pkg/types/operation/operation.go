@@ -1,4 +1,4 @@
-package task
+package operation
 
 import "encoding/json"
 

@@ -1,6 +1,8 @@
 package types
 
-import "github.com/aenjoy/iot-lubricant/pkg/types/task"
+import (
+	"github.com/aenjoy/iot-lubricant/pkg/types/operation"
+)
 
 // messageQueue topic list
 
@@ -31,6 +33,6 @@ type Register struct {
 	ID string `json:"id"`
 }
 type TaskCommand struct {
-	ID   task.Operation `json:"id"`
-	Data []byte         `json:"data"` // json
+	ID   operation.Operation `json:"id"`
+	Data []byte              `json:"data"` // json
 }
