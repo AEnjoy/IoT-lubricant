@@ -71,6 +71,7 @@ type ICoreDb interface {
 	GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
 	GetAsyncJobResult(ctx context.Context, requestId string) (status, result string, err error)
 	UserGetAsyncJobs(ctx context.Context, userID string, current, limit int) ([]model.AsyncJob, error)
+	// SetAsyncJobStatus txn is allowed set to nil(means no txn)
 	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, result string) error
 
 	// internal

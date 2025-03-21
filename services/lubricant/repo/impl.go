@@ -110,6 +110,9 @@ func (d *CoreDb) GetAsyncJob(ctx context.Context, requestId string) (model.Async
 }
 
 func (d *CoreDb) SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, resultData string) error {
+	if txn == nil {
+		txn = d.db
+	}
 	return txn.WithContext(ctx).Model(model.AsyncJob{}).Where("request_id = ?", requestId).
 		UpdateColumns(map[string]interface{}{
 			"status":      status,

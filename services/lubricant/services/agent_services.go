@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -40,10 +41,12 @@ func (a *AgentService) IsGathering(ctx context.Context, userid, gatewayID, agent
 	}
 	_, _, err := a.PushTaskAgentPb(ctx, &id, userid, gatewayID, agentID, td)
 	if err != nil {
+		_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", "failed to push task")
 		return false, err
 	}
 	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
 	if err != nil {
+		_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", "failed to wait task")
 		return false, err
 	}
 	if resp.GetFinish() != nil {
@@ -62,7 +65,9 @@ func (a *AgentService) IsGathering(ctx context.Context, userid, gatewayID, agent
 		}
 		return isGathering.GetValue(), nil
 	}
-	return false, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+	str := fmt.Sprintf("get agent info failed: %v", resp.GetResult())
+	_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", str)
+	return false, errors.New(str)
 }
 func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error) {
 	id := xid.New().String()
@@ -77,6 +82,7 @@ func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayI
 	}
 	_, _, err := a.PushTaskAgentPb(ctx, &id, userid, gatewayID, agentID, td)
 	if err != nil {
+		_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", "failed to push task")
 		return nil, err
 	}
 	if !sync {
@@ -85,6 +91,7 @@ func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayI
 
 	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
 	if err != nil {
+		_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", fmt.Sprintf("get agentInfo failed: %v", err))
 		return nil, err
 	}
 
@@ -104,7 +111,9 @@ func (a *AgentService) GetAgentInfo(ctx context.Context, userid string, gatewayI
 		}
 		return &info, nil
 	}
-	return nil, fmt.Errorf("get agent info failed: %v", resp.GetResult())
+	str := fmt.Sprintf("get agent info failed: %v", resp.GetResult())
+	_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", str)
+	return nil, errors.New(str)
 }
 func (a *AgentService) ListAgents(ctx context.Context, userID, gatewayid string) ([]model.Agent, error) {
 	return a.store.GetAgentList(ctx, userID, gatewayid)
@@ -227,6 +236,7 @@ func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, age
 
 	resp, err := a.SyncTaskQueue.WaitTask(id, 10*time.Second)
 	if err != nil {
+		_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", fmt.Sprintf("get openapi doc failed: %v", err))
 		return nil, err
 	}
 
@@ -249,5 +259,7 @@ func (a *AgentService) GetOpenApiDoc(ctx context.Context, userid, gatewayid, age
 			Doc:     doc.GetOriginalFile(),
 		}, nil
 	}
-	return nil, fmt.Errorf("get openapi doc failed: %v", resp.GetResult())
+	str := fmt.Sprintf("get openapi doc failed: %v", resp.GetResult())
+	_ = a.store.ICoreDb.SetAsyncJobStatus(ctx, nil, id, "failed", str)
+	return nil, errors.New(str)
 }
