@@ -1,0 +1,52 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+package lubricant.svc;
+
+option go_package = "protobuf/svc";
+
+message Logs{
+  string ID = 1; // 日志ID
+  google.protobuf.Timestamp Time = 2; // 日志生成时间
+  string ServiceName = 3; // 日志所属微服务名
+  level Level = 4; // 日志级别
+  string IPAddress = 5; // 请求来源IP
+  string Action = 6; // 请求动作
+  string Protocol = 7; // 请求协议
+  Operation OperationType = 8; // 请求动作类型
+  google.protobuf.Timestamp Cost = 9; // 请求耗时
+  string  message = 10; // 日志内容
+  optional int32 ServiceErrorCode = 11; // 业务错误码
+  optional bytes ExceptionInfo = 12; // 异常信息(json bytes)
+  optional bytes metadata = 13; // 日志元数据 (json bytes)
+}
+enum level{
+  DEBUG = 0;
+  INFO = 1;
+  WARN = 2;
+  ERROR = 3;
+}
+enum Operation{
+  Unknown = 0;
+  UserLogin              = 10;
+  UserLogout             = 11;
+  UserChangePassword     = 12;
+  AddTask                = 13;
+  QueryTask              = 14;
+  ViewTaskResult         = 15;
+  AddGateway             = 20;
+  RemoveGateway          = 21;
+  AddAgent               = 22;
+  RemoveAgent            = 23;
+  AddSchedule            = 24;
+  RemoveSchedule         = 25;
+  AddDriverContainer     = 30;
+  RemoveDriverContainer  = 31;
+  AddAgentContainer      = 32;
+  RemoveAgentContainer   = 33;
+  EnableOpenAPI          = 40;
+  DisableOpenAPI         = 41;
+  SendRequest            = 42;
+  GetOpenAPIDoc          = 43;
+  GetEnableOpenAPI       = 44;
+}
