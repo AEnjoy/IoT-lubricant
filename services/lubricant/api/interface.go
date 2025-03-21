@@ -14,9 +14,8 @@ type IGateway interface {
 	DescriptionHost(c *gin.Context)
 	DescriptionGateway(c *gin.Context)
 	EditGateway(c *gin.Context)
-
-	AddGatewayInternal(c *gin.Context)
-	RemoveGatewayInternal(c *gin.Context)
+	AddGateway(c *gin.Context)
+	RemoveGateway(c *gin.Context)
 
 	AgentPushTask(c *gin.Context)
 	AddAgentInternal(c *gin.Context)
@@ -26,6 +25,7 @@ type IAuth interface {
 	Signin(c *gin.Context)
 	SetAuthCrt(c *gin.Context)
 	RefreshToken(c *gin.Context)
+	GetPrivateKey(c *gin.Context)
 }
 type IMonitor interface {
 	// BaseInfo 返回网关个数，agent个数，离线个数信息，node个数信息

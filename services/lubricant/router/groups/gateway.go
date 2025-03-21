@@ -18,10 +18,10 @@ func (GatewayRoute) InitRouter(router *gin.RouterGroup) {
 	gateway.GET("/host/description", controller.DescriptionHost)
 	gateway.GET("/list-host", controller.ListHosts)
 
-	gateway.POST("/internal/add-gateway", controller.AddGatewayInternal)
-	gateway.POST("/internal/gateway", controller.AddGatewayInternal)
-	gateway.POST("/internal/remove-gateway", controller.RemoveGatewayInternal)
-	gateway.DELETE("/internal/gateway", controller.RemoveGatewayInternal)
+	gateway.POST("/add-gateway", controller.AddGateway)
+	gateway.POST("/add", controller.AddGateway)
+	gateway.POST("/remove-gateway", controller.RemoveGateway)
+	gateway.DELETE("/gateway", controller.RemoveGateway)
 
 	gateway.POST("/:gatewayid/agent/internal/push-task", controller.AgentPushTask)
 	gateway.POST("/:gatewayid/agent/internal/task", controller.AgentPushTask)
