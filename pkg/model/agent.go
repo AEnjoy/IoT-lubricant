@@ -8,7 +8,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types/container"
-	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+	"github.com/aenjoy/iot-lubricant/pkg/types/operation"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
 	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/bytedance/sonic"
@@ -121,8 +121,8 @@ func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *gatewaypb.CreateAgentRe
 	return retVal
 }
 
-func (CreateAgentRequest) TaskOperation() task.Operation {
-	return task.OperationAddAgent
+func (CreateAgentRequest) TaskOperation() operation.Operation {
+	return operation.OperationAddAgent
 }
 
 type CreateAgentResponse struct {
