@@ -1,31 +1,19 @@
 package mq
 
 import (
+	"context"
+	"sync"
 	"testing"
-	"time"
 
-	"github.com/nats-io/nats-server/v2/server"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNatsMq(t *testing.T) {
 	assert := assert.New(t)
-	opts := &server.Options{
-		Port: 4223,
-	}
+	natsServer, url := natsUrl(t)
+	defer natsServer()
 
-	natsServer, err := server.NewServer(opts)
-	assert.NoError(err)
-
-	t.Log("starting nats server")
-	go natsServer.Start()
-	if !natsServer.ReadyForConnections(10 * time.Second) {
-		t.Fatal("nats server did not start")
-	}
-	defer natsServer.Shutdown()
-
-	t.Log("starting mq")
-	mq, err := NewNatsMq[string]("nats://127.0.0.1:4223")
+	mq, err := NewNatsMq[string](url)
 	assert.NoError(err)
 	defer mq.Close()
 	mq.SetConditions(100)
@@ -46,4 +34,24 @@ func TestNatsMq(t *testing.T) {
 
 	t.Log("unsubscribe message")
 	assert.NoError(mq.Unsubscribe("test", ch))
+}
+
+var subTestResult sync.Map
+
+func consumerNatsClient(t *testing.T, url string, i int, ctx context.Context) {
+	assert := assert.New(t)
+	cli, err := NewNatsMq[any](url)
+	assert.NoError(err)
+
+	subscribe, err := cli.Subscribe("/test/topic/123")
+	assert.NoError(err)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-subscribe:
+			go subTestResult.Store(i, struct{}{})
+		}
+	}
 }

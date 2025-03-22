@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	nats2 "github.com/aenjoy/iot-lubricant/pkg/utils/nats"
-	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
 )
@@ -27,20 +25,6 @@ func NewMq() Mq {
 	return &MessageQueue[any]{
 		closeCh: make(chan struct{}),
 	}
-}
-
-// NewNatsMq creates a new instance of NatsMq
-func NewNatsMq[T any](url string) (*NatsMq, error) {
-	nc, err := nats2.NewNatsClient(url)
-	if err != nil {
-		return nil, err
-	}
-	return &NatsMq{
-		nc:       nc,
-		subs:     make(map[string]*nats.Subscription),
-		channels: make(map[string]chan any),
-		capacity: 10, // default capacity
-	}, nil
 }
 
 // NewKafkaMq creates a new instance of KafkaMq
