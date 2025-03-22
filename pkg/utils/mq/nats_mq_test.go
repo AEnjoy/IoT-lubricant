@@ -50,7 +50,7 @@ func consumerNatsClient(t *testing.T, url string, i int, ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case _ = <-subscribe:
+		case <-subscribe:
 			go subTestResult.Store(i, struct{}{})
 		}
 	}
