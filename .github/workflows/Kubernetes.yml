@@ -19,7 +19,7 @@ on:
       - 'LICENSE'
       - 'README.md'
 jobs:
-  CloudEnvironment:
+  TestAtKubernetes:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     steps:
@@ -110,8 +110,10 @@ jobs:
           set -e
           kubectl cluster-info
           kubectl version
+          echo "Labeling the node `ingress-ready=true`, because ingress controller can't deploy without this label"
           kubectl label nodes kind-control-plane ingress-ready=true
           bash deployment/infra/nsinit.sh
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
@@ -147,14 +149,14 @@ jobs:
           set -e 
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
-          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
-          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
+          kubectl apply -f deployment/infra/lubricant-ingress.yaml
           sleep 2
           python3 scripts/core-test.py $lubricant_pod
   PushToAliRegistry:
+    name: Push Images To Ali Cloud Registry
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: CloudEnvironment
+    needs: TestAtKubernetes
     steps:
       - uses: actions/checkout@v4
 
