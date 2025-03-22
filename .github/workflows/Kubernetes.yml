@@ -127,6 +127,7 @@ jobs:
             make load-test-driver 
             bash test/mock_driver/load-test-driver.sh
           )&
+          make build-all
           make copy-files
           FAST_BUILD=1 make load-to-kind -j3
 
@@ -150,3 +151,78 @@ jobs:
           kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
           sleep 2
           python3 scripts/core-test.py $lubricant_pod
+  PushToAliRegistry:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: CloudEnvironment
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Docker Images
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images
+          key: ${{ runner.os }}-docker-images-${{ hashFiles('**/Dockerfile') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-docker-images-
+
+      - name: Pull and Save Docker Images
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          set -e
+          # for base images
+          # docker pull golang:1.24-alpine &
+          docker pull alpine:3.21.3 &
+          docker pull kindest/node:v1.32.2 &
+          docker pull python:3.9-slim-buster &
+          # for Kubernetes yaml
+          docker pull nginx:1.27 &
+          docker pull nats:2.10.26 &
+          docker pull redis:7.4.2 &
+          docker pull casbin/casdoor:v1.854.0 &
+          wait
+          if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
+            echo "Cache: Saving Docker Images..."
+            mkdir -p /tmp/docker-images
+            docker save \
+              nginx:1.27 alpine:3.21.3 kindest/node:v1.32.2 \
+              nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
+              python:3.9-slim-buster \
+              -o /tmp/docker-images/base-images.tar &
+          fi
+
+      - name: Load Docker Images
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: |
+          if [ -f /tmp/docker-images/base-images.tar ]; then
+            echo "Cache(Hit): Loading Docker Images..."
+            docker load -i /tmp/docker-images/base-images.tar
+          fi
+
+      - name: Cache Go Modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+      - name: Build Image
+        run: |
+          set -e
+          go mod download
+          make build-all
+          make copy-files
+          FAST_BUILD=1 make docker-build
+      - name: Push Image
+        env:
+          REGISTRY_DOMAIN: ${{ secrets.ALI_REG_DOMAIN }}
+          REGISTRY_USER: ${{ secrets.ALI_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.ALI_CI_ACTION_PASSWORD }}
+        run: |
+          set -e
+          echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER
+          docker tag hub.iotroom.top/aenjoy/lubricant-agent:nightly $REGISTRY_DOMAIN/iotroom/lubricant-agent:latest
+          docker tag hub.iotroom.top/aenjoy/lubricant-core:nightly $REGISTRY_DOMAIN/iotroom/lubricant-core:latest
+          docker tag hub.iotroom.top/aenjoy/lubricant-gateway:nightly $REGISTRY_DOMAIN/iotroom/lubricant-gateway:latest
+          echo "You Can Pull Image From: $REGISTRY_DOMAIN"
