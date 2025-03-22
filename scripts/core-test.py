@@ -6,9 +6,9 @@ import requests
 
 from time import sleep
 
-LOGIN_URL = "http://127.0.0.1:8000/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
+LOGIN_URL = "http://127.0.0.1/casdoor-service/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
 
-CORE_API_BASE_URL = "http://127.0.0.1:8080"
+CORE_API_BASE_URL = "http://127.0.0.1/lubricant-service"
 CALLBACK_URL = CORE_API_BASE_URL+"/api/v1/signin"
 USER_INFO_URL = CORE_API_BASE_URL+"/api/v1/user/info"
 CREATE_GATEWAY_URL = CORE_API_BASE_URL+"/api/v1/gateway/internal/gateway"
