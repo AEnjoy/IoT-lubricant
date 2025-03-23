@@ -1,6 +1,7 @@
 module github.com/aenjoy/iot-lubricant
 
 go 1.23.6
+
 toolchain go1.24.1
 
 require (
@@ -8,7 +9,7 @@ require (
 	github.com/bytedance/sonic v1.13.1
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/casdoor/casdoor-go-sdk v1.5.0
-	github.com/docker/docker v28.0.1+incompatible
+	github.com/docker/docker v28.0.2+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dop251/goja v0.0.0-20250307175808-203961f822d6
 	github.com/getkin/kin-openapi v0.130.0
