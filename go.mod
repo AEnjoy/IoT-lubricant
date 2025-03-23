@@ -1,6 +1,7 @@
 module github.com/aenjoy/iot-lubricant
 
 go 1.23.6
+
 toolchain go1.24.1
 
 require (
@@ -11,7 +12,7 @@ require (
 	github.com/docker/docker v28.0.1+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/dop251/goja v0.0.0-20250307175808-203961f822d6
-	github.com/getkin/kin-openapi v0.130.0
+	github.com/getkin/kin-openapi v0.131.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/golang/mock v1.6.0
