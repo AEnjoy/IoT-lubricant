@@ -12,6 +12,7 @@ CORE_API_BASE_URL = "http://127.0.0.1/lubricant-service"
 CALLBACK_URL = CORE_API_BASE_URL+"/api/v1/signin"
 USER_INFO_URL = CORE_API_BASE_URL+"/api/v1/user/info"
 CREATE_GATEWAY_URL = CORE_API_BASE_URL+"/api/v1/gateway/internal/gateway"
+ADD_AGENT_URL = CORE_API_BASE_URL+"/api/v1/gateway/{ 0 }/agent/internal/add "
 
 COOKIE_FILE = "cookie.txt"
 
@@ -38,6 +39,16 @@ create_gateway_data={
         "cert": "",
         "ca": ""
     },
+}
+add_agent_data={
+    "description":"agent",
+    "gather_cycle":1,
+    "report_cycle":5,
+    "address":"lubricant-agent.lubricant.svc.cluster.local:5436",
+    "data_compress_algorithm":"default",
+    "enable_stream_ability":False,
+    "open_api_doc":"",
+    "enable_conf":""
 }
 
 def check_pod_status(pod_name, namespace='lubricant'):
@@ -177,6 +188,8 @@ def test_uncreated_gateway(session, gateway_id):
         sys.exit(1)
     else:
         print("Gateway Deploy Success")
+def test_add_agent(session):
+    pass
 def main():
     session = login_and_get_session()
     get_user_info(session)
