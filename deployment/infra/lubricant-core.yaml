@@ -102,7 +102,11 @@ metadata:
   name: lubricant-core
   namespace: lubricant
 spec:
+  type: NodePort
   ports:
+    - port: 80
+      name: http
+      targetPort: 8080
     - port: 8080
       name: http
       targetPort: 8080
