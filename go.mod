@@ -1,11 +1,12 @@
 module github.com/aenjoy/iot-lubricant
 
 go 1.23.6
+
 toolchain go1.24.1
 
 require (
 	github.com/DataDog/zstd v1.5.6
-	github.com/bytedance/sonic v1.13.1
+	github.com/bytedance/sonic v1.13.2
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/casdoor/casdoor-go-sdk v1.5.0
 	github.com/docker/docker v28.0.1+incompatible
