@@ -36,6 +36,20 @@ func (l *Logger) WithException(e *exception.Exception) Log {
 	l.Exception = e
 	return l
 }
+func (l *Logger) Reset() {
+	l.logLevel = svcpb.Level_DEBUG
+	l.ip = ""
+	l.operatorID = ""
+	l.protocol = ""
+	l.action = ""
+	l.message = ""
+	l.Exception = nil
+	l.operationType = svcpb.Operation_Unknown
+	l.cost = 0
+	l.metadata = nil
+	l.printToStdout = false
+	l.exceptionCode = exceptionCode.EmptyValue
+}
 func (l *Logger) Root() Log {
 	return &*l
 }
