@@ -14,11 +14,12 @@ message Logs{
   string Action = 6; // 请求动作
   string Protocol = 7; // 请求协议
   Operation OperationType = 8; // 请求动作类型
-  google.protobuf.Timestamp Cost = 9; // 请求耗时
-  string  message = 10; // 日志内容
-  optional int32 ServiceErrorCode = 11; // 业务错误码
-  optional bytes ExceptionInfo = 12; // 异常信息(json bytes)
-  optional bytes metadata = 13; // 日志元数据 (json bytes)
+  string OperatorID = 9; // 操作者ID
+  google.protobuf.Timestamp Cost = 10; // 请求耗时
+  string message = 11; // 日志内容
+  optional int32 ServiceErrorCode = 12; // 业务错误码
+  optional bytes ExceptionInfo = 13; // 异常信息(json bytes)
+  optional bytes metadata = 14; // 日志元数据 (json bytes)
 }
 enum level{
   DEBUG = 0;
