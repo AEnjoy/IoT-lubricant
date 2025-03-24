@@ -13,6 +13,7 @@ import (
 type Log interface {
 	// Root : Use the currently set value as the root copy
 	Root() Log
+	Reset()
 
 	WithLoglevel(level svcpb.Level) Log
 	WithIP(ip string) Log
@@ -44,9 +45,9 @@ type Log interface {
 	Errorf(format string, args ...interface{})
 }
 
-func NewLogger(transfer svcpb.LogTransfer) (Log, error) {
+func NewLogger(transfer svcpb.LogTransfer, wait bool) (Log, error) {
 	if transfer == nil {
 		return nil, errors.New("transfer is nil")
 	}
-	return &Logger{LogTransfer: transfer, ctx: context.TODO()}, nil
+	return &Logger{LogTransfer: transfer, ctx: context.TODO(), waitOption: wait}, nil
 }
