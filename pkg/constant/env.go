@@ -1,4 +1,4 @@
-package _default
+package constant
 
 const (
 	ENV_CORE_HOST_STR = "CORE_HOST"
