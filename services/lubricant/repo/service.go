@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"

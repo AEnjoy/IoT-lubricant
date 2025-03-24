@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aenjoy/iot-lubricant/cmd/test/agent/cmd"
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/spf13/cobra"
 )
 
