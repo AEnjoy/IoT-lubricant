@@ -1,25 +1,38 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"time"
 
+	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
 )
 
-type Interface interface {
-	WithLoglevel(level svcpb.Level) Interface
-	WithIP(ip string) Interface
+type Log interface {
+	// Root : Use the currently set value as the root copy
+	Root() Log
+
+	WithLoglevel(level svcpb.Level) Log
+	WithIP(ip string) Log
 	// WithOperatorID : DeviceID / UserID
-	WithOperatorID(id string) Interface
-	WithProtocol(protocol string) Interface
-	WithAction(action string) Interface
-	WithOperationType(operationType svcpb.Operation) Interface
-	WithCost(cost time.Duration) Interface
+	WithOperatorID(id string) Log
+	WithProtocol(protocol string) Log
+	WithAction(action string) Log
+	WithOperationType(operationType svcpb.Operation) Log
+	WithCost(cost time.Duration) Log
 	// WithMetaData : metadata is data that can be serialized as JSON
-	WithMetaData(metadata any) Interface
-	WithPrintToStdout() Interface
-	WithExceptionCode(code exceptionCode.ResCode) Interface
+	WithMetaData(metadata any) Log
+	WithPrintToStdout() Log
+	WithException(e *exception.Exception) Log
+	// WithExceptionCode : If WithException has already specified an exceptionCode, it is not necessary to call WithExceptionCode
+	WithExceptionCode(code exceptionCode.ResCode) Log
+
+	WithContext(ctx context.Context) Log
+	WithWaitOption(waitOption bool) Log
+
+	String() string
 
 	Debug(...interface{})
 	Info(...interface{})
@@ -29,4 +42,11 @@ type Interface interface {
 	Infof(format string, args ...interface{})
 	Warnf(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
+}
+
+func NewLogger(transfer svcpb.LogTransfer) (Log, error) {
+	if transfer == nil {
+		return nil, errors.New("transfer is nil")
+	}
+	return &Logger{LogTransfer: transfer, ctx: context.TODO()}, nil
 }
