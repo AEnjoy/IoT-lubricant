@@ -52,7 +52,7 @@ func NewKafkaMq[T any](address, groupID string, partition, timeout int) *KafkaMq
 }
 
 // NewRedisMQ creates a new instance of Redis MQ
-func NewRedisMQ[T any](addr string, password string, db int) (*RedisMq[T], error) {
+func NewRedisMQ(addr string, password string, db int) (*RedisMq, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -65,11 +65,11 @@ func NewRedisMQ[T any](addr string, password string, db int) (*RedisMq[T], error
 		return nil, err
 	}
 
-	return &RedisMq[T]{
+	return &RedisMq{
 		client:   client,
 		ctx:      ctx,
 		cancel:   cancel,
-		channels: make(map[string]chan T),
+		channels: make(map[string]chan any),
 		subs:     make(map[string]*redis.PubSub),
 		capacity: 100,
 	}, nil

@@ -13,7 +13,7 @@ func TestNatsMq(t *testing.T) {
 	natsServer, url := natsUrl(t)
 	defer natsServer()
 
-	mq, err := NewNatsMq[string](url)
+	mq, err := NewNatsMq(url)
 	assert.NoError(err)
 	defer mq.Close()
 	mq.SetConditions(100)
@@ -40,7 +40,7 @@ var subTestResult sync.Map
 
 func consumerNatsClient(t *testing.T, url string, i int, ctx context.Context) {
 	assert := assert.New(t)
-	cli, err := NewNatsMq[any](url)
+	cli, err := NewNatsMq(url)
 	assert.NoError(err)
 
 	subscribe, err := cli.Subscribe("/test/topic/123")
