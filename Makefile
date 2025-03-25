@@ -137,9 +137,32 @@ else
 		-f cmd/lubricant/Dockerfile .
 endif
 
+build-core-svc-logger:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core-logger:nightly \
+		-f cmd/logg/Dockerfile.FastBuild .
+else
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-core-logger:nightly \
+		-f cmd/logg/Dockerfile .
+endif
+
 build-lubricant: build-core
 
-docker-build: build-agent build-gateway-container build-lubricant
+docker-build: build-agent build-gateway-container build-lubricant build-core-svc-logger
 
 load-to-kind-agent: build-agent
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
@@ -147,8 +170,9 @@ load-to-kind-gateway: build-gateway-container
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-gateway:nightly
 load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core:nightly
-
-load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway
+load-to-kind-core-svc-logger: build-core-svc-logger
+	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core-logger:nightly
+load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway load-to-kind-core-svc-logger
 
 test-driver-clock:
 	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
@@ -199,8 +223,24 @@ build-all:
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
 	./cmd/agent/main.go
+	CGO_ENABLED=0 go build -v -o ./bin/logg \
+	-tags=sonic -tags=avx -ldflags "\
+	-w -s \
+	-X 'main.Version=$(VERSION)' \
+	-X 'main.BuildTime=$(BUILD_TIME)' \
+	-X 'main.GoVersion=$(GO_VERSION)' \
+	-X 'main.GitCommit=$(GIT_COMMIT)' \
+	-X 'main.Features=$(FEATURES)' \
+	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+	" \
+	./cmd/logg/main.go
 
 copy-files:
 	cp bin/lubricant-gateway cmd/gateway/gateway
 	cp bin/lubricant cmd/lubricant/lubricant
 	cp bin/lubricant-agent cmd/agent/agent
+	cp bin/logg cmd/logg/logg
+
+clean:
+	rm -rf bin
