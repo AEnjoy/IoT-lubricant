@@ -124,7 +124,7 @@ func bytesToMsg[T any](data []byte, msg *T) {
 }
 
 // NewNatsMq creates a new instance of NatsMq
-func NewNatsMq[T any](url string) (*NatsMq, error) {
+func NewNatsMq(url string) (*NatsMq, error) {
 	nc, err := nats2.NewNatsClient(url)
 	if err != nil {
 		return nil, err
