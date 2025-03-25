@@ -89,7 +89,7 @@ build-gateway: make-output-dir
 	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
-	./cmd/gateway/main.go ./cmd/gateway/start.go
+	./cmd/gateway/main.go
 
 build-gateway-container:
 ifeq ($(FAST_BUILD),1)
@@ -174,7 +174,7 @@ build-all:
 	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
-	./cmd/gateway/main.go ./cmd/gateway/start.go
+	./cmd/gateway/main.go
 	CGO_ENABLED=0 go build -v -o ./bin/lubricant \
 	-tags=sonic -tags=avx -ldflags "\
 	-w -s \
@@ -186,7 +186,7 @@ build-all:
 	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
-	./cmd/lubricant/main.go ./cmd/lubricant/start.go
+	./cmd/lubricant/main.go
 	CGO_ENABLED=0 go build -v -o ./bin/lubricant-agent \
 	-tags=sonic -tags=avx -ldflags "\
 	-w -s \
@@ -198,7 +198,7 @@ build-all:
 	-X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
-	./cmd/agent/main.go ./cmd/agent/start.go
+	./cmd/agent/main.go
 
 copy-files:
 	cp bin/lubricant-gateway cmd/gateway/gateway
