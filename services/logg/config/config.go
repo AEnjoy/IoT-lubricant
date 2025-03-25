@@ -28,7 +28,7 @@ type Config struct {
 	RedisDB       int    `yaml:"redis_db" env:"REDIS_DB"`
 
 	// MessageQueue MQ
-	MqType      string `yaml:"type" env:"MQ_TYPE" envDefault:"internal"` // support: kafka,redis,nats,internal
+	MqType      string `yaml:"type" env:"MQ_TYPE" envDefault:"nats"` // support: kafka,redis,nats
 	KaBrokers   string `yaml:"kafka_brokers" env:"KAFKA_BROKERS"`
 	KaGroupID   string `yaml:"kafka_group_id" env:"KAFKA_GROUP_ID"`
 	KaPartition int    `yaml:"kafka_partition" env:"KAFKA_PARTITION"`
