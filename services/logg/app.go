@@ -17,7 +17,7 @@ type app struct {
 }
 
 func (a *app) Run() error {
-	ch, err := a.mq.SubscribeBytes(constant.SVC_LOGGER_MESSAGE)
+	ch, err := a.mq.SubscribeBytes(constant.MESSAGE_SVC_LOGGER)
 	if err != nil {
 		return err
 	}

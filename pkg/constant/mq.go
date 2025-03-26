@@ -2,5 +2,5 @@ package constant
 
 // logger
 const (
-	SVC_LOGGER_MESSAGE = "/logger/message"
+	MESSAGE_SVC_LOGGER = "/logger/message"
 )
