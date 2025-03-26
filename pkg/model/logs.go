@@ -13,6 +13,7 @@ type Log struct {
 	OperatorID string `json:"operatorId" gorm:"column:operator_id"` // UserID / DevicesID
 
 	ServiceName      string                `json:"serviceName" gorm:"column:service_name"`
+	Version          string                `json:"version" gorm:"column:version;type:json"`
 	Level            svcpb.Level           `json:"level" gorm:"column:level;type:tinyint"`
 	IPAddress        string                `json:"ipAddress" gorm:"column:ip_address"`
 	Protocol         string                `json:"protocol" gorm:"column:protocol"`
