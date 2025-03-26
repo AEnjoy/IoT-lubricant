@@ -20,6 +20,7 @@ type Logger struct {
 	protocol   string
 	action     string
 	message    string
+	version    []byte // json 格式
 	*exception.Exception
 	operationType svcpb.Operation
 	cost          time.Duration
@@ -32,6 +33,10 @@ type Logger struct {
 	svcpb.LogTransfer
 }
 
+func (l *Logger) WithVersionJson(v []byte) Log {
+	l.version = v
+	return l
+}
 func (l *Logger) WithException(e *exception.Exception) Log {
 	l.Exception = e
 	return l
@@ -43,6 +48,7 @@ func (l *Logger) Reset() {
 	l.protocol = ""
 	l.action = ""
 	l.message = ""
+	l.version = nil
 	l.Exception = nil
 	l.operationType = svcpb.Operation_Unknown
 	l.cost = 0
@@ -74,6 +80,7 @@ func (l *Logger) generateProtobuf() *svcpb.Logs {
 			return nil
 		}(),
 		Message: l.message,
+		Version: l.version,
 		ServiceErrorCode: func() *int32 {
 			if l.exceptionCode != exceptionCode.ErrorUnknown && l.exceptionCode != exceptionCode.EmptyValue {
 				var retVal = int32(l.exceptionCode)
