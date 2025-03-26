@@ -7,13 +7,13 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
-	"github.com/aenjoy/iot-lubricant/services/logg/repo"
+	"github.com/aenjoy/iot-lubricant/services/logg/dao"
 )
 
 type app struct {
 	ctx context.Context
 	mq  mq.Mq
-	db  repo.ILogg
+	db  dao.ILogg
 }
 
 func (a *app) Run() error {
@@ -57,7 +57,7 @@ func UseMq(mq mq.Mq, err error) func(*app) error {
 		return nil
 	}
 }
-func UseDb(db repo.ILogg) func(*app) error {
+func UseDb(db dao.ILogg) func(*app) error {
 	return func(app *app) error {
 		if db == nil {
 			return errors.New("failed to connect logger database")
