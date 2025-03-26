@@ -42,6 +42,9 @@ func MarshallJsonString() string {
 		runtime.GOOS,
 		runtime.GOARCH)
 }
+func VersionJson() []byte {
+	return MarshallJson()
+}
 func MarshallJson() []byte {
 	return StringToBytes(MarshallJsonString())
 }

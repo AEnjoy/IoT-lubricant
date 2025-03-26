@@ -11,7 +11,9 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/utils/compress"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/net"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
+
 	"github.com/nats-io/nats.go"
 )
 
@@ -27,6 +29,14 @@ type app struct {
 
 func (a *app) Run() error {
 	logg.L, _ = logg.NewLogger(a, false)
+	logg.L = logg.L.
+		WithVersionJson(version.VersionJson()).
+		WithOperatorID(a.config.ID).
+		WithPrintToStdout().
+		WithContext(a.ctrl).
+		WithWaitOption(false).
+		Root()
+
 	_compressor, _ = compress.NewCompressor(a.config.Algorithm)
 	go DataHandler()
 
