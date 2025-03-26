@@ -6,13 +6,15 @@ import (
 	"unsafe"
 )
 
+const DefaultVersion = "dev"
+
 var (
 	ServiceName       string
-	Version           string
+	Version           = DefaultVersion
+	GitCommit         = DefaultVersion
+	Features          = DefaultVersion
 	BuildTime         string
 	GoVersion         string
-	GitCommit         string
-	Features          string
 	BuildHostPlatform string
 	PlatformVersion   string
 )

@@ -16,6 +16,7 @@ type Log interface {
 	Reset()
 
 	WithLoglevel(level svcpb.Level) Log
+	WithVersionJson(v []byte) Log
 	WithIP(ip string) Log
 	// WithOperatorID : DeviceID / UserID
 	WithOperatorID(id string) Log
