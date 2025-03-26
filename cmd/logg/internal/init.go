@@ -6,11 +6,11 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	"github.com/aenjoy/iot-lubricant/services/logg/config"
-	"github.com/aenjoy/iot-lubricant/services/logg/repo"
+	"github.com/aenjoy/iot-lubricant/services/logg/dao"
 )
 
-func GetDb() repo.ILogg {
-	return repo.LogDatabase()
+func GetDb() dao.ILogg {
+	return dao.LogDatabase()
 }
 func GetMq() (mq.Mq, error) {
 	c := config.GetConfig()
