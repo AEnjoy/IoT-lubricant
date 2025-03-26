@@ -61,28 +61,34 @@ func (PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) 
 		return nil, status2.Errorf(codes.Internal, "failed to publish data: %v", err)
 	}
 
-	if req.GetAgentStatus() != nil {
+	switch req.Req.(type) {
+	case *corepb.ReportRequest_AgentStatus:
 		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_AgentStatus{
 			AgentStatus: &corepb.AgentStatusResponse{
 				Resp: &status.Status{Message: "ok"},
 			},
-		},
-		}, nil
-	}
-	if req.GetTaskResult() != nil {
+		}}, nil
+	case *corepb.ReportRequest_TaskResult:
 		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_TaskResult{
 			TaskResult: &corepb.TaskResultResponse{
 				Resp: &status.Status{Message: "ok"},
 			},
-		},
-		}, nil
+		}}, nil
+	case *corepb.ReportRequest_ReportLog:
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_ReportLog{
+			ReportLog: &corepb.ReportLogResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		}}, nil
+	case *corepb.ReportRequest_Error:
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
+			Error: &corepb.ReportErrorResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		}}, nil
+	default:
+		return nil, status2.Errorf(codes.Internal, "unknown request type")
 	}
-	return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
-		Error: &corepb.ReportErrorResponse{
-			Resp: &status.Status{Message: "ok"},
-		},
-	},
-	}, nil
 }
 
 func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
