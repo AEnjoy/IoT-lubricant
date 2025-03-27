@@ -11,8 +11,11 @@ import (
 )
 
 type Log interface {
-	// Root : Use the currently set value as the root copy
-	Root() Log
+	// AsRoot : Use the currently set value as the root log branch
+	AsRoot() Log
+	// NewLog : It is an alias of AsRoot() Log
+	NewLog() Log
+
 	Reset()
 
 	WithLoglevel(level svcpb.Level) Log
