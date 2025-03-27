@@ -13,11 +13,13 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/agent"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/async"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -47,6 +49,16 @@ func NewApp(opts ...func(*app) error) *app {
 	return app
 }
 func (a *app) Run() error {
+	logg.L, _ = logg.NewLogger(a, false)
+	logg.SetServiceName(version.ServiceName)
+	logg.L = logg.L.
+		WithVersionJson(version.VersionJson()).
+		WithOperatorID(gatewayId).
+		WithPrintToStdout().
+		WithContext(a.ctrl).
+		WithWaitOption(false).
+		AsRoot()
+
 	a.agent = agent.NewAgentApis(a.IGatewayDb)
 	a.agent.SetReporter(_reportMessage)
 	a.task = async.NewAsyncTask()
@@ -55,6 +67,7 @@ func (a *app) Run() error {
 
 	go a.grpcDataApp()
 	go a.grpcReportApp()
+	go a.grpcReportLogApp()
 
 	go func() {
 		_ = a.grpcPingApp()
