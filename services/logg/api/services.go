@@ -30,6 +30,8 @@ type Log interface {
 	// WithMetaData : metadata is data that can be serialized as JSON
 	WithMetaData(metadata any) Log
 	WithPrintToStdout() Log
+	WithNotPrintToStdout() Log
+
 	WithException(e *exception.Exception) Log
 	// WithExceptionCode : If WithException has already specified an exceptionCode, it is not necessary to call WithExceptionCode
 	WithExceptionCode(code exceptionCode.ResCode) Log
