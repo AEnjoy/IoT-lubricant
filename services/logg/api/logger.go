@@ -34,12 +34,14 @@ type Logger struct {
 }
 
 func (l *Logger) WithVersionJson(v []byte) Log {
-	l.version = v
-	return l
+	newLogger := *l
+	newLogger.version = v
+	return &newLogger
 }
 func (l *Logger) WithException(e *exception.Exception) Log {
-	l.Exception = e
-	return l
+	newLogger := *l
+	newLogger.Exception = e
+	return &newLogger
 }
 func (l *Logger) Reset() {
 	l.logLevel = svcpb.Level_DEBUG
@@ -56,8 +58,12 @@ func (l *Logger) Reset() {
 	l.printToStdout = false
 	l.exceptionCode = exceptionCode.EmptyValue
 }
-func (l *Logger) Root() Log {
-	return &*l
+func (l *Logger) AsRoot() Log {
+	newLogger := *l
+	return &newLogger
+}
+func (l *Logger) NewLog() Log {
+	return l.AsRoot()
 }
 func (l *Logger) String() string {
 	return l.generateProtobuf().String()
@@ -103,61 +109,73 @@ func (l *Logger) generateProtobuf() *svcpb.Logs {
 	}
 }
 func (l *Logger) WithContext(ctx context.Context) Log {
-	l.ctx = ctx
-	return l
+	newLogger := *l
+	newLogger.ctx = ctx
+	return &newLogger
 }
 func (l *Logger) WithWaitOption(waitOption bool) Log {
-	l.waitOption = waitOption
-	return l
+	newLogger := *l
+	newLogger.waitOption = waitOption
+	return &newLogger
 }
 func (l *Logger) WithLoglevel(level svcpb.Level) Log {
-	l.logLevel = level
-	return l
+	newLogger := *l
+	newLogger.logLevel = level
+	return &newLogger
 }
 
 func (l *Logger) WithIP(ip string) Log {
-	l.ip = ip
-	return &*l
+	newLogger := *l
+	newLogger.ip = ip
+	return &newLogger
 }
 
 func (l *Logger) WithOperatorID(id string) Log {
-	l.operatorID = id
-	return &*l
+	newLogger := *l
+	newLogger.operatorID = id
+	return &newLogger
 }
 
 func (l *Logger) WithProtocol(protocol string) Log {
-	l.protocol = protocol
-	return &*l
+	newLogger := *l
+	newLogger.protocol = protocol
+	return &newLogger
 }
 
 func (l *Logger) WithAction(action string) Log {
-	l.action = action
-	return &*l
+	newLogger := *l
+	newLogger.action = action
+	return &newLogger
 }
 
 func (l *Logger) WithOperationType(operationType svcpb.Operation) Log {
-	l.operationType = operationType
-	return &*l
+	newLogger := *l
+	newLogger.operationType = operationType
+	return &newLogger
 }
 
 func (l *Logger) WithCost(cost time.Duration) Log {
-	l.cost = cost
-	return &*l
+	newLogger := *l
+	newLogger.cost = cost
+	return &newLogger
 }
 
 func (l *Logger) WithMetaData(metadata any) Log {
-	l.metadata = metadata
-	return &*l
+	newLogger := *l
+	newLogger.metadata = metadata
+	return &newLogger
 }
 
 func (l *Logger) WithPrintToStdout() Log {
-	l.printToStdout = true
-	return &*l
+	newLogger := *l
+	newLogger.printToStdout = true
+	return &newLogger
 }
 
 func (l *Logger) WithExceptionCode(code exceptionCode.ResCode) Log {
-	l.exceptionCode = code
-	return &*l
+	newLogger := *l
+	newLogger.exceptionCode = code
+	return &newLogger
 }
 
 func (l *Logger) Debug(args ...interface{}) {
