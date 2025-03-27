@@ -171,6 +171,11 @@ func (l *Logger) WithPrintToStdout() Log {
 	newLogger.printToStdout = true
 	return &newLogger
 }
+func (l *Logger) WithNotPrintToStdout() Log {
+	newLogger := *l
+	newLogger.printToStdout = false
+	return &newLogger
+}
 
 func (l *Logger) WithExceptionCode(code exceptionCode.ResCode) Log {
 	newLogger := *l
