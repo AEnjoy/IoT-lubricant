@@ -29,13 +29,14 @@ type app struct {
 
 func (a *app) Run() error {
 	logg.L, _ = logg.NewLogger(a, false)
+	logg.SetServiceName(version.ServiceName)
 	logg.L = logg.L.
 		WithVersionJson(version.VersionJson()).
 		WithOperatorID(a.config.ID).
 		WithPrintToStdout().
 		WithContext(a.ctrl).
 		WithWaitOption(false).
-		Root()
+		AsRoot()
 
 	_compressor, _ = compress.NewCompressor(a.config.Algorithm)
 	go DataHandler()
