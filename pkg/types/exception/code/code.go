@@ -2,6 +2,8 @@ package code
 
 type ResCode int64
 
+const EmptyValue ResCode = 0
+
 // Common
 const (
 	Success ResCode = 100000 + iota

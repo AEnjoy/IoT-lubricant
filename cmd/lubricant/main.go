@@ -7,6 +7,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/cmd/lubricant/internal"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
 	"github.com/aenjoy/iot-lubricant/services/lubricant"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 )
@@ -20,7 +21,6 @@ func main() {
 	var envFilePath string
 	flag.StringVar(&envFilePath, "env", "", "Path to .env file")
 	flag.Parse()
-	printBuildInfo()
 
 	err := internal.AppInit()
 	if err != nil {
@@ -39,4 +39,27 @@ func main() {
 		lubricant.UseSignalHandler(utils.HandelExitSignal(nil, config.SaveConfig, nil, 30*time.Second)),
 	)
 	panic(app.Run())
+}
+
+var (
+	ServiceName       = "IoTLubricantCore"
+	Version           string
+	BuildTime         string
+	GoVersion         string
+	GitCommit         string
+	Features          string
+	BuildHostPlatform string
+	PlatformVersion   string
+)
+
+func init() {
+	version.ServiceName = ServiceName
+	version.Version = Version
+	version.BuildTime = BuildTime
+	version.GoVersion = GoVersion
+	version.GitCommit = GitCommit
+	version.Features = Features
+	version.BuildHostPlatform = BuildHostPlatform
+	version.PlatformVersion = PlatformVersion
+	version.PrintVersionInfo()
 }

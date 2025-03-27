@@ -50,7 +50,7 @@ func TestNatsMqAbility(t *testing.T) {
 	clean, url := natsUrl(t)
 	defer clean()
 
-	mq, err := NewNatsMq[string](url)
+	mq, err := NewNatsMq(url)
 	assert.NoError(err)
 	defer mq.Close()
 	mq.SetConditions(100)

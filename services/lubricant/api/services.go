@@ -4,6 +4,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/agent"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/gateway"
+	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/log"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/monitor"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/task"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/user"
@@ -20,6 +21,7 @@ var (
 	_ IMonitor = (*monitor.Api)(nil)
 	_ IAgent   = (*agent.Api)(nil)
 	_ ITask    = (*task.Api)(nil)
+	_ ILog     = (*log.Api)(nil)
 
 	_gateway IGateway
 	_user    IUser
@@ -27,6 +29,7 @@ var (
 	_monitor IMonitor
 	_agent   IAgent
 	_task    ITask
+	_log     ILog
 )
 
 func NewGateway() IGateway {
@@ -78,4 +81,12 @@ func NewTask() ITask {
 		}
 	}
 	return _task
+}
+func NewLog() ILog {
+	if _log == nil {
+		_log = log.Api{
+			DataStore: ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore),
+		}
+	}
+	return _log
 }

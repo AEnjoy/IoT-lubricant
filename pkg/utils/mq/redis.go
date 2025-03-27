@@ -9,29 +9,25 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type RedisMq[T any] struct {
+type RedisMq struct {
 	client   *redis.Client
 	ctx      context.Context
 	cancel   context.CancelFunc
-	channels map[string]chan T
+	channels map[string]chan any
 	subs     map[string]*redis.PubSub
 	mutex    sync.RWMutex
 	capacity int
 }
 
-func (r *RedisMq[T]) Publish(topic string, msg T) error {
-	data, err := sonic.Marshal(msg)
+func (r *RedisMq) Publish(topic string, msg any) error {
+	marshal, err := sonic.Marshal(msg)
 	if err != nil {
 		return err
 	}
-	return r.client.Publish(r.ctx, topic, data).Err()
+	return r.PublishBytes(topic, marshal)
 }
 
-func (r *RedisMq[T]) PublishBytes(topic string, msg []byte) error {
-	return r.client.Publish(r.ctx, topic, msg).Err()
-}
-
-func (r *RedisMq[T]) Subscribe(topic string) (<-chan T, error) {
+func (r *RedisMq) Subscribe(topic string) (<-chan any, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -40,14 +36,14 @@ func (r *RedisMq[T]) Subscribe(topic string) (<-chan T, error) {
 	}
 
 	sub := r.client.Subscribe(r.ctx, topic)
-	ch := make(chan T, r.capacity)
+	ch := make(chan any, r.capacity)
 
 	r.channels[topic] = ch
 	r.subs[topic] = sub
 
 	go func() {
 		for msg := range sub.Channel() {
-			var data T
+			var data any
 			if err := sonic.Unmarshal([]byte(msg.Payload), &data); err == nil {
 				ch <- data
 			}
@@ -57,7 +53,32 @@ func (r *RedisMq[T]) Subscribe(topic string) (<-chan T, error) {
 	return ch, nil
 }
 
-func (r *RedisMq[T]) Unsubscribe(topic string, sub <-chan T) error {
+func (r *RedisMq) SubscribeBytes(topic string) (<-chan any, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	if _, exists := r.channels[topic]; exists {
+		return nil, errors.New("already subscribed to topic")
+	}
+
+	sub := r.client.Subscribe(r.ctx, topic)
+	ch := make(chan any, r.capacity)
+
+	r.channels[topic] = ch
+	r.subs[topic] = sub
+
+	go func() {
+		for msg := range sub.Channel() {
+			ch <- msg.Payload
+		}
+	}()
+	return ch, nil
+}
+
+func (r *RedisMq) PublishBytes(topic string, msg []byte) error {
+	return r.client.Publish(r.ctx, topic, msg).Err()
+}
+
+func (r *RedisMq) Unsubscribe(topic string, sub <-chan any) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -77,7 +98,7 @@ func (r *RedisMq[T]) Unsubscribe(topic string, sub <-chan T) error {
 	return nil
 }
 
-func (r *RedisMq[T]) Close() {
+func (r *RedisMq) Close() {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -90,10 +111,10 @@ func (r *RedisMq[T]) Close() {
 	}
 }
 
-func (r *RedisMq[T]) GetPayLoad(sub <-chan T) T {
+func (r *RedisMq) GetPayLoad(sub <-chan any) any {
 	return <-sub
 }
 
-func (r *RedisMq[T]) SetConditions(capacity int) {
+func (r *RedisMq) SetConditions(capacity int) {
 	r.capacity = capacity
 }

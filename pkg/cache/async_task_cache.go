@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 )
 
