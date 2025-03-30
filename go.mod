@@ -1,7 +1,6 @@
 module github.com/aenjoy/iot-lubricant
 
 go 1.23.6
-
 toolchain go1.24.1
 
 require (
@@ -25,7 +24,7 @@ require (
 	github.com/nats-io/nats.go v1.39.1
 	github.com/panjf2000/ants/v2 v2.11.2
 	github.com/pierrec/lz4/v4 v4.1.22
-	github.com/pkg/sftp v1.13.8
+	github.com/pkg/sftp v1.13.9
 	github.com/prometheus/client_golang v1.21.1
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/robfig/cron/v3 v3.0.1
