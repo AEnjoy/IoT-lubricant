@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
-	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/router"
 	"github.com/gin-gonic/gin"
 )
@@ -15,14 +15,13 @@ type app struct {
 	port     string
 
 	httpServer *gin.Engine
-	dbClient   *repo.CoreDb
 }
 
-func (s *app) Run() error {
-	err := s.httpServer.Run(fmt.Sprintf(":%s", s.port))
+func (a *app) Run() error {
+	err := a.httpServer.Run(fmt.Sprintf(":%s", a.port))
 	if err != nil {
-		logger.Errorln("Web Server start error, error Info is: ", err)
-		logger.Info("Web Server will not start, please check the configuration or error Info.")
+		logg.L.Error("Web Server start error, error Info is: ", err)
+		logg.L.Info("Web Server will not start, please check the configuration or error Info.")
 		return err
 	}
 	return nil
@@ -40,13 +39,6 @@ func NewApp(opts ...func(*app) error) *app {
 func SetHostName(hostName string) func(*app) error {
 	return func(s *app) error {
 		s.hostName = hostName
-		return nil
-	}
-}
-
-func UseDB(dbClient *repo.CoreDb) func(*app) error {
-	return func(s *app) error {
-		s.dbClient = dbClient
 		return nil
 	}
 }

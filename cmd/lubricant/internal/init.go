@@ -38,6 +38,7 @@ func AppInit() error {
 
 			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:           &mqService.MqService{},
 			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:     &services.SyncTaskQueue{},
+			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE:       &services.Log{},
 			ioc.APP_NAME_CORE_Internal_Handler_DataUpload:   &backendService.DataHandler{},
 			ioc.APP_NAME_CORE_Internal_Handler_Report:       &backendService.ReportHandler{},
 			ioc.APP_NAME_CORE_Internal_Handler_ErrLogs:      &backendService.ErrLogCollect{},
