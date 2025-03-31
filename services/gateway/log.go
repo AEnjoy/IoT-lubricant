@@ -23,7 +23,7 @@ func (a *app) Transfer(ctx context.Context, data *svcpb.Logs, wait bool) (retval
 	go func() {
 		logCollect <- data
 	}()
-	return
+	return nil
 }
 func (a *app) grpcReportLogApp() {
 	for logs := range logCollect {

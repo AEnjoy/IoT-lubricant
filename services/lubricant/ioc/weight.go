@@ -10,6 +10,7 @@ const (
 	_
 
 	CoreMqService
+	SvcLoggerService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
 	CoreSyncTaskSystem
