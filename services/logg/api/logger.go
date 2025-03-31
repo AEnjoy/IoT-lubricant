@@ -188,7 +188,7 @@ func (l *Logger) Debug(args ...interface{}) {
 	if l.printToStdout {
 		logger.Debug(l.message)
 	}
-	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
+	//_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
 
 func (l *Logger) Info(args ...interface{}) {
