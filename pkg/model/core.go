@@ -146,6 +146,9 @@ type GatewayHost struct {
 	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
+
+// Deprecated :
+//Use Log instead
 type ErrorLogs struct {
 	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	ErrID     string `json:"err_id" gorm:"column:err_id"`

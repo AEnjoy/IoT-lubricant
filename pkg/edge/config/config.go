@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
