@@ -22,6 +22,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: USER_ID
+              value: 8d49ed6b-b60c-4e48-a416-3482ed11279a
             - name: CORE_HOST
               value: lubricant-core.lubricant.svc.cluster.local
             - name: CORE_PORT

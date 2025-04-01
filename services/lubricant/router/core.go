@@ -40,6 +40,7 @@ func CoreRouter() (*gin.Engine, error) {
 		r.InitRouter(v1Route)
 	}
 
+	v1Route.GET("/get-private-key", signinController.GetPrivateKey)
 	// Static
 	// router.Static("/static", "./static")
 

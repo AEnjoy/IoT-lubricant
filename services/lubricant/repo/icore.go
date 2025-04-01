@@ -21,7 +21,7 @@ type ICoreDb interface {
 	AgentIDGetGatewayID(ctx context.Context, id string) (string, error)
 
 	// Gateway:
-	IsGatewayIdExists(id string) bool
+	IsGatewayIdExists(userID, gatewayID string) bool
 	GetGatewayInfo(ctx context.Context, id string) (*model.Gateway, error)
 	AddGateway(ctx context.Context, txn *gorm.DB, userID string, gateway model.Gateway) error // need txn
 	UpdateGateway(ctx context.Context, txn *gorm.DB, gateway model.Gateway) error             // need txn
@@ -41,7 +41,7 @@ type ICoreDb interface {
 	UpdateAgentStatus(ctx context.Context, txn *gorm.DB, agentID, status string) error
 	GetAgentStatus(ctx context.Context, agentID string) (string, error)
 	DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error
-	GetAgentList(ctx context.Context, gatewayID string) ([]model.Agent, error)
+	GetAgentList(ctx context.Context, userID, gatewayID string) ([]model.Agent, error)
 
 	// Data:
 	StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error
@@ -71,9 +71,10 @@ type ICoreDb interface {
 	GetAsyncJob(ctx context.Context, requestId string) (model.AsyncJob, error)
 	GetAsyncJobResult(ctx context.Context, requestId string) (status, result string, err error)
 	UserGetAsyncJobs(ctx context.Context, userID string, current, limit int) ([]model.AsyncJob, error)
+	// SetAsyncJobStatus txn is allowed set to nil(means no txn)
 	SetAsyncJobStatus(ctx context.Context, txn *gorm.DB, requestId string, status, result string) error
 
 	// internal
-	SetGatewayStatus(ctx context.Context, txn *gorm.DB, gatewayID, status string) error
+	SetGatewayStatus(ctx context.Context, txn *gorm.DB, userid, gatewayID, status string) error
 	GetGatewayStatus(ctx context.Context, gatewayID string) (string, error)
 }

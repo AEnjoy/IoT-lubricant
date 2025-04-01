@@ -58,6 +58,7 @@ const (
 	UpdateTaskStatusFailed
 	GetAgentInfoFailed
 	ErrorSetAgentInfoFailed
+	ListAgentFailed
 )
 
 // gateway
@@ -80,6 +81,7 @@ const (
 	SetAgentFailed
 	StartAgentFailed
 	StopAgentFailed
+	GetAgentGatherStatusFailed
 	GetOpenAPIDocFailed
 	RemoveAgentFailed
 	ErrorNoAgentContainerConfSet
@@ -165,6 +167,7 @@ var StatusMsgMap = map[ResCode]string{
 	UpdateTaskStatusFailed:           "update task status failed",
 	GetAgentInfoFailed:               "get agent info failed",
 	ErrorSetAgentInfoFailed:          "set agent info failed",
+	ListAgentFailed:                  "list agent failed",
 
 	// Gateway
 	ErrorGatewayAgentNotFound: "agent not found",
@@ -189,6 +192,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorAgentUpdateNotSupportRemote:      "update agent operation not support remote agent",
 	ErrGaterStartFailed:                   "agent start gather failed",
 	GetOpenAPIDocFailed:                   "get openapi doc failed",
+	GetAgentGatherStatusFailed:            "get agent gather status failed",
 
 	// Cache
 	ErrorCacheNeedInit:  "cache client need init",

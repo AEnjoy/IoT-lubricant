@@ -20,7 +20,7 @@ type IGatewayService interface {
 	GetHost(ctx context.Context, hostid string) (model.GatewayHost, error)
 	EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error
 	DescriptionHost(ctx context.Context, hostid string) (*response.DescriptionHostResponse, error)
-	DescriptionGateway(ctx context.Context, gatewayid string) (*response.DescriptionGatewayResponse, error)
+	DescriptionGateway(ctx context.Context, userid, gatewayid string) (*response.DescriptionGatewayResponse, error)
 	UserGetHosts(ctx context.Context, userid string) ([]model.GatewayHost, error)
 	DeployGatewayInstance(ctx context.Context, hostid string, description string, tls *crypto.Tls) (string, error)
 
@@ -61,6 +61,7 @@ type IAgentService interface {
 	//  and pb type is core.TaskDetail
 	PushTaskAgentPb(ctx context.Context, taskid *string, userID, gatewayID, agentID string, pb proto.Message) (string, string, error)
 
+	ListAgents(ctx context.Context, userID, gatewayid string) ([]model.Agent, error)
 	GetAgentStatus(ctx context.Context, gatewayid string, ids []string) ([]model.AgentStatus, error)
 	StartAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
 	StopAgent(ctx context.Context, userid, gatewayid, agentid string) (taskid string, err error)
@@ -69,4 +70,5 @@ type IAgentService interface {
 	GetOpenApiDoc(ctx context.Context, userid, gatewayid, agentid string, docType agentpb.OpenapiDocType) (result *response.GetOpenApiDocResponse, err error)
 	GetAgentInfo(ctx context.Context, userid string, gatewayID string, agentID string, sync bool) (*agentpb.AgentInfo, error)
 	SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error)
+	IsGathering(ctx context.Context, userid, gatewayid, agentid string) (bool, error)
 }

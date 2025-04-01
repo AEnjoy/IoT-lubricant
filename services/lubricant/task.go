@@ -51,8 +51,8 @@ func CreateTask(taskID string, targetType task.Target, targetDeviceID string, ta
 
 var taskChMap sync.Map
 
-func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID string) (chan string, func(), error) {
-	topic := fmt.Sprintf("/task/%s/%s", targetType, targetDeviceID)
+func getTaskIDCh(ctx context.Context, targetType task.Target, userid, targetDeviceID string) (chan string, func(), error) {
+	topic := fmt.Sprintf("/task/%s/%s/%s", userid, targetType, targetDeviceID)
 	logger.Debugf("get task id chan topic： %s", topic)
 
 	if val, exists := taskChMap.Load(topic); exists {
@@ -111,9 +111,9 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, targetDeviceID str
 	return ch, cancel, nil
 }
 
-func getTask(_ context.Context, targetType task.Target, targetDeviceID, taskID string) ([]byte, error) {
+func getTask(_ context.Context, targetType task.Target, userid, targetDeviceID, taskID string) ([]byte, error) {
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
-	topic := fmt.Sprintf("/task/%s/%s/%s", targetType, targetDeviceID, taskID)
+	topic := fmt.Sprintf("/task/%s/%s/%s/%s", userid, targetType, targetDeviceID, taskID)
 	logger.Debugf("get task topic： %s", topic)
 	t, err := taskMq.SubscribeBytes(topic)
 	if err != nil {

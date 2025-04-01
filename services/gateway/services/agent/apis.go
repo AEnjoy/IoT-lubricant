@@ -31,6 +31,14 @@ type agentApis struct {
 	*pool
 }
 
+func (a *agentApis) IsGathering(id string) (bool, error) {
+	ctrl := a.pool.GetAgentControl(id)
+	if ctrl == nil {
+		return false, exception.New(exceptionCode.ErrorGatewayAgentNotFound, exception.WithLevel(errLevel.Error), exception.WithMsg(fmt.Sprintf("agentID:%s", id)))
+	}
+	return ctrl.IsGathering(), nil
+}
+
 func (a *agentApis) GetAgentOpenApiDoc(req *agentpb.GetOpenapiDocRequest) (*agentpb.OpenapiDoc, error) {
 	ctrl := a.pool.GetAgentControl(req.GetAgentID())
 	if ctrl == nil {

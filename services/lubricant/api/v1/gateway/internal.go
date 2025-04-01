@@ -14,7 +14,7 @@ import (
 	"github.com/rs/xid"
 )
 
-func (a Api) AddGatewayInternal(c *gin.Context) {
+func (a Api) AddGateway(c *gin.Context) {
 	tlsConfig, gatewayHostInfo := a.getGatewayHostModel(c)
 	if gatewayHostInfo == nil {
 		return
@@ -39,7 +39,7 @@ func (a Api) AddGatewayInternal(c *gin.Context) {
 	}
 	helper.SuccessJson(response.AddGatewayResponse{GatewayID: gatewayid}, c)
 }
-func (a Api) RemoveGatewayInternal(c *gin.Context) {
+func (a Api) RemoveGateway(c *gin.Context) {
 	req := a.getGatewayRemoveModel(c)
 	if req == nil {
 		return

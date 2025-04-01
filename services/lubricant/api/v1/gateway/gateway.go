@@ -12,8 +12,15 @@ import (
 )
 
 func (a Api) DescriptionGateway(c *gin.Context) {
+	claims, err := helper.GetClaims(c)
+	if err != nil {
+		helper.FailedWithJson(http.StatusInternalServerError,
+			exception.New(exceptionCode.ErrorGetClaimsFailed, exception.WithMsg("claims is empty")), c)
+		return
+	}
+	userid := claims.User.Id
 	gatewayid := c.Param("gatewayid")
-	gatewayinfo, err := a.IGatewayService.DescriptionGateway(c, gatewayid)
+	gatewayinfo, err := a.IGatewayService.DescriptionGateway(c, userid, gatewayid)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
 			exception.ErrNewException(err, exceptionCode.GetGatewayFailed), c)

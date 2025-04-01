@@ -20,7 +20,7 @@ func (a *AgentService) PushTaskAgent(ctx context.Context, taskid *string, userID
 		gatewayID, //agentID,
 		userID,
 		string(taskTypes.TargetAgent),
-		fmt.Sprintf("/task/%s", taskTypes.TargetGateway), //fmt.Sprintf("/task/%s/%s/%s", taskTypes.TargetGateway, gatewayID, taskTypes.TargetAgent),
+		fmt.Sprintf("/task/%s/%s", userID, taskTypes.TargetGateway), //fmt.Sprintf("/task/%s/%s/%s", taskTypes.TargetGateway, gatewayID, taskTypes.TargetAgent),
 		bin,
 	)
 }
@@ -46,7 +46,14 @@ func (s *GatewayService) PushTask(ctx context.Context, taskid *string, gatewayID
 		gatewayID,
 		userID,
 		string(taskTypes.TargetGateway),
-		fmt.Sprintf("/task/%s", taskTypes.TargetGateway),
+		fmt.Sprintf("/task/%s/%s", userID, taskTypes.TargetGateway),
 		bin,
 	)
+}
+func (s *GatewayService) PushTaskPb(ctx context.Context, taskid *string, userID, gatewayID string, pb proto.Message) (string, string, error) {
+	bin, err := proto.Marshal(pb)
+	if err != nil {
+		return "", "", err
+	}
+	return s.PushTask(ctx, taskid, gatewayID, userID, bin)
 }

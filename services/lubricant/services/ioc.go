@@ -16,6 +16,7 @@ var (
 func (s *GatewayService) Init() error {
 	s.db = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(*repo.CoreDb)
 	s.store = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
+	s.SyncTaskQueue = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE).(*SyncTaskQueue)
 	return nil
 }
 

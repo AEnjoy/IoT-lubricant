@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
@@ -92,7 +93,7 @@ func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb
 }
 func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := getGatewayID(s.Context())
-
+	userid, _ := getUserID(s.Context())
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 
 	topic := fmt.Sprintf("/ping/%s/%s/register", taskTypes.TargetGateway, gatewayID)
@@ -118,7 +119,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 			}
 		} else {
-			err := gatewayOffline(taskMq, gatewayID)
+			err := gatewayOffline(taskMq, userid, gatewayID)
 			if err != nil {
 				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 			}
@@ -187,11 +188,13 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 }
 func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
 	gatewayID, _ := getGatewayID(s.Context()) // 获取网关ID
+	userid, _ := getUserID(s.Context())
+
 	cancelContext, cancel := context.WithCancel(s.Context())
 	defer cancel()
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 
-	ch, cancel2, err := getTaskIDCh(s.Context(), taskTypes.TargetGateway, gatewayID)
+	ch, cancel2, err := getTaskIDCh(s.Context(), taskTypes.TargetGateway, userid, gatewayID)
 	if err != nil {
 		logger.Errorf("failed to get task id: %s", err.Error())
 		taskSendErrorMessage(s, 500, err.Error())
@@ -216,7 +219,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 
 				logger.Debugf("taskID:%s", taskID)
 
-				taskData, err := getTask(s.Context(), taskTypes.TargetGateway, gatewayID, taskID)
+				taskData, err := getTask(s.Context(), taskTypes.TargetGateway, userid, gatewayID, taskID)
 				if err != nil {
 					logger.Debugf("Error at get task: %v", err)
 					if err != errs.ErrTargetNoTask {
@@ -244,7 +247,6 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 	for {
 		taskReq, err := s.Recv()
 		if err == io.EOF {
-			_ = gatewayOffline(taskMq, gatewayID)
 			return nil
 		}
 		if err != nil {
@@ -264,7 +266,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			case taskID, ok := <-ch:
 				if ok {
 					logger.Debugf("taskID:%s", taskID)
-					if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, targetID, taskID); err != nil {
+					if taskData, err := getTask(s.Context(), taskTypes.TargetGateway, userid, targetID, taskID); err != nil {
 						if err == errs.ErrTargetNoTask {
 							//taskSendErrorMessage(s, 404, ErrTargetNoTask.Error())
 							var resp corepb.NoTaskResponse
@@ -314,11 +316,10 @@ func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (
 func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := getGatewayID(d.Context())
 	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
-	mq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
+
 	for {
 		data, err := d.Recv()
 		if err == io.EOF {
-			_ = gatewayOffline(mq, gatewayid)
 			return nil
 		}
 		if err != nil {
@@ -414,10 +415,10 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 	out.Task = &errorResp
 	_ = s.Send(&out)
 }
-func gatewayOffline(mq mq.Mq, gatewayid string) error {
+func gatewayOffline(mq mq.Mq, userid, gatewayid string) error {
 	logger.Debugf("gateway offline: %s", gatewayid)
 	return mq.PublishBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway),
-		[]byte(gatewayid))
+		[]byte(fmt.Sprintf("%s<!SPLIT!>%s", userid, gatewayid)))
 }
 func getGatewayID(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -430,6 +431,18 @@ func getGatewayID(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("gatewayid not found in metadata")
 	}
 
-	gatewayID := gatewayIDs[0]
-	return gatewayID, nil
+	return gatewayIDs[0], nil
+}
+func getUserID(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", fmt.Errorf("metadata not found")
+	}
+
+	userIDs := md.Get(def.USER_ID)
+	if len(userIDs) == 0 {
+		return "", fmt.Errorf("userid not found in metadata")
+	}
+
+	return userIDs[0], nil
 }

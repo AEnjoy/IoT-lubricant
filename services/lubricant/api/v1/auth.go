@@ -18,6 +18,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	"github.com/aenjoy/iot-lubricant/pkg/model/response"
+	"github.com/aenjoy/iot-lubricant/pkg/ssh"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
@@ -211,4 +212,12 @@ func isValidCertificate(fileBytes []byte) bool {
 
 	_, err := x509.ParseCertificate(block.Bytes)
 	return err == nil
+}
+func (a Auth) GetPrivateKey(c *gin.Context) {
+	key, err := ssh.GetLocalSSHPrivateKey()
+	if err != nil {
+		helper.FailedWithErrorJson(http.StatusInternalServerError, err, c)
+		return
+	}
+	helper.SuccessJson(key, c)
 }
