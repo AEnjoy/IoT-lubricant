@@ -74,3 +74,10 @@ curl 'http://127.0.0.1:8080/api/v1/agent/set?gateway-id=gateway-id-123' -X POST 
 ```
 
 在设置agent前，请先编辑set_agent_data.json，将agentID设置为我们要设置的目标agentID。
+
+
+异步任务查询：
+
+```shell
+curl 'http://127.0.0.1:8080/api/v1/task/query?taskId=' -X GET -b cookie.txt
+```
