@@ -2,9 +2,9 @@
 import os
 import subprocess
 import sys
-import requests
-
 from time import sleep
+
+import requests
 
 LOGIN_URL = "http://127.0.0.1/casdoor-service/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
 
@@ -12,7 +12,8 @@ CORE_API_BASE_URL = "http://127.0.0.1/lubricant-service"
 CALLBACK_URL = CORE_API_BASE_URL+"/api/v1/signin"
 USER_INFO_URL = CORE_API_BASE_URL+"/api/v1/user/info"
 CREATE_GATEWAY_URL = CORE_API_BASE_URL+"/api/v1/gateway/internal/gateway"
-ADD_AGENT_URL = CORE_API_BASE_URL+"/api/v1/gateway/{ 0 }/agent/internal/add "
+ADD_AGENT_URL = CORE_API_BASE_URL # +"/api/v1/gateway/{ 0 }/agent/internal/add"
+SET_AGENT_URL = CORE_API_BASE_URL + "/api/v1/agent/set"
 
 COOKIE_FILE = "cookie.txt"
 
@@ -50,7 +51,30 @@ add_agent_data={
     "open_api_doc":"",
     "enable_conf":""
 }
-
+set_agent_data = {
+    "agentID": "123",
+    "description": "123",
+    "gatewayID": "123",
+    "gatherCycle": 1,
+    "algorithm": "123",
+    "dataSource": {
+        "originalFile": "e3s=",
+        "enableFile": "DAw=",
+        "enableSlot": [
+            {
+                "key": "123",
+                "value": 1
+            },
+            {
+                "key": "123",
+                "value": 1
+            }
+        ]
+    },
+    "stream": False,
+    "reportCycle": 1,
+    "address": "123"
+}
 def check_pod_status(pod_name, namespace='lubricant'):
     try:
         result = subprocess.run(
@@ -188,8 +212,23 @@ def test_uncreated_gateway(session, gateway_id):
         sys.exit(1)
     else:
         print("Gateway Deploy Success")
-def test_add_agent(session):
-    pass
+def test_add_agent(session, gateway_id):
+    print("API:Adding agent...")
+    agent_id = ""
+    try:
+        add_agent_response = session.post(ADD_AGENT_URL + f"/api/v1/gateway/{gateway_id}/agent/internal/add", headers=headers, json=add_agent_data)
+        add_agent_response.raise_for_status()
+        msg = add_agent_response.json().get("msg")
+        if msg != "success":
+            print(f"Error: Failed to add agent, msg={msg}")
+            print(f"Response: {add_agent_response.text}")
+            sys.exit(1)
+        agent_id = add_agent_response.json().get("data").get("agent_id")
+    except Exception as e:
+        print("Error: Failed to add agent")
+        print(f"Response: {add_agent_response.text if 'add_agent_response' in locals() else str(e)}")
+        sys.exit(1)
+
 def main():
     session = login_and_get_session()
     get_user_info(session)
