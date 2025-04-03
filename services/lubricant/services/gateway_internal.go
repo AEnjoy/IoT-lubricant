@@ -250,7 +250,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 		return "", err
 	}
 
-	_, _, err = s.PushTaskPb(ctx, taskid, gatewayid, userid, &td)
+	_, _, err = s.PushTaskPb(ctx, taskid, userid, gatewayid, &td)
 	if err != nil {
 		err = exception.ErrNewException(err,
 			exceptionCode.ErrorPushTaskFailed,

@@ -52,6 +52,8 @@ func SaveConfig(t SaveType) error {
 		if Config.FileName == "" {
 			Config.FileName = def.AgentDefaultOpenapiFileName
 		}
+		_ = os.Remove(fileName)
+		_ = os.Remove(Config.FileName)
 		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
@@ -75,6 +77,7 @@ func SaveConfig(t SaveType) error {
 
 	if t == SaveType_ALL || t == SaveType_EnableConfig && Config.Config.GetEnable() != nil {
 		fileName := Config.FileName + ".enable"
+		_ = os.Remove(fileName)
 		enConfFile, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			errs = errors.Join(errs, err)

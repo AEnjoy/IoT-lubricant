@@ -18,44 +18,47 @@ import (
 	"gorm.io/gorm"
 )
 
+type taskArgs struct {
+	ctx           context.Context
+	txnHelper     func() (*gorm.DB, *errCh.ErrorChan, func())
+	storeMq       mq.Mq
+	dbAddAsyncJob func(context.Context, *gorm.DB, *model.AsyncJob) error
+	taskID        *string
+	executorType  user.Role
+	executorID    string
+	userID        string
+	targetName    taskTypes.Target
+	topicPrefix   string
+	bin           []byte
+}
+
 // _taskHelper 封装了任务相关的操作
 // 返回：两个值，第一个是响应topic，第二个是taskID
-func _taskHelper(
-	ctx context.Context,
-	txnHelper func() (*gorm.DB, *errCh.ErrorChan, func()),
-	storeMq mq.Mq,
-	dbAddAsyncJob func(context.Context, *gorm.DB, *model.AsyncJob) error,
-	taskID *string,
-	executorType user.Role,
-	executorID string,
-	userID string,
-	taskName string,
-	topicPrefix string,
-	bin []byte,
-) (string, string, error) {
-	txn, errorCh, commit := txnHelper()
+func _taskHelper(t *taskArgs) (string, string, error) {
+	logger.Debugf("%+v", t)
+	txn, errorCh, commit := t.txnHelper()
 	defer commit()
 
 	taskId := func() string {
-		if taskID == nil {
+		if t.taskID == nil {
 			id := xid.New().String()
-			taskID = &id
+			t.taskID = &id
 			return id
 		}
-		return *taskID
+		return *t.taskID
 	}()
 
 	task := taskTypes.Task{
 		TaskID:     taskId,
 		Operator:   user.RoleCore,
-		Executor:   executorType,
-		ExecutorID: executorID,
+		Executor:   t.executorType,
+		ExecutorID: t.executorID,
 	}
 	taskString, _ := sonic.MarshalString(task)
-	err := dbAddAsyncJob(ctx, txn, &model.AsyncJob{
+	err := t.dbAddAsyncJob(t.ctx, txn, &model.AsyncJob{
 		RequestID: taskId,
-		UserID:    userID,
-		Name:      taskName,
+		UserID:    t.userID,
+		Name:      string(t.targetName),
 		Status:    "pending",
 		Data:      taskString,
 	})
@@ -63,7 +66,8 @@ func _taskHelper(
 		return "", "", err
 	}
 
-	topic := fmt.Sprintf("%s/%s", topicPrefix, executorID)
+	// topicPrefix: /task/userid
+	topic := fmt.Sprintf("%s/%s/%s", t.topicPrefix, t.targetName, t.executorID)
 	logger.Debugf("send task %s to %s", taskId, topic)
 
 	go func() {
@@ -71,10 +75,10 @@ func _taskHelper(
 		time.Sleep(500 * time.Millisecond)
 		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
 		logger.Debugf("send task data to %s", pbTopic)
-		_ = storeMq.PublishBytes(pbTopic, bin)
+		_ = t.storeMq.PublishBytes(pbTopic, t.bin)
 	}()
 
-	err = storeMq.PublishBytes(topic, []byte(taskId))
+	err = t.storeMq.PublishBytes(topic, []byte(taskId))
 	if err != nil {
 		errorCh.Report(err, exceptionCode.MqPublishFailed, "failed to publish new task message to internal message queue", true)
 		return "", "", err
