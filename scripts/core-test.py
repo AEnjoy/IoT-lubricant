@@ -8,6 +8,7 @@ import time
 from time import sleep
 
 import requests
+import yaml
 
 LOGIN_URL = "http://127.0.0.1/casdoor-service/api/login?clientId=6551a3584403d5264584&responseType=code&redirectUri=http%3A%2F%2Flubricant-core.lubricant.svc.cluster.local%3A8080%2Fapi%2Fv1%2Fsignin&type=code&scope=read&state=casdoor"
 
@@ -18,7 +19,7 @@ QUERY_TASK_STATUS_URL = CORE_API_BASE_URL + "/api/v1/task/query"
 CREATE_GATEWAY_URL = CORE_API_BASE_URL + "/api/v1/gateway/add"
 ADD_AGENT_URL = CORE_API_BASE_URL  # +"/api/v1/gateway/{ 0 }/agent/internal/add"
 SET_AGENT_URL = CORE_API_BASE_URL + "/api/v1/agent/set"
-AGENT_OPERATOR_URL= CORE_API_BASE_URL + "/api/v1/agent/operator"
+AGENT_OPERATOR_URL = CORE_API_BASE_URL + "/api/v1/agent/operator"
 
 COOKIE_FILE = "cookie.txt"
 
@@ -56,7 +57,9 @@ add_agent_data = {
     "open_api_doc": "",
     "enable_conf": ""
 }
+
 set_agent_data = {}
+userId = ""
 
 
 def encode_file_detailed(filename, encoding='utf-8'):
@@ -72,6 +75,33 @@ def encode_file_detailed(filename, encoding='utf-8'):
         print(f"Error: {str(e)}")
         sys.exit(1)
 
+
+def read_yaml_file(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+        return data
+    except FileNotFoundError:
+        print(f"Error：File {file_path} Not Found。")
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        print(f"Error：Failed to parse YAML：{e}")
+        sys.exit(1)
+
+
+def write_yaml_file(data, file_path):
+    try:
+        with open(file_path, 'w', encoding='utf-8') as file:
+            yaml.dump(data, file, allow_unicode=True)
+    except Exception as e:
+        print(f"Error：Failed to write YAML：{e}")
+def modify_user_id(data, new_uuid):
+    try:
+        data['spec']['template']['spec']['containers'][0]['env'][1]['value'] = new_uuid
+        return data
+    except (KeyError, IndexError, TypeError):
+        print("Error: Index")
+        sys.exit(1)
 
 def check_pod_status(pod_name, namespace='lubricant'):
     try:
@@ -89,6 +119,33 @@ def check_pod_status(pod_name, namespace='lubricant'):
         print(f"Output: {e.output}")
         print(f"Error: {e.stderr}")
         sys.exit(1)
+
+
+def get_nested_value(data, keys):
+    if not keys:
+        return data
+    if isinstance(data, dict) and keys[0] in data:
+        return get_nested_value(data[keys[0]], keys[1:])
+    return None
+
+
+def set_nested_value(data, keys, value):
+    if not keys:
+        return value
+    if isinstance(data, dict) and keys[0] in data:
+        data[keys[0]] = set_nested_value(data[keys[0]], keys[1:], value)
+        return data
+    return None
+
+
+def get_value_by_path(data, path):
+    keys = path.split('.')
+    return get_nested_value(data, keys)
+
+
+def set_value_by_path(data, path, value):
+    keys = path.split('.')
+    return set_nested_value(data, keys, value)
 
 
 def login_and_get_session():
@@ -143,8 +200,15 @@ def login_and_get_session():
 
     return session
 
-
+def modify_user_id(data, new_uuid):
+    try:
+        data['spec']['template']['spec']['containers'][0]['env'][1]['value'] = new_uuid
+        return data
+    except (KeyError, IndexError, TypeError):
+        print("Error：can't find the specified key or index in the data.")
+        sys.exit(1)
 def get_user_info(session):
+    global userId
     print("Getting user info...")
     try:
         user_info_response = session.get(USER_INFO_URL)
@@ -157,7 +221,7 @@ def get_user_info(session):
             sys.exit(1)
 
         print(f"User info: {user_info_response.text}")
-
+        userId = user_info_response.json().get("data").get("id")
     except Exception as e:
         print("Error: Failed to get user info")
         print(f"Response: {user_info_response.text if 'user_info_response' in locals() else str(e)}")
@@ -198,6 +262,9 @@ def test_create_gateway(session, gateway_id):
         print("Error: Failed to create gateway")
         print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
         sys.exit(1)
+    y = read_yaml_file("deployment/tester/gateway.yaml")
+    y = modify_user_id(y, userId)
+    write_yaml_file("deployment/tester/gateway.yaml", y)
 
     print("kubernetes: Deploy Gateway")
     os.system("kubectl apply -f deployment/tester/gateway.yaml")
@@ -240,7 +307,7 @@ def test_uncreated_gateway(session, gateway_id):
 def test_add_agent(session, gateway_id):
     print("API:Adding agent...")
     agent_id = ""
-    task_id=""
+    task_id = ""
     try:
         add_agent_response = session.post(ADD_AGENT_URL + f"/api/v1/gateway/{gateway_id}/agent/internal/add",
                                           headers=headers, json=add_agent_data)
@@ -257,7 +324,7 @@ def test_add_agent(session, gateway_id):
         print(f"Response: {add_agent_response.text if 'add_agent_response' in locals() else str(e)}")
         sys.exit(1)
     time.sleep(3)
-    if get_task_status(session,task_id) != "completed":
+    if get_task_status(session, task_id) != "completed":
         print("Error: Failed to add agent (async task failed)")
         print(f"Response: {add_agent_response.text if 'add_agent_response' in locals() else str(e)}")
         sys.exit(1)
@@ -294,18 +361,21 @@ def test_set_agent(session, gateway_id, agent_id):
         print(f"Response: {set_agent_response.text if 'set_agent_response' in locals() else str(e)}")
         sys.exit(1)
     time.sleep(3)
-    if get_task_status(session,task_id) != "completed":
+    if get_task_status(session, task_id) != "completed":
         print("Error: Failed to set agent (async task failed)")
         print(f"Response: {set_agent_response.text if 'set_agent_response' in locals() else str(e)}")
         sys.exit(1)
 
+
 def test_agent_operator(session, gateway_id, agent_id):
     print("API:Operating agent...")
     print("StartGather:")
+
     def make_url(operator):
-        url = AGENT_OPERATOR_URL+f"?agent-id={agent_id}&gateway-id={gateway_id}&operator={operator}"
+        url = AGENT_OPERATOR_URL + f"?agent-id={agent_id}&gateway-id={gateway_id}&operator={operator}"
         return url
-    def get_gather_status()-> bool:
+
+    def get_gather_status() -> bool:
         url = make_url("get-gather-status")
         try:
             get_gather_status_response = session.get(url, headers=headers)
@@ -318,10 +388,11 @@ def test_agent_operator(session, gateway_id, agent_id):
             return get_gather_status_response.json().get("data")
         except Exception as e:
             print("Error: Failed to get gather status")
-            print(f"Response: {get_gather_status_response.text if 'get_gather_status_response' in locals() else str(e)}")
+            print(
+                f"Response: {get_gather_status_response.text if 'get_gather_status_response' in locals() else str(e)}")
             sys.exit(1)
 
-    task_id=""
+    task_id = ""
 
     # start_gather
     try:
@@ -338,7 +409,7 @@ def test_agent_operator(session, gateway_id, agent_id):
         print(f"Response: {start_gather_response.text if 'start_gather_response' in locals() else str(e)}")
         sys.exit(1)
     time.sleep(3)
-    if get_task_status(session,task_id) != "completed":
+    if get_task_status(session, task_id) != "completed":
         print("Error: Failed to start gather (async task failed)")
         print(f"Response: {start_gather_response.text if 'start_gather_response' in locals() else str(e)}")
         sys.exit(1)
@@ -361,7 +432,7 @@ def test_agent_operator(session, gateway_id, agent_id):
         print(f"Response: {stop_gather_response.text if 'stop_gather_response' in locals() else str(e)}")
         sys.exit(1)
     time.sleep(3)
-    if get_task_status(session,task_id) != "completed":
+    if get_task_status(session, task_id) != "completed":
         print("Error: Failed to stop gather (async task failed)")
         print(f"Response: {stop_gather_response.text if 'stop_gather_response' in locals() else str(e)}")
         sys.exit(1)
@@ -369,6 +440,7 @@ def test_agent_operator(session, gateway_id, agent_id):
         print("Error: Failed to stop gather (gather status is not false)")
         print(f"Response: {stop_gather_response.text if 'stop_gather_response' in locals() else str(e)}")
         sys.exit(1)
+
 
 def main():
     session = login_and_get_session()
