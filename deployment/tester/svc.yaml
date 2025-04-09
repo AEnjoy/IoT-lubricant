@@ -7,3 +7,16 @@ spec:
   clusterIP: None  # Headless Service
   selector:
     app: lubricant-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lubricant-agent
+  namespace: lubricant
+spec:
+  clusterIP: None  # Headless Service
+  selector:
+    app: lubricant-agent
+  ports:
+    - port: 5436
+      name: grpc

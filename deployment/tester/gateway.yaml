@@ -4,29 +4,29 @@ metadata:
   name: lubricant-gateway
   namespace: lubricant
 spec:
-  serviceName: lubricant-gateway
   replicas: 1
   selector:
     matchLabels:
       app: lubricant-gateway
+  serviceName: lubricant-gateway
   template:
     metadata:
       labels:
         app: lubricant-gateway
     spec:
       containers:
-        - name: lubricant-gateway
-          image: hub.iotroom.top/aenjoy/lubricant-gateway:nightly
-          env:
-            - name: GATEWAY_ID
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: USER_ID
-              value: 8d49ed6b-b60c-4e48-a416-3482ed11279a
-            - name: CORE_HOST
-              value: lubricant-core.lubricant.svc.cluster.local
-            - name: CORE_PORT
-              value: "5423"
-            - name: RUNNING_LEVEL
-              value: "debug"
+      - env:
+        - name: GATEWAY_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: USER_ID
+          value: 0373c295-07b7-4916-bb7e-95f2c4701de7
+        - name: CORE_HOST
+          value: lubricant-core.lubricant.svc.cluster.local
+        - name: CORE_PORT
+          value: '5423'
+        - name: RUNNING_LEVEL
+          value: debug
+        image: hub.iotroom.top/aenjoy/lubricant-gateway:nightly
+        name: lubricant-gateway
