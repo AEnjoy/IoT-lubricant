@@ -30,13 +30,3 @@ spec:
               value: "5423"
             - name: RUNNING_LEVEL
               value: "debug"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lubricant-gateway
-  namespace: lubricant
-spec:
-  clusterIP: None  # Headless Service
-  selector:
-    app: lubricant-gateway

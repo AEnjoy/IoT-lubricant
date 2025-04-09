@@ -146,6 +146,7 @@ jobs:
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
           kubectl apply -f deployment/infra/lubricant-core.yaml
+          kubectl apply -f deployment/tester/svc.yaml
 
       - name: Start Test
         run: |
@@ -153,8 +154,7 @@ jobs:
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl apply -f deployment/infra/lubricant-ingress.yaml
-          kubectl wait --for=condition=Ready ingress/lubricant-ingress -n lubricant --timeout=300s
-          kubectl wait --for=condition=Ready ingress/casdoor-ingress -n auth-core --timeout=300s
+          sleep 10
           python3 scripts/core-test.py $lubricant_pod
   PushToAliRegistry:
     name: Push Images To Ali Cloud Registry

@@ -262,9 +262,10 @@ def test_create_gateway(session, gateway_id):
         print("Error: Failed to create gateway")
         print(f"Response: {create_gateway_response.text if 'create_gateway_response' in locals() else str(e)}")
         sys.exit(1)
+
     y = read_yaml_file("deployment/tester/gateway.yaml")
     y = modify_user_id(y, userId)
-    write_yaml_file("deployment/tester/gateway.yaml", y)
+    write_yaml_file(y,"deployment/tester/gateway.yaml")
 
     print("kubernetes: Deploy Gateway")
     os.system("kubectl apply -f deployment/tester/gateway.yaml")
@@ -396,7 +397,7 @@ def test_agent_operator(session, gateway_id, agent_id):
 
     # start_gather
     try:
-        start_gather_response = session.post(make_url("start-gather"), headers=headers)
+        start_gather_response = session.get(make_url("start-gather"))
         start_gather_response.raise_for_status()
         msg = start_gather_response.json().get("msg")
         if msg != "success":
@@ -419,7 +420,7 @@ def test_agent_operator(session, gateway_id, agent_id):
         sys.exit(1)
     # stop_gather
     try:
-        stop_gather_response = session.post(make_url("stop-gather"), headers=headers)
+        stop_gather_response = session.get(make_url("stop-gather"), headers=headers)
         stop_gather_response.raise_for_status()
         msg = stop_gather_response.json().get("msg")
         if msg != "success":
