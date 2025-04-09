@@ -51,7 +51,7 @@ add_agent_data = {
     "description": "agent",
     "gather_cycle": 1,
     "report_cycle": 5,
-    "address": "lubricant-agent.lubricant.svc.cluster.local:5436",
+    "address": "lubricant-agent-0.lubricant-agent.lubricant.svc.cluster.local:5436",
     "data_compress_algorithm": "default",
     "enable_stream_ability": False,
     "open_api_doc": "",
@@ -433,9 +433,10 @@ def test_agent_operator(session, gateway_id, agent_id):
         print(f"Response: {stop_gather_response.text if 'stop_gather_response' in locals() else str(e)}")
         sys.exit(1)
     time.sleep(3)
-    if get_task_status(session, task_id) != "completed":
+    status = get_task_status(session, task_id)
+    if status != "completed":
         print("Error: Failed to stop gather (async task failed)")
-        print(f"Response: {stop_gather_response.text if 'stop_gather_response' in locals() else str(e)}")
+        print(f"Response: {status}")
         sys.exit(1)
     if get_gather_status():
         print("Error: Failed to stop gather (gather status is not false)")
@@ -451,6 +452,7 @@ def main():
     test_uncreated_gateway(session, "lubricant-gateway")
     agent_id = test_add_agent(session, "lubricant-gateway-0")
     test_set_agent(session, "lubricant-gateway-0", agent_id)
+    sleep(3)
     test_agent_operator(session, "lubricant-gateway-0", agent_id)
 
 
