@@ -46,7 +46,8 @@ func main() {
 	if configFile == "" {
 		logger.Warnln("No config file specified, using default values.")
 		configFile = def.AgentDefaultConfigFileName
-	} else if err := file.ReadYamlFile(configFile, &config); err != nil {
+	}
+	if err := file.ReadYamlFile(configFile, &config); err != nil {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
