@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: lubricant-agent
   namespace: lubricant
 spec:
+  serviceName: "lubricant-agent"
   replicas: 1
   selector:
     matchLabels:
@@ -20,7 +21,6 @@ spec:
             - containerPort: 5436
               name: grpc
               protocol: TCP
-              hostPort: 5436
           env:
             - name: BIND_GRPC
               value: "0.0.0.0:5436"
@@ -31,16 +31,3 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 3
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lubricant-agent
-  namespace: lubricant
-spec:
-  ports:
-    - port: 5436
-      name: grpc
-      targetPort: 5436
-  selector:
-    app: lubricant-agent

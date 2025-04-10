@@ -1,0 +1,13 @@
+{
+  "agentID": "ae4db1cd-c7c3-49f1-b396-ffa52eb64741",
+  "description": "123",
+  "gatewayID": "gateway-id-123",
+  "gatherCycle": 1,
+  "algorithm": "default",
+  "dataSource": {
+    "originalFile": "",
+    "enableFile": ""
+  },
+  "stream": false,
+  "reportCycle": 5
+}

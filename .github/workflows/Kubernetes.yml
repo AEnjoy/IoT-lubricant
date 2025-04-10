@@ -19,7 +19,7 @@ on:
       - 'LICENSE'
       - 'README.md'
 jobs:
-  CloudEnvironment:
+  TestAtKubernetes:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     steps:
@@ -47,6 +47,7 @@ jobs:
           docker pull nginx:1.27 &
           docker pull nats:2.10.26 &
           docker pull redis:7.4.2 &
+          docker pull docker.io/bitnami/mysql:8.4.4-debian-12-r4 &
           docker pull casbin/casdoor:v1.854.0 &
           wait
           if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
@@ -101,6 +102,7 @@ jobs:
           kind load docker-image nginx:1.27 &
           kind load docker-image nats:2.10.26 &
           kind load docker-image redis:7.4.2 &
+          kind load docker-image bitnami/mysql:8.4.4-debian-12-r4 &
           kind load docker-image casbin/casdoor:v1.854.0 &
           kind load docker-image python:3.9-slim-buster &
           wait
@@ -110,8 +112,10 @@ jobs:
           set -e
           kubectl cluster-info
           kubectl version
+          echo "Labeling the node `ingress-ready=true`, because ingress controller can't deploy without this label"
           kubectl label nodes kind-control-plane ingress-ready=true
           bash deployment/infra/nsinit.sh
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
@@ -127,12 +131,14 @@ jobs:
             make load-test-driver 
             bash test/mock_driver/load-test-driver.sh
           )&
+          make build-all
           make copy-files
           FAST_BUILD=1 make load-to-kind -j3
 
       - name: Prepare Lubricant and Test Resources
         run: |
           set -e
+          kubectl apply -f test/mock_driver/clock/test-driver.yaml
           kubectl apply -f deployment/tester/agent.yaml
           bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
@@ -140,13 +146,90 @@ jobs:
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
           kubectl apply -f deployment/infra/lubricant-core.yaml
+          kubectl apply -f deployment/tester/svc.yaml
 
       - name: Start Test
         run: |
           set -e 
+          sed -i 's|"http://127.0.0.1"|"http://clock-driver-service.default.svc.cluster.local"|' test/mock_driver/clock/api.json
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
-          kubectl port-forward deployment/lubricant-core 8080:8080 -n lubricant &
-          kubectl port-forward deployment/casdoor 8000:8000 -n auth-core &
-          sleep 2
+          kubectl apply -f deployment/infra/lubricant-ingress.yaml
+          sleep 10
           python3 scripts/core-test.py $lubricant_pod
+  PushToAliRegistry:
+    name: Push Images To Ali Cloud Registry
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: TestAtKubernetes
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Docker Images
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images
+          key: ${{ runner.os }}-docker-images-${{ hashFiles('**/Dockerfile') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-docker-images-
+
+      - name: Pull and Save Docker Images
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          set -e
+          # for base images
+          # docker pull golang:1.24-alpine &
+          docker pull alpine:3.21.3 &
+          docker pull kindest/node:v1.32.2 &
+          docker pull python:3.9-slim-buster &
+          # for Kubernetes yaml
+          docker pull nginx:1.27 &
+          docker pull nats:2.10.26 &
+          docker pull redis:7.4.2 &
+          docker pull casbin/casdoor:v1.854.0 &
+          wait
+          if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
+            echo "Cache: Saving Docker Images..."
+            mkdir -p /tmp/docker-images
+            docker save \
+              nginx:1.27 alpine:3.21.3 kindest/node:v1.32.2 \
+              nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
+              python:3.9-slim-buster \
+              -o /tmp/docker-images/base-images.tar &
+          fi
+
+      - name: Load Docker Images
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: |
+          if [ -f /tmp/docker-images/base-images.tar ]; then
+            echo "Cache(Hit): Loading Docker Images..."
+            docker load -i /tmp/docker-images/base-images.tar
+          fi
+
+      - name: Cache Go Modules
+        uses: actions/cache@v4
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-mod-
+      - name: Build Image
+        run: |
+          set -e
+          go mod download
+          make build-all
+          make copy-files
+          FAST_BUILD=1 make docker-build
+      - name: Push Image
+        env:
+          REGISTRY_DOMAIN: ${{ secrets.ALI_REG_DOMAIN }}
+          REGISTRY_USER: ${{ secrets.ALI_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.ALI_CI_ACTION_PASSWORD }}
+        run: |
+          set -e
+          echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER
+          docker tag hub.iotroom.top/aenjoy/lubricant-agent:nightly $REGISTRY_DOMAIN/iotroom/lubricant-agent:latest
+          docker tag hub.iotroom.top/aenjoy/lubricant-core:nightly $REGISTRY_DOMAIN/iotroom/lubricant-core:latest
+          docker tag hub.iotroom.top/aenjoy/lubricant-gateway:nightly $REGISTRY_DOMAIN/iotroom/lubricant-gateway:latest
+          echo "You Can Pull Image From: $REGISTRY_DOMAIN"

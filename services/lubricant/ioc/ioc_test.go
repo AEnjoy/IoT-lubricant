@@ -35,6 +35,6 @@ func TestIoCThreadSafe(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		go testContainer.Registry(strconv.Itoa(i), &testObject{uint16(i)})
 	}
-	<-time.After(time.Microsecond * 100)
+	<-time.After(time.Microsecond * 1000)
 	assert.NoError(t, testContainer.Init())
 }

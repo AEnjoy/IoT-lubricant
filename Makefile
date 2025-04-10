@@ -4,7 +4,7 @@ VERSION := $(shell git rev-parse --abbrev-ref HEAD)
 BUILD_TIME := $(shell date +"%Y-%m-%d %H:%M:%S")
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 GO_VERSION := $(shell go version | awk '{print $$3}')
-FEATURES := $(or $(ENV_LUBRICANT_ENABLE_FEATURES),default)
+FEATURES := $(or $(ENV_LUBRICANT_ENABLE_FEATURES),$(shell git rev-parse --abbrev-ref HEAD))
 BUILD_HOST_PLATFORM := $(shell uname -s | tr '[:upper:]' '[:lower:]')/$(shell uname -m)
 ifeq ($(shell uname -s),Linux)
 PLATFORM_VERSION := $(shell grep -E '^(NAME|VERSION)=' /etc/os-release | tr -d '"' | awk -F= '{print $$2}' | paste -sd ' ' -)
@@ -139,7 +139,7 @@ endif
 
 build-lubricant: build-core
 
-docker-build: build-agent build-gateway build-lubricant
+docker-build: build-agent build-gateway-container build-lubricant
 
 load-to-kind-agent: build-agent
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-agent:nightly
@@ -200,7 +200,7 @@ build-all:
 	" \
 	./cmd/agent/main.go ./cmd/agent/start.go
 
-copy-files: build-all
+copy-files:
 	cp bin/lubricant-gateway cmd/gateway/gateway
 	cp bin/lubricant cmd/lubricant/lubricant
 	cp bin/lubricant-agent cmd/agent/agent

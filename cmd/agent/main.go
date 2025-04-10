@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	def "github.com/aenjoy/iot-lubricant/pkg/default"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
@@ -44,7 +45,9 @@ func main() {
 	var config model.EdgeSystem
 	if configFile == "" {
 		logger.Warnln("No config file specified, using default values.")
-	} else if err := file.ReadYamlFile(configFile, &config); err != nil {
+		configFile = def.AgentDefaultConfigFileName
+	}
+	if err := file.ReadYamlFile(configFile, &config); err != nil {
 		logger.Warnln("Failed to read config file:", err)
 	}
 
