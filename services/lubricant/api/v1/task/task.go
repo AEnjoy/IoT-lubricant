@@ -8,6 +8,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/api/v1/helper"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,12 +59,18 @@ func (a Api) QueryTask(c *gin.Context) {
 		return
 	}
 	var resp response.QueryTaskResultResponse
+	resp.TaskID = taskID
 	status, result, err := a.ICoreDb.GetAsyncJobResult(c, taskID)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			resp.Result = "taskId not found"
+			helper.SuccessJson(resp, c)
+			return
+		}
 		helper.FailedWithJson(http.StatusInternalServerError, exception.ErrNewException(err, exceptionCode.ErrorInternalServerError), c)
 		return
 	}
-	resp.TaskID = taskID
+
 	resp.Status = status
 	resp.Result = result
 
