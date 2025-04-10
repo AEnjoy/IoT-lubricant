@@ -187,6 +187,7 @@ jobs:
           docker pull nginx:1.27 &
           docker pull nats:2.10.26 &
           docker pull redis:7.4.2 &
+          docker pull docker.io/bitnami/mysql:8.4.4-debian-12-r4 &
           docker pull casbin/casdoor:v1.854.0 &
           wait
           if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
@@ -228,7 +229,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.ALI_CI_ACTION_PASSWORD }}
         run: |
           set -e
-          echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER
+          echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER --password-stdin
           docker tag hub.iotroom.top/aenjoy/lubricant-agent:nightly $REGISTRY_DOMAIN/iotroom/lubricant-agent:latest
           docker tag hub.iotroom.top/aenjoy/lubricant-core:nightly $REGISTRY_DOMAIN/iotroom/lubricant-core:latest
           docker tag hub.iotroom.top/aenjoy/lubricant-gateway:nightly $REGISTRY_DOMAIN/iotroom/lubricant-gateway:latest
