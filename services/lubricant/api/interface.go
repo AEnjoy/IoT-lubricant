@@ -44,3 +44,6 @@ type ITask interface {
 	QueryTask(*gin.Context)
 	GetTaskList(*gin.Context)
 }
+type ILog interface {
+	GetLogList(*gin.Context)
+}

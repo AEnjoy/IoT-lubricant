@@ -12,14 +12,18 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/edge"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/types/action"
 	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	object "github.com/aenjoy/iot-lubricant/pkg/types/task"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/crontab"
 	agentpb "github.com/aenjoy/iot-lubricant/protobuf/agent"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -79,6 +83,7 @@ func (c *agentControl) init(ctx context.Context) {
 		c.exceptSig = make(chan *exception.Exception, exceptionSigMaxSize)
 		c.dataCollect = data.NewDataStoreApis(c.id)
 
+		_ = crontab.RegisterCron(c.getAgentLogs, "@every 5s")
 		if handelFunc != nil {
 			go handelFunc(c.exceptSig)
 		}
@@ -134,6 +139,35 @@ func (c *agentControl) _checkOnline() bool {
 }
 func (c *agentControl) IsStarted() bool {
 	return c.online
+}
+func (c *agentControl) getAgentLogs() {
+	begin := time.Now().Unix()
+	log := logg.L.
+		WithProtocol("grpc").
+		WithAction(action.CollectAgentLogs).
+		WithNotPrintToStdout()
+	logs, err := c.AgentCli.CollectLogs(c.ctx, &agentpb.CollectLogsRequest{})
+	end := time.Now().Unix()
+	if err != nil {
+		if !c.online {
+			return
+		}
+		log.WithLoglevel(svcpb.Level_ERROR).
+			WithCost(time.Duration(end-begin)).
+			Errorf("failed to get agent logs:%v", err)
+		return
+	}
+	if len(logs.GetLogs()) > 0 {
+		c.reporter <- &corepb.ReportRequest{
+			AgentId: c.id,
+			Req: &corepb.ReportRequest_ReportLog{
+				ReportLog: &corepb.ReportLogRequest{
+					AgentId: c.id,
+					Logs:    logs.GetLogs(),
+				},
+			},
+		}
+	}
 }
 
 // 销毁

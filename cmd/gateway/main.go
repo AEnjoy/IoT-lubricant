@@ -7,6 +7,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
 	"github.com/aenjoy/iot-lubricant/services/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/joho/godotenv"
@@ -25,7 +26,6 @@ func main() {
 	flag.StringVar(&envFilePath, "env", "", "Path to .env file")
 	flag.StringVar(&confFilePath, "conf", "", "Path to .yaml file")
 	flag.Parse()
-	printBuildInfo()
 
 	if envFilePath != "" {
 		logger.Info("load env")
@@ -62,4 +62,27 @@ func main() {
 		gateway.UseGrpcDebugServer(),
 	)
 	panic(app.Run())
+}
+
+var (
+	ServiceName       = "IoTEdgeGateway"
+	Version           string
+	BuildTime         string
+	GoVersion         string
+	GitCommit         string
+	Features          string
+	BuildHostPlatform string
+	PlatformVersion   string
+)
+
+func init() {
+	version.ServiceName = ServiceName
+	version.Version = Version
+	version.BuildTime = BuildTime
+	version.GoVersion = GoVersion
+	version.GitCommit = GitCommit
+	version.Features = Features
+	version.BuildHostPlatform = BuildHostPlatform
+	version.PlatformVersion = PlatformVersion
+	version.PrintVersionInfo()
 }

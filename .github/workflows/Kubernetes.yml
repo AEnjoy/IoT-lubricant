@@ -133,7 +133,7 @@ jobs:
           )&
           make build-all
           make copy-files
-          FAST_BUILD=1 make load-to-kind -j3
+          FAST_BUILD=1 make load-to-kind -j4
 
       - name: Prepare Lubricant and Test Resources
         run: |
@@ -146,6 +146,7 @@ jobs:
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
           kubectl apply -f deployment/infra/lubricant-core.yaml
+          kubectl apply -f deployment/infra/lubricant-core-logger.yaml
           kubectl apply -f deployment/tester/svc.yaml
 
       - name: Start Test

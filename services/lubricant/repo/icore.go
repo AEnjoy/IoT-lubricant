@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/types/operation"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
 
 	"golang.org/x/oauth2"
@@ -50,7 +51,7 @@ type ICoreDb interface {
 
 	// TaskLog:
 	CreateTask(ctx context.Context, txn *gorm.DB, id string, task task.Task) error
-	TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, Type task.Operation) error
+	TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, Type operation.Operation) error
 	TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, commend string) error
 
 	// ErrorLog:

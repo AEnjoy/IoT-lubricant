@@ -3,11 +3,13 @@ package backend
 import (
 	"context"
 
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	errChHandel "github.com/aenjoy/iot-lubricant/pkg/error"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/protobuf/svc"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/services"
 
@@ -100,5 +102,19 @@ func (r *ReportHandler) _reportPayload(payload any) {
 				errorCh.Report(err, exceptionCode.UpdateTaskStatusFailed, "database error", true)
 			}
 		}
+	case *corepb.ReportRequest_ReportLog:
+		for _, logs := range data.ReportLog.GetLogs() {
+			go func(logs *svc.Logs) {
+				data, err := proto.Marshal(logs)
+				if err != nil {
+					logger.Errorf("failed to marshal logs: %v", err)
+				}
+				err = r.dataCli.Mq.PublishBytes(constant.MESSAGE_SVC_LOGGER, data)
+				if err != nil {
+					logger.Errorf("failed to publish logs: %v", err)
+				}
+			}(logs)
+		}
+	default:
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
+	"github.com/aenjoy/iot-lubricant/pkg/types/operation"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
 
 	"github.com/rs/xid"
@@ -352,7 +353,7 @@ func (d *CoreDb) CreateTask(ctx context.Context, txn *gorm.DB, id string, task t
 	task.TaskID = id
 	return txn.WithContext(ctx).Create(&task).Error
 }
-func (d *CoreDb) TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, operationType task.Operation) error {
+func (d *CoreDb) TaskUpdateOperationType(ctx context.Context, txn *gorm.DB, id string, operationType operation.Operation) error {
 	return txn.WithContext(ctx).Model(&task.Task{}).Where("id = ?", id).Update("operation", operationType).Error
 }
 func (d *CoreDb) TaskUpdateOperationCommend(ctx context.Context, txn *gorm.DB, id string, operationCommend string) error {

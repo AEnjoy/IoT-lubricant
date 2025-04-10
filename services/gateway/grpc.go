@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var _reportMessage = make(chan *corepb.ReportRequest, 10)
+var _reportMessage = make(chan *corepb.ReportRequest, 100)
 
 func (a *app) grpcReportApp() {
 	for request := range _reportMessage {
