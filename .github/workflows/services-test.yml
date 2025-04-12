@@ -36,11 +36,17 @@ jobs:
       - name: E2E Test Agent
         run: |
           set -e
+          echo "Creating Python virtual environment"
+          python3 -m venv venv
+          
+          echo "Activating virtual environment and installing dependencies"
+          source venv/bin/activate
+          
           echo "Preparing python dependency"
-          sudo pip3 install -r scripts/test/mock_driver/clock/requirements.txt
+          pip3 install -r scripts/test/mock_driver/clock/requirements.txt
           
           echo "Running Mock E2E test server for openapi"
-          sudo python3 scripts/test/mock_driver/clock/clock.py &
+          python3 scripts/test/mock_driver/clock/clock.py &
           
           echo "Start Agent:"
           go build -o cmd/agent/agent ./cmd/agent
