@@ -46,7 +46,7 @@ jobs:
           pip3 install -r scripts/test/mock_driver/clock/requirements.txt
           
           echo "Running Mock E2E test server for openapi"
-          sudo source venv/bin/activate && python3 scripts/test/mock_driver/clock/clock.py &
+          sudo bash -c "source venv/bin/activate && python3 scripts/test/mock_driver/clock/clock.py" &
           
           echo "Start Agent:"
           go build -o cmd/agent/agent ./cmd/agent
