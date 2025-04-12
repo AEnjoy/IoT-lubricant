@@ -152,7 +152,7 @@ load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway
 
 test-driver-clock:
 	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
-		-f test/mock_driver/clock/Dockerfile test/mock_driver/clock
+		-f scripts/test/mock_driver/clock/Dockerfile scripts/test/mock_driver/clock
 load-to-kind-test-driver-clock: test-driver-clock
 	kind load docker-image hub.iotroom.top/aenjoy/test-driver-clock:nightly
 

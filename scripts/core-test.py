@@ -337,12 +337,12 @@ def test_set_agent(session, gateway_id, agent_id):
     global set_agent_data
     task_id = ""
     try:
-        with open('test/request/set_agent_data.json', 'r', encoding='utf-8') as file:
+        with open('scripts/test/request/set_agent_data.json', 'r', encoding='utf-8') as file:
             set_agent_data = json.load(file)
             set_agent_data['agentID'] = agent_id
             set_agent_data['gatewayID'] = gateway_id
-            set_agent_data['dataSource']['originalFile'] = encode_file_detailed("test/mock_driver/clock/api.json")
-            set_agent_data['dataSource']['enableFile'] = encode_file_detailed("test/mock_driver/clock/api.json.enable")
+            set_agent_data['dataSource']['originalFile'] = encode_file_detailed("scripts/test/mock_driver/clock/api.json")
+            set_agent_data['dataSource']['enableFile'] = encode_file_detailed("scripts/test/mock_driver/clock/api.json.enable")
     except Exception as e:
         print("Error: Failed to load set_agent_data.json")
         print(f"Error: {str(e)}")

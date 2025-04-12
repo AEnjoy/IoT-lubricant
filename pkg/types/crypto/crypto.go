@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	InvalidRootCrt = errors.New("failed to parse root certificate")
+	ErrInvalidRootCrt = errors.New("failed to parse root certificate")
 )
 
 type Tls struct {
@@ -64,7 +64,7 @@ func (t Tls) GetTLSLinkConfig() (credentials.TransportCredentials, error) {
 
 	caCertPool, _ := x509.SystemCertPool()
 	if len(caCert) != 0 && !caCertPool.AppendCertsFromPEM(caCert) {
-		return nil, InvalidRootCrt
+		return nil, ErrInvalidRootCrt
 	}
 	cred := credentials.NewTLS(&tls.Config{
 		Certificates:       []tls.Certificate{cert},
