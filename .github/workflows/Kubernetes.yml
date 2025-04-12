@@ -30,35 +30,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/docker-images
-          key: ${{ runner.os }}-docker-images-${{ hashFiles('**/Dockerfile') }}-v1
+          key: ${{ runner.os }}-docker-images-${{ hashFiles('scripts/docker-load-to-kind.sh','scripts/docker-pulls.sh','scripts/docker-save.sh') }}-v1
           restore-keys: |
             ${{ runner.os }}-docker-images-
 
       - name: Pull and Save Docker Images
         if: steps.cache-docker.outputs.cache-hit != 'true'
         run: |
-          set -e
-          # for base images
-          # docker pull golang:1.24-alpine &
-          docker pull alpine:3.21.3 &
-          docker pull kindest/node:v1.32.2 &
-          docker pull python:3.9-slim-buster &
-          # for Kubernetes yaml
-          docker pull nginx:1.27 &
-          docker pull nats:2.10.26 &
-          docker pull redis:7.4.2 &
-          docker pull docker.io/bitnami/mysql:8.4.4-debian-12-r4 &
-          docker pull casbin/casdoor:v1.854.0 &
-          wait
-          if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
-            echo "Cache: Saving Docker Images..."
-            mkdir -p /tmp/docker-images
-            docker save \
-              nginx:1.27 alpine:3.21.3 kindest/node:v1.32.2 \
-              nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
-              python:3.9-slim-buster \
-              -o /tmp/docker-images/base-images.tar &
-          fi
+          bash scripts/docker-pulls.sh
+          bash scripts/docker-save.sh
 
       - name: Load Docker Images
         if: steps.cache-docker.outputs.cache-hit == 'true'
@@ -97,16 +77,7 @@ jobs:
           wait
 
       - name: Load Images to Kind
-        run: |
-          set -e
-          kind load docker-image nginx:1.27 &
-          kind load docker-image nats:2.10.26 &
-          kind load docker-image redis:7.4.2 &
-          kind load docker-image bitnami/mysql:8.4.4-debian-12-r4 &
-          kind load docker-image casbin/casdoor:v1.854.0 &
-          kind load docker-image python:3.9-slim-buster &
-          wait
-
+        run: bash scripts/docker-load-to-kind.sh
       - name: Verify and Prepare Kubernetes Environment
         run: |
           set -e
@@ -170,7 +141,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/docker-images
-          key: ${{ runner.os }}-docker-images-${{ hashFiles('**/Dockerfile') }}-v1
+          key: ${{ runner.os }}-docker-images-${{ hashFiles('scripts/docker-load-to-kind.sh','scripts/docker-pulls.sh','scripts/docker-save.sh') }}-v1
           restore-keys: |
             ${{ runner.os }}-docker-images-
 
@@ -178,27 +149,8 @@ jobs:
         if: steps.cache-docker.outputs.cache-hit != 'true'
         run: |
           set -e
-          # for base images
-          # docker pull golang:1.24-alpine &
-          docker pull alpine:3.21.3 &
-          docker pull kindest/node:v1.32.2 &
-          docker pull python:3.9-slim-buster &
-          # for Kubernetes yaml
-          docker pull nginx:1.27 &
-          docker pull nats:2.10.26 &
-          docker pull redis:7.4.2 &
-          docker pull docker.io/bitnami/mysql:8.4.4-debian-12-r4 &
-          docker pull casbin/casdoor:v1.854.0 &
-          wait
-          if [ "${{ steps.cache-docker.outputs.cache-hit }}" != "true" ]; then
-            echo "Cache: Saving Docker Images..."
-            mkdir -p /tmp/docker-images
-            docker save \
-              nginx:1.27 alpine:3.21.3 kindest/node:v1.32.2 \
-              nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
-              python:3.9-slim-buster \
-              -o /tmp/docker-images/base-images.tar &
-          fi
+          bash scripts/docker-pulls.sh
+          bash scripts/docker-save.sh
 
       - name: Load Docker Images
         if: steps.cache-docker.outputs.cache-hit == 'true'
