@@ -100,7 +100,7 @@ jobs:
           )&
           (
             make load-test-driver 
-            bash test/mock_driver/load-test-driver.sh
+            bash scripts/test/mock_driver/load-test-driver.sh
           )&
           make build-all
           make copy-files
@@ -109,7 +109,7 @@ jobs:
       - name: Prepare Lubricant and Test Resources
         run: |
           set -e
-          kubectl apply -f test/mock_driver/clock/test-driver.yaml
+          kubectl apply -f scripts/test/mock_driver/clock/test-driver.yaml
           kubectl apply -f deployment/tester/agent.yaml
           bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
@@ -122,7 +122,7 @@ jobs:
       - name: Start Test
         run: |
           set -e 
-          sed -i 's|"http://127.0.0.1"|"http://clock-driver-service.default.svc.cluster.local"|' test/mock_driver/clock/api.json
+          sed -i 's|"http://127.0.0.1"|"http://clock-driver-service.default.svc.cluster.local"|' scripts/test/mock_driver/clock/api.json
           lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl apply -f deployment/infra/lubricant-ingress.yaml

@@ -7,7 +7,7 @@ updates:
       day: sunday
       timezone: "Asia/Shanghai"
   - package-ecosystem: "pip"
-    directory: "/test/mock_driver/clock"
+    directory: "/scripts/test/mock_driver/clock"
     schedule:
       interval: "monthly"
       timezone: "Asia/Shanghai"
