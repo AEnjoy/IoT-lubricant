@@ -279,7 +279,12 @@ func (s *GatewayService) HostSetGatewayDeployConfig(ctx context.Context, hostid 
 		)
 		return err
 	}
-	defer host.Close()
+	defer func(host ssh.RemoteClient) {
+		err := host.Close()
+		if err != nil {
+			logger.Errorf("failed to close ssh client: %v", err)
+		}
+	}(host)
 
 	return host.UpdateConfig(info)
 }
