@@ -1,0 +1,20 @@
+version: "2"
+linters:
+  disable:
+    - staticcheck
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*github.com/pkg/sftp.Client).Close
+        - (*github.com/pkg/sftp.File).Close
+        - (*github.com/docker/docker/client.Client).Close
+        - (io.ReadCloser).Close
+        - (io.Closer).Close
+        - (*compress/gzip.Writer).Close
+        - (*compress/gzip.Reader).Close
+        - (*github.com/segmentio/kafka-go.Reader).Close
+        - (*github.com/segmentio/kafka-go.Writer).Close
+        - (*github.com/redis/go-redis/v9.baseClient).Close
+        - (*github.com/pkg/sftp.clientConn).Close
+        - (*os.File).Close
+        - (*net.Conn).Close

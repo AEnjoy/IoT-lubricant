@@ -6,4 +6,4 @@ report-cycle: 5
 algorithm: '-'
 enable-slot:
     - 0
-file-name: test/mock_driver/clock/api.json
+file-name: scripts/test/mock_driver/clock/api.json

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const path = "../../../test/mock_driver/clock/api.json"
+const path = "../../../scripts/test/mock_driver/clock/api.json"
 
 func TestApiCli(t *testing.T) {
 	t.Skip("E2E是成功的,在单元测试还需要做些修改")

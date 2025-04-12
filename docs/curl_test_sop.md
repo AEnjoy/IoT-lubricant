@@ -44,12 +44,12 @@ curl 'http://127.0.0.1:8080/api/v1/user/info' -X GET  -v -i -b cookie.txt
 
 添加网关：
 ```shell
-curl 'http://127.0.0.1:8080/api/v1/gateway/internal/gateway' -X POST -b cookie.txt -H 'Content-Type: application/json'  -d @test/request/create_gateway_internal.json
+curl 'http://127.0.0.1:8080/api/v1/gateway/internal/gateway' -X POST -b cookie.txt -H 'Content-Type: application/json'  -d @scripts/test/request/create_gateway_internal.json
 ```
 
 添加agent
 ```shell
-curl 'http://127.0.0.1:8080/api/v1/gateway/2988e18e-6861-4d7d-8be1-5c539faad0f1/agent/internal/add' -X POST -b cookie.txt -H 'Content-Type: application/json' -d @test/request/add_agent_internal_request.json
+curl 'http://127.0.0.1:8080/api/v1/gateway/2988e18e-6861-4d7d-8be1-5c539faad0f1/agent/internal/add' -X POST -b cookie.txt -H 'Content-Type: application/json' -d @scripts/test/request/add_agent_internal_request.json
 ```
 
 对Agent的操作：
@@ -70,7 +70,7 @@ curl 'http://127.0.0.1:8080/api/v1/agent/operator?agent-id=c9c603ff-5a9e-4362-ab
 
 ```shell
 curl 'http://127.0.0.1:8080/api/v1/agent/set?gateway-id=gateway-id-123' -X POST -b cookie.txt -H 'Content-Type: application/json' \
- -d @test/request/set_agent_data.json
+ -d @scripts/test/request/set_agent_data.json
 ```
 
 在设置agent前，请先编辑set_agent_data.json，将agentID设置为我们要设置的目标agentID。
