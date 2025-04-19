@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
@@ -18,6 +18,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/auth"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/config"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
@@ -46,43 +47,49 @@ type PbCoreServiceImpl struct {
 
 func (PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
 	gatewayid, _ := getGatewayID(ctx)
-	logger.Debugf("Recv gateway report request: %s", gatewayid)
+	logg.L.Debugf("Recv gateway report request: %s", gatewayid)
 
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	data, err := proto.Marshal(req)
 	if err != nil {
-		logger.Errorf("failed to marshal protobuf: %v", err)
+		logg.L.Errorf("failed to marshal protobuf: %v", err)
 		return nil, status2.Errorf(codes.Internal, "failed to marshal protobuf: %v", err)
 	}
 
 	err = taskMq.PublishBytes("/handler/report", data)
 	if err != nil {
-		logger.Errorf("failed to publish data: %v", err)
+		logg.L.Errorf("failed to publish data: %v", err)
 		return nil, status2.Errorf(codes.Internal, "failed to publish data: %v", err)
 	}
 
-	if req.GetAgentStatus() != nil {
+	switch req.Req.(type) {
+	case *corepb.ReportRequest_AgentStatus:
 		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_AgentStatus{
 			AgentStatus: &corepb.AgentStatusResponse{
 				Resp: &status.Status{Message: "ok"},
 			},
-		},
-		}, nil
-	}
-	if req.GetTaskResult() != nil {
+		}}, nil
+	case *corepb.ReportRequest_TaskResult:
 		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_TaskResult{
 			TaskResult: &corepb.TaskResultResponse{
 				Resp: &status.Status{Message: "ok"},
 			},
-		},
-		}, nil
+		}}, nil
+	case *corepb.ReportRequest_ReportLog:
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_ReportLog{
+			ReportLog: &corepb.ReportLogResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		}}, nil
+	case *corepb.ReportRequest_Error:
+		return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
+			Error: &corepb.ReportErrorResponse{
+				Resp: &status.Status{Message: "ok"},
+			},
+		}}, nil
+	default:
+		return nil, status2.Errorf(codes.Internal, "unknown request type")
 	}
-	return &corepb.ReportResponse{Resp: &corepb.ReportResponse_Error{
-		Error: &corepb.ReportErrorResponse{
-			Resp: &status.Status{Message: "ok"},
-		},
-	},
-	}, nil
 }
 
 func (PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
@@ -116,19 +123,21 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 		if tryPing {
 			err := taskMq.Publish(fmt.Sprintf("/monitor/%s/%s/offline/error", taskTypes.TargetGateway, gatewayID), []byte(time.Now().Format("2006-01-02 15:04:05")))
 			if err != nil {
-				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+				logg.L.WithOperatorID(userid).
+					Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 			}
 		} else {
 			err := gatewayOffline(taskMq, userid, gatewayID)
 			if err != nil {
-				logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+				logg.L.WithOperatorID(userid).
+					Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 			}
 		}
 	}()
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logger.Errorf("recover error: %v", err)
+				logg.L.WithOperatorID(userid).Errorf("recover error: %v", err)
 			}
 		}()
 		for {
@@ -146,7 +155,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 			}
 
 			if err != nil {
-				logger.Errorf("grpc stream error: %s", err.Error())
+				logg.L.WithOperatorID(userid).Errorf("grpc stream error: %s", err.Error())
 				continue
 			}
 			if tryPing && resp.Flag == 1 {
@@ -167,7 +176,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 					//exitSig <- struct{}{}
 					return nil
 				}
-				logger.Errorf("grpc stream error: %s", err.Error())
+				logg.L.WithOperatorID(userid).Errorf("grpc stream error: %s", err.Error())
 				continue
 			}
 		case <-time.After(10 * time.Second):
@@ -181,7 +190,7 @@ func (PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Pin
 
 		err := taskMq.Publish(topic, []byte(gatewayID))
 		if err != nil {
-			logger.Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
+			logg.L.WithOperatorID(userid).Errorf("failed to add gateway register information to messageQueue: %v gatewayID: %s", err, gatewayID)
 		}
 
 	}
@@ -196,7 +205,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 
 	ch, cancel2, err := getTaskIDCh(s.Context(), taskTypes.TargetGateway, userid, gatewayID)
 	if err != nil {
-		logger.Errorf("failed to get task id: %s", err.Error())
+		logg.L.WithOperatorID(userid).Errorf("failed to get task id: %s", err.Error())
 		taskSendErrorMessage(s, 500, err.Error())
 		return err
 	}
@@ -217,22 +226,22 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 					continue
 				}
 
-				logger.Debugf("taskID:%s", taskID)
+				logg.L.Debugf("taskID:%s", taskID)
 
 				taskData, err := getTask(s.Context(), taskTypes.TargetGateway, userid, gatewayID, taskID)
 				if err != nil {
-					logger.Debugf("Error at get task: %v", err)
+					logg.L.Debugf("Error at get task: %v", err)
 					if err != errs.ErrTargetNoTask {
-						logger.Errorf("failed to get task id: %v", err)
+						logg.L.WithOperatorID(userid).Errorf("failed to get task id: %v", err)
 						taskSendErrorMessage(s, 500, err.Error())
 					}
 				} else {
-					logger.Debugf("send task %s to gateway %s", taskID, gatewayID)
+					logg.L.Debugf("send task %s to gateway %s", taskID, gatewayID)
 					var resp corepb.CorePushTaskRequest
 					var message corepb.TaskDetail
 					err := proto.Unmarshal(taskData, &message)
 					if err != nil {
-						logger.Errorf("failed to unmarshal task data: %v", err)
+						logg.L.WithOperatorID(userid).Errorf("failed to unmarshal task data: %v", err)
 						continue
 					}
 
@@ -276,7 +285,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 							_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_NoTaskResponse{NoTaskResponse: &resp}})
 							continue
 						} else {
-							logger.Errorf("failed to get task data: %s", err.Error())
+							logg.L.WithOperatorID(userid).Errorf("failed to get task data: %s", err.Error())
 							taskSendErrorMessage(s, 500, err.Error())
 							continue
 						}
@@ -286,7 +295,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 						message.Content = taskData
 						message.TaskId = taskID
 						//resp.Message = &message
-						logger.Debugf("send task to gateway: %s", taskID)
+						logg.L.Debugf("send task to gateway: %s", taskID)
 						_ = s.Send(&corepb.Task{ID: taskReq.ID, Task: &corepb.Task_GatewayGetTaskResponse{GatewayGetTaskResponse: &resp}})
 						continue
 					}
@@ -303,7 +312,7 @@ func (PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.
 			m := taskReq.GetCoreQueryTaskResultResponse()
 			marshal, err := proto.Marshal(m)
 			if err != nil {
-				logger.Errorf("failed to marshal task data: %v", err)
+				logg.L.WithOperatorID(userid).Errorf("failed to marshal task data: %v", err)
 				continue
 			}
 			_ = taskMq.Publish(fmt.Sprintf("/task/%s/%s/%s/response", taskTypes.TargetGateway, gatewayID, m.TaskId), marshal)
@@ -315,7 +324,7 @@ func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (
 }
 func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := getGatewayID(d.Context())
-	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
+	logg.L.Debugf("Recv data stream from gateway:%s", gatewayid)
 
 	for {
 		data, err := d.Recv()
@@ -333,7 +342,7 @@ func (PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, 
 			MessageId: data.MessageId,
 		})
 		if err != nil {
-			logger.Errorf("grpc stream error: %s", err.Error())
+			logg.L.WithOperatorID(gatewayid).Errorf("grpc stream error: %s", err.Error())
 			continue
 		}
 	}
@@ -416,7 +425,7 @@ func taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], 
 	_ = s.Send(&out)
 }
 func gatewayOffline(mq mq.Mq, userid, gatewayid string) error {
-	logger.Debugf("gateway offline: %s", gatewayid)
+	logg.L.Debugf("gateway offline: %s", gatewayid)
 	return mq.PublishBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway),
 		[]byte(fmt.Sprintf("%s<!SPLIT!>%s", userid, gatewayid)))
 }

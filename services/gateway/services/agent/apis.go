@@ -7,7 +7,6 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/docker"
 	errCh "github.com/aenjoy/iot-lubricant/pkg/error"
-	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	errLevel "github.com/aenjoy/iot-lubricant/pkg/types/code"
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
@@ -16,6 +15,7 @@ import (
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/bytedance/sonic"
 	grpcCode "google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -107,13 +107,13 @@ func (a *agentApis) init() {
 
 			if ins.Local && !docker.IsContainerRunning(ins.ContainerID) {
 				if err := docker.StartContainer(ins.ContainerID); err != nil {
-					logger.Error("online container failed", ins.ContainerID, err)
+					logg.L.Error("online container failed", ins.ContainerID, err)
 					return
 				}
 			}
 
 			if err := a.pool.JoinAgent(ctx, control); err != nil {
-				logger.Error("agent join to handel pool failed", agent.AgentId, err)
+				logg.L.Error("agent join to handel pool failed", agent.AgentId, err)
 				return
 			}
 			a.reporter <- &corepb.ReportRequest{
@@ -149,7 +149,7 @@ func (a *agentApis) StartAgent(id string) error {
 		}
 		return nil
 	}
-	logger.Warnln("agent already started", id)
+	logg.L.Warn("agent already started", id)
 	return nil
 }
 
@@ -191,7 +191,7 @@ func (a *agentApis) RemoveAgent(id string) error {
 			return err
 		}
 	} else {
-		logger.Warnf("AgentID:[%s] Not supporting the removal of manually added agents, "+
+		logg.L.Warnf("AgentID:[%s] Not supporting the removal of manually added agents, "+
 			"which will result in the deletion of database records", id)
 	}
 
@@ -364,7 +364,7 @@ func (a *agentApis) AddAgent(req *model.CreateAgentRequest) error {
 	return a.CreateAgent(req)
 }
 func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
-	logger.Debugf("%+v,%+v", req.AgentInfo, req.CreateAgentConf)
+	logg.L.Debugf("%+v,%+v", req.AgentInfo, req.CreateAgentConf)
 	txn := a.db.Begin()
 	errorCh := errCh.NewErrorChan()
 	defer errCh.HandleErrorCh(errorCh).ErrorWillDo(func(error) {
@@ -415,7 +415,7 @@ func (a *agentApis) CreateAgent(req *model.CreateAgentRequest) error {
 		}
 	}
 
-	logger.Debugf("Instance： %+v", instance)
+	logg.L.Debugf("Instance： %+v", instance)
 	err := a.db.AddAgentInstance(txn, &instance)
 	if err != nil {
 		errorCh.Report(err, exceptionCode.AddAgentFailed, "add agent instance failed", true)

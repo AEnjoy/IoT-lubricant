@@ -35,7 +35,7 @@ func (d *DataStore) Init() error {
 	c := config.GetConfig()
 	switch strings.ToLower(c.MqType) {
 	case "nats":
-		natsMq, err := mq.NewNatsMq[[]byte](c.NatUrl)
+		natsMq, err := mq.NewNatsMq(c.NatUrl)
 		if err != nil {
 			return err
 		}

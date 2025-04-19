@@ -1,4 +1,4 @@
-package _default
+package constant
 
 var (
 	ServerKeyFileName = "server_auth.key"

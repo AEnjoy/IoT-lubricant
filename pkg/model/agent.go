@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aenjoy/iot-lubricant/pkg/default"
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types/container"
-	"github.com/aenjoy/iot-lubricant/pkg/types/task"
+	"github.com/aenjoy/iot-lubricant/pkg/types/operation"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
 	gatewaypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/bytedance/sonic"
@@ -121,8 +121,8 @@ func ProxypbCreateAgentRequest2CreateAgentRequest(pbreq *gatewaypb.CreateAgentRe
 	return retVal
 }
 
-func (CreateAgentRequest) TaskOperation() task.Operation {
-	return task.OperationAddAgent
+func (CreateAgentRequest) TaskOperation() operation.Operation {
+	return operation.OperationAddAgent
 }
 
 type CreateAgentResponse struct {
@@ -138,7 +138,7 @@ var AgentContainer = container.Container{
 	Name:    "lubricant-agent",
 	Network: network.NetworkBridge,
 	ExposePort: map[string]int{
-		fmt.Sprintf("%d", _default.AgentGrpcPort): 0,
+		fmt.Sprintf("%d", constant.AgentGrpcPort): 0,
 	},
 }
 

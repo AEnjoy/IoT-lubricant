@@ -43,52 +43,52 @@ Lubricant提供以下3个组件,外加用户提供的一个通用驱动组件:
 ```mermaid
 sequenceDiagram
    participant User
-   participant Lubricant-Dashboard
+   participant LubricantUI
 participant Lubricant-Core
-participant Gateway-Agent
+participant Edge-Gateway
 participant Edge-Agent
 participant Edge-Driver
 participant Database
 
-User->>Lubricant-Dashboard: Access Restful APIs
-Lubricant-Dashboard->>Lubricant-Core: Send Request
+User->>LubricantUI: Access Restful APIs
+LubricantUI->>Lubricant-Core: Send Request
 
 alt Get Data
-Lubricant-Core->>Gateway-Agent: Request Data via RPC
-Gateway-Agent->>Edge-Agent: Request Data via Restful API
-Edge-Agent->>Edge-Driver: Get/Set Data
+Lubricant-Core->>Edge-Gateway: Request Data via gRPC
+Edge-Gateway->>Edge-Agent: Request Data via gRPC
+Edge-Agent->>Edge-Driver: Get/Set Data via Restful API
 Edge-Driver-->>Edge-Agent: Return Data
-Edge-Agent-->>Gateway-Agent: Return Aggregated Data
-Gateway-Agent-->>Lubricant-Core: Return Aggregated Data
-Lubricant-Core-->>User: Return Data
-Lubricant-Core->>Database: Store Data (with or without cleaning)
+Edge-Agent-->>Edge-Gateway: Return Aggregated Data
+Edge-Gateway-->>Lubricant-Core: Return Aggregated Data
+LubricantUI-->>User: Return Data
+LubricantUI->>Database: Store Data (with or without cleaning)
 end
 
-alt Deploy Gateway-Agent to Edge Device
+alt Deploy Edge-Gateway to Edge Device
 Lubricant-Core->>Lubricant-Core: Collect Info (IP:Port, Username, Password, DriverImageUrl, ApiDoc)
-Lubricant-Core->>Gateway-Agent: Deploy Gateway-Agent via SSH
-Lubricant-Core->>Gateway-Agent: Establish RPC Connection
-Gateway-Agent-->>Lubricant-Core: Return Success
+Lubricant-Core->>Edge-Gateway: Deploy Gateway via SSH or deploy by user hand
+Lubricant-Core->>Edge-Gateway: Establish RPC Connection
+Edge-Gateway-->>Lubricant-Core: Return Success
 Lubricant-Core-->>User: Deployment Success
 end
 
 alt Send Command
 User->>Lubricant-Core: Send Command
-Lubricant-Core->>Gateway-Agent: Execute Command via RPC
-Gateway-Agent-->>Lubricant-Core: Return Result
+Lubricant-Core->>Edge-Gateway: Execute Command via RPC
+Edge-Gateway-->>Lubricant-Core: Return Result
 Lubricant-Core-->>User: Return Command Result
 end
 
 rect rgb(240, 240, 240)
-Gateway-Agent->>Edge-Agent: Access API_Doc to Get Data
-Gateway-Agent-->>Lubricant-Core: Report Data (from polling or manual command)
-Gateway-Agent->>Lubricant-Core: Parse Command via RPC and Execute
-Gateway-Agent->>Edge-Agent: Deploy Edge-Agent container
+Edge-Gateway->>Edge-Agent: Access API_Doc to Get Data
+Edge-Gateway-->>Lubricant-Core: Report Data (from polling or manual command)
+Edge-Gateway->>Lubricant-Core: Parse Command via RPC and Execute
+Edge-Gateway->>Edge-Agent: Deploy Edge-Agent container by auto or user hand
 end
 
 rect rgb(240, 240, 240)
 Edge-Agent->>Edge-Driver: Get/Set Data via API_Doc
-Edge-Agent-->>Gateway-Agent: Provide Data to Gateway-Agent
+Edge-Agent-->>Edge-Gateway: Provide Data to Edge-Gateway
 end
 ```
 

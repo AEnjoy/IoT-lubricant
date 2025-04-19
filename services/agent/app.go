@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/edge/config"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/compress"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/net"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
-	dataService "github.com/aenjoy/iot-lubricant/services/agent/grpc"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
+
 	"github.com/nats-io/nats.go"
 )
 
@@ -26,6 +28,16 @@ type app struct {
 }
 
 func (a *app) Run() error {
+	logg.L, _ = logg.NewLogger(a, false)
+	logg.SetServiceName(version.ServiceName)
+	logg.L = logg.L.
+		WithVersionJson(version.VersionJson()).
+		WithOperatorID(a.config.ID).
+		WithPrintToStdout().
+		WithContext(a.ctrl).
+		WithWaitOption(false).
+		AsRoot()
+
 	_compressor, _ = compress.NewCompressor(a.config.Algorithm)
 	go DataHandler()
 
@@ -76,7 +88,7 @@ func UseGRPC(bind string) func(*app) error {
 			logger.Warnln("grpc bind is empty, use default")
 			bind = def.AgentDefaultBind
 		}
-		go dataService.NewServer(bind)
+		go NewServer(bind)
 		return nil
 	}
 }

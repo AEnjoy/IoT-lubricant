@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "protobuf/meta/meta.proto";
+import "protobuf/svc/log.proto";
 import "protobuf/gateway/api_agent.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
@@ -138,6 +139,7 @@ message ReportRequest{
       reportErrorRequest error = 3;
       AgentStatusRequest agentStatus = 4;
       TaskResultRequest taskResult = 5;
+      ReportLogRequest reportLog = 6;
   }
 }
 message ReportResponse{
@@ -148,6 +150,7 @@ message ReportResponse{
       reportErrorResponse error = 3;
       AgentStatusResponse agentStatus = 4;
       TaskResultResponse taskResult = 5;
+      ReportLogResponse reportLog = 6;
   }
 }
 message AgentStatusRequest{
@@ -157,5 +160,13 @@ message AgentStatusResponse{
   google.rpc.Status resp = 1;
 }
 message TaskResultResponse{
+  google.rpc.Status resp = 1;
+}
+message ReportLogRequest{
+  string gatewayId = 1;
+  string agentId = 2;
+  repeated lubricant.svc.Logs logs = 3;
+}
+message ReportLogResponse{
   google.rpc.Status resp = 1;
 }

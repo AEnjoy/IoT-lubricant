@@ -1,0 +1,13 @@
+FROM alpine:3.21.3 AS builder
+
+WORKDIR /app
+
+COPY cmd/logg/logg ./
+RUN chmod +x ./logg
+
+FROM alpine:3.21.3
+
+WORKDIR /
+COPY --from=builder /app/logg ./
+
+CMD ["./logg"]

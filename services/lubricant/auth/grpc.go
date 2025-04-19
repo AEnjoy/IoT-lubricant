@@ -4,7 +4,7 @@ package auth
 import (
 	"fmt"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/repo"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
@@ -45,7 +45,7 @@ func Core(database *gorm.DB) *CoreDb {
 
 	err = db.AutoMigrate(&taskTypes.Task{}, &model.Clean{}, &model.GatewayHost{}, &model.ErrorLogs{},
 		&model.User{}, &model.AsyncJob{}, &model.Gateway{}, &model.Token{}, &model.Agent{}, &model.Data{},
-		&model.GatherNodeConfig{})
+		&model.GatherNodeConfig{}, &model.Log{})
 	if err != nil {
 		logger.Fatalf("failed to migrate database: %v", err)
 	}

@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lubricant-core
+  name: lubricant-core-apiserver
   namespace: lubricant
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: lubricant-core
+      app: lubricant-core-apiserver
   template:
     metadata:
       labels:
-        app: lubricant-core
+        app: lubricant-core-apiserver
     spec:
       containers:
         - name: lubricant-core
@@ -99,7 +99,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: lubricant-core
+  name: lubricant-core-apiserver
   namespace: lubricant
 spec:
   type: NodePort
@@ -114,4 +114,4 @@ spec:
       name: grpc
       targetPort: 5423
   selector:
-    app: lubricant-core
+    app: lubricant-core-apiserver

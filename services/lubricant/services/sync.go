@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -28,7 +28,7 @@ func (s *SyncTaskQueue) WaitTask(taskid string, timeout time.Duration) (*corepb.
 	defer func(Mq mq.Mq, topic string, sub <-chan any) {
 		err := Mq.Unsubscribe(topic, sub)
 		if err != nil {
-			logger.Errorf("failed to unsubscribe from message queue: %v", err)
+			logg.L.Errorf("failed to unsubscribe from message queue: %v", err)
 		}
 	}(s.Mq, fmt.Sprintf("/task/%s/sync/%s", taskTypes.TargetCore, taskid), ch)
 
