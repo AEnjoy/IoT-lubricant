@@ -124,7 +124,7 @@ jobs:
         run: |
           set -e 
           sed -i 's|"http://127.0.0.1"|"http://clock-driver-service.default.svc.cluster.local"|' scripts/test/mock_driver/clock/api.json
-          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core/ {print $1}')
+          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core-apiserver/ {print $1}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl apply -f deployment/infra/lubricant-ingress.yaml
           sleep 10
