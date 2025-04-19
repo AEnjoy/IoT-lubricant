@@ -20,7 +20,6 @@ spec:
             - containerPort: 8080
               name: http
               protocol: TCP
-              hostPort: 8080
           env:
             - name: HTTP_LISTEN_PORT
               value: "8080"
