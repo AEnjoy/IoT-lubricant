@@ -2,12 +2,12 @@ FROM alpine:3.21.3 AS builder
 
 WORKDIR /app
 
-COPY cmd/reporterHandler/reporterHandler ./
-RUN chmod +x ./reporterHandler
+COPY cmd/reporter/reporter ./
+RUN chmod +x ./reporter
 
 FROM alpine:3.21.3
 
 WORKDIR /
-COPY --from=builder /app/reporterHandler ./
+COPY --from=builder /app/reporter ./
 
-CMD ["./reporterHandler"]
+CMD ["./reporter"]

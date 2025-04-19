@@ -16,7 +16,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-WORKDIR /app/cmd/reporterHandler
+WORKDIR /app/cmd/reporter
 RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 &&\
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
@@ -27,12 +27,12 @@ RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 &&\
 	-X 'main.Features=${FEATURES}' \
 	-X 'main.BuildHostPlatform=${BUILD_HOST_PLATFORM}' \
 	-X 'main.PlatformVersion=${PLATFORM_VERSION}' \
-	" -o /reporterHandler
+	" -o /reporter
 
 FROM alpine:3.21.3
 WORKDIR /root/
-COPY --from=builder /reporterHandler .
+COPY --from=builder /reporter .
 
 # COPY scripts/files ./files
 
-CMD ["./reporterHandler"]
+CMD ["./reporter"]
