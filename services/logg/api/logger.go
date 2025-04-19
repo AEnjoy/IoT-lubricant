@@ -196,6 +196,9 @@ func (l *Logger) Info(args ...interface{}) {
 	if l.printToStdout {
 		logger.Info(l.message)
 	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_INFO
+	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
 
@@ -203,6 +206,9 @@ func (l *Logger) Warn(args ...interface{}) {
 	l.message = fmt.Sprintf("%v", args)
 	if l.printToStdout {
 		logger.Warn(l.message)
+	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_WARN
 	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
@@ -212,6 +218,9 @@ func (l *Logger) Error(args ...interface{}) {
 	if l.printToStdout {
 		logger.Error(l.message)
 	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_ERROR
+	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
 
@@ -220,13 +229,16 @@ func (l *Logger) Debugf(format string, args ...interface{}) {
 	if l.printToStdout {
 		logger.Debug(l.message)
 	}
-	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
+	//_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
 
 func (l *Logger) Infof(format string, args ...interface{}) {
 	l.message = fmt.Sprintf(format, args)
 	if l.printToStdout {
 		logger.Info(l.message)
+	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_INFO
 	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
@@ -236,6 +248,9 @@ func (l *Logger) Warnf(format string, args ...interface{}) {
 	if l.printToStdout {
 		logger.Warn(l.message)
 	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_WARN
+	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }
 
@@ -243,6 +258,9 @@ func (l *Logger) Errorf(format string, args ...interface{}) {
 	l.message = fmt.Sprintf(format, args)
 	if l.printToStdout {
 		logger.Error(l.message)
+	}
+	if l.logLevel == svcpb.Level_LogUnknown {
+		l.logLevel = svcpb.Level_ERROR
 	}
 	_ = l.Transfer(l.ctx, l.generateProtobuf(), l.waitOption)
 }

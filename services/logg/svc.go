@@ -19,10 +19,15 @@ func (a *app) handel(in any) {
 		return
 	}
 	err = a.db.Write(a.ctx, &model.Log{
-		LogID:      uuid.NewString(),
-		OperatorID: pb.OperatorID,
-
-		ServiceName:   pb.ServiceName,
+		LogID:       uuid.NewString(),
+		OperatorID:  pb.OperatorID,
+		ServiceName: pb.ServiceName,
+		Version: func() string {
+			if len(pb.Version) == 0 {
+				return "{}"
+			}
+			return string(pb.Version)
+		}(),
 		Level:         pb.Level,
 		IPAddress:     pb.IPAddress,
 		Protocol:      pb.Protocol,
@@ -36,9 +41,19 @@ func (a *app) handel(in any) {
 			}
 			return exceptionCode.ResCode(*pb.ServiceErrorCode)
 		}(),
-		Metadata:      string(pb.Metadata),
-		ExceptionInfo: string(pb.ExceptionInfo),
-		Time:          pb.Time.AsTime(),
+		Metadata: func() string {
+			if len(pb.Metadata) == 0 {
+				return "{}"
+			}
+			return string(pb.Metadata)
+		}(),
+		ExceptionInfo: func() string {
+			if len(pb.ExceptionInfo) == 0 {
+				return "{}"
+			}
+			return string(pb.ExceptionInfo)
+		}(),
+		Time: pb.Time.AsTime(),
 	})
 	if err != nil {
 		logger.Errorf("failed to write log: %v", err)

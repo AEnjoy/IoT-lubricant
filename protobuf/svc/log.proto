@@ -23,10 +23,11 @@ message Logs{
   optional bytes metadata = 15; // 日志元数据 (json bytes)
 }
 enum level{
-  DEBUG = 0;
-  INFO = 1;
-  WARN = 2;
-  ERROR = 3;
+  LogUnknown = 0;
+  DEBUG = 1;
+  INFO = 2;
+  WARN = 3;
+  ERROR = 4;
 }
 enum Operation{
   Unknown = 0;
