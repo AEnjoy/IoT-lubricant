@@ -10,14 +10,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (a *app) handel(data []byte) {
+func (a *app) handel(in any) {
+	data := in.([]byte)
 	pb := &svcpb.Logs{}
 	err := proto.Unmarshal(data, pb)
 	if err != nil {
 		logger.Errorf("failed to unmarshal data: %v", err)
 		return
 	}
-	_ = a.db.Write(a.ctx, &model.Log{
+	err = a.db.Write(a.ctx, &model.Log{
 		LogID:      uuid.NewString(),
 		OperatorID: pb.OperatorID,
 
@@ -39,4 +40,7 @@ func (a *app) handel(data []byte) {
 		ExceptionInfo: string(pb.ExceptionInfo),
 		Time:          pb.Time.AsTime(),
 	})
+	if err != nil {
+		logger.Errorf("failed to write log: %v", err)
+	}
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	"github.com/aenjoy/iot-lubricant/services/logg/dao"
+
+	"github.com/panjf2000/ants/v2"
 )
 
 type app struct {
@@ -17,6 +19,10 @@ type app struct {
 }
 
 func (a *app) Run() error {
+	pool, err := ants.NewPoolWithFunc(500, a.handel, ants.WithPreAlloc(true))
+	if err != nil {
+		logger.Fatalf("Failed to create ants pool: %v", err)
+	}
 	ch, err := a.mq.SubscribeBytes(constant.MESSAGE_SVC_LOGGER)
 	if err != nil {
 		return err
@@ -29,7 +35,7 @@ func (a *app) Run() error {
 			if !ok {
 				continue
 			}
-			go a.handel(data.([]byte))
+			_ = pool.Invoke(data)
 		}
 	}
 }
