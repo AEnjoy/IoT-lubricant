@@ -7,6 +7,7 @@ import (
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/protobuf/proto"
@@ -17,6 +18,19 @@ import (
 //	对于所有的同步任务请求，都使用这个对象进行处理
 type SyncTaskQueue struct {
 	mq.Mq
+}
+
+func (s *SyncTaskQueue) Init() error {
+	s.Mq = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_MQ_SERVICE).(mq.Mq)
+	return nil
+}
+
+func (SyncTaskQueue) Weight() uint16 {
+	return ioc.CoreSyncTaskSystem
+}
+
+func (SyncTaskQueue) Version() string {
+	return ""
 }
 
 func (s *SyncTaskQueue) WaitTask(taskid string, timeout time.Duration) (*corepb.QueryTaskResultResponse, error) {

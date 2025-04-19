@@ -1,28 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lubricant-grpcserver
+  name: lubricant-report
   namespace: lubricant
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: lubricant-grpcserver
+      app: lubricant-report
   template:
     metadata:
       labels:
-        app: lubricant-grpcserver
+        app: lubricant-report
     spec:
       containers:
-        - name: lubricant-grpcserver
-          image: hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly
-          ports:
-            - containerPort: 5423
-              name: grpc
-              protocol: TCP
+        - name: lubricant-report
+          image: hub.iotroom.top/aenjoy/lubricant-report:nightly
           env:
-            - name: GRPC_LISTEN_PORT
-              value: "5423"
             - name: DB_USER
               value: "lubricant"
             - name: DB_ADDRESS
@@ -42,17 +36,3 @@ spec:
               value: "nats"
             - name: NATS_URL
               value: "nats://nats.database.svc.cluster.local:4222"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lubricant-grpcserver
-  namespace: lubricant
-spec:
-  type: NodePort
-  ports:
-    - port: 5423
-      name: grpc
-      targetPort: 5423
-  selector:
-    app: lubricant-grpcserver

@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/repo"
@@ -41,18 +40,5 @@ func (*AgentService) Weight() uint16 {
 }
 
 func (*AgentService) Version() string {
-	return ""
-}
-
-func (s *syncQueue.SyncTaskQueue) Init() error {
-	s.Mq = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_MQ_SERVICE).(mq.Mq)
-	return nil
-}
-
-func (syncQueue.SyncTaskQueue) Weight() uint16 {
-	return ioc.CoreSyncTaskSystem
-}
-
-func (syncQueue.SyncTaskQueue) Version() string {
 	return ""
 }
