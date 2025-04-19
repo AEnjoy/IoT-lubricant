@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: lubricant-report
-          image: hub.iotroom.top/aenjoy/lubricant-report:nightly
+          image: hub.iotroom.top/aenjoy/lubricant-reporter:nightly
           env:
             - name: DB_USER
               value: "lubricant"

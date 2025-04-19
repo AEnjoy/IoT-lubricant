@@ -125,6 +125,7 @@ mock: install
 	@mockery --dir=pkg/utils/mq --name=Mq --output=pkg/mock/mq --outpkg=mq
 	@mockery --dir=protobuf/core --name=CoreServiceClient --output=pkg/mock/grpc --outpkg=grpc
 	@mockery --dir=protobuf --name=BidiStreamingServer --output=pkg/mock/grpc --outpkg=grpc
+	# mockgen will add a dependency on the mockgen package, which is needed by ut but this is not present in go.mod.
 	go mod tidy -v
 
 copy-files:
@@ -147,12 +148,15 @@ help:
 	@echo "  test-coverage      Run tests with coverage"
 	@echo "  mock               Generate mock files"
 	@echo "  copy-files         Copy binaries to cmd directories"
+	@echo "  load-to-kind       Load images to kind cluster"
 	@echo "  clean              Clean build artifacts"
+	@echo "  help               Show this help"
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  CGO_ENABLED=1      Enable CGO for supported components"
 	@echo "  FAST_BUILD=1       Use fast Docker build method"
 	@echo ""
 	@echo "Example:"
-	@echo "  make build-gateway CGO_ENABLED=1"
-	@echo "  make docker-build FAST_BUILD=1"
+	@echo "   CGO_ENABLED=1 make build-gateway"
+	@echo "   FAST_BUILD=1 make docker-build"
+	@echo "   make load-to-kind"
