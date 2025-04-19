@@ -83,7 +83,7 @@ jobs:
           set -e
           kubectl cluster-info
           kubectl version
-          echo "Labeling the node `ingress-ready=true`, because ingress controller can't deploy without this label"
+          echo "Labeling the node ingress-ready=true, because ingress controller can't deploy without this label"
           kubectl label nodes kind-control-plane ingress-ready=true
           bash deployment/infra/nsinit.sh
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml

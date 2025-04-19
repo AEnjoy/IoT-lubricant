@@ -18,6 +18,7 @@ type app struct {
 }
 
 func (a *app) Run() error {
+	// logg is impl by services/lubricant/services/log.go
 	err := a.httpServer.Run(fmt.Sprintf(":%s", a.port))
 	if err != nil {
 		logg.L.Error("Web Server start error, error Info is: ", err)

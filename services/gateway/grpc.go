@@ -11,6 +11,7 @@ import (
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	"github.com/aenjoy/iot-lubricant/services/gateway/services/data"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -104,11 +105,11 @@ func (a *app) grpcTaskApp() error {
 						},
 					})
 					if err == io.EOF {
-						logger.Errorln("grpc stream closed")
+						logg.L.Error("grpc stream closed")
 						return
 					}
 					if err != nil {
-						logger.Errorf("grpc stream error: %v", err)
+						logg.L.Errorf("grpc stream error: %v", err)
 					}
 				}
 			}
@@ -118,16 +119,16 @@ func (a *app) grpcTaskApp() error {
 			time.Sleep(time.Second)
 			resp, err := task.Recv()
 			if err == io.EOF {
-				logger.Errorln("grpc stream closed")
+				logg.L.Error("grpc stream closed")
 				return nil
 			}
 
 			if err != nil {
 				st, ok := status.FromError(err)
 				if ok {
-					logger.Errorf("grpc stream error: %s", st.Message())
+					logg.L.Errorf("grpc stream error: %s", st.Message())
 					if st.Code() == codes.Unavailable || st.Code() == codes.DeadlineExceeded || st.Code() == codes.Aborted {
-						logger.Errorf("Retrying after error (attempt %d): %v", i+1, err)
+						logg.L.Errorf("Retrying after error (attempt %d): %v", i+1, err)
 						if i < retryAttempts-1 {
 							time.Sleep(retryDelay)
 							retryDelay *= 2
@@ -138,20 +139,20 @@ func (a *app) grpcTaskApp() error {
 						return fmt.Errorf("unrecoverable gRPC error: %w", err)
 					}
 				} else {
-					logger.Errorf("Receive error: %v", err)
+					logg.L.Errorf("Receive error: %v", err)
 					return fmt.Errorf("recv failed: %w", err)
 				}
 			}
 			if resp.ID != "" {
-				logger.Debugf("RecvTask %s:", resp.ID)
+				logg.L.Debugf("RecvTask %s:", resp.ID)
 			}
 
 			switch t := resp.GetTask().(type) {
 			case *corepb.Task_GatewayGetTaskResponse:
-				logger.Debug("Task Type is:", "GatewayGetTaskResponse")
+				logg.L.Debug("Task Type is:", "GatewayGetTaskResponse")
 				a.handelGatewayGetTaskResponse(t)
 			case *corepb.Task_CorePushTaskRequest:
-				logger.Debug("Task Type is:", "CorePushTaskRequest")
+				logg.L.Debug("Task Type is:", "CorePushTaskRequest")
 				_ = a.handelCorePushTaskAsync(t)
 				//err := task.Send(&corepb.Task{ID: resp.TaskId,
 				//	Task: &corepb.Task_CorePushTaskResponse{
@@ -191,19 +192,19 @@ func (a *app) grpcTaskApp() error {
 					st, ok := status.FromError(err)
 					if ok {
 						if st.Code() == codes.Unavailable || st.Code() == codes.Canceled || st.Code() == codes.DeadlineExceeded || err == io.EOF {
-							logger.Errorf("Send goroutine exiting due to error: %v", err)
+							logg.L.Errorf("Send goroutine exiting due to error: %v", err)
 							continue
 						} else {
-							logger.Errorf("Unrecoverable gRPC Send error: %v", err)
+							logg.L.Errorf("Unrecoverable gRPC Send error: %v", err)
 						}
 					} else {
-						logger.Errorf("Send error: %v", err)
+						logg.L.Errorf("Send error: %v", err)
 						if errors.Is(err, io.EOF) {
-							logger.Errorln("grpc stream closed")
+							logg.L.Error("grpc stream closed")
 							continue
 						}
 						if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-							logger.Errorln("net timeout")
+							logg.L.Error("net timeout")
 						}
 						continue
 					}
@@ -218,7 +219,7 @@ func (a *app) grpcTaskApp() error {
 			case *corepb.Task_NoTaskResponse:
 				// logger.Debug("gateway get task request success, and no task need to execute")
 			case *corepb.Task_ErrorMessage:
-				logger.Errorf("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
+				logg.L.Error("gateway send request to core success, but get an error: %s", t.ErrorMessage.String())
 			}
 		}
 	}
@@ -236,19 +237,19 @@ func (a *app) grpcDataApp() {
 			st, ok := status.FromError(err)
 			if ok {
 				if st.Code() == codes.Unavailable || st.Code() == codes.Canceled || st.Code() == codes.DeadlineExceeded || err == io.EOF {
-					logger.Errorf("PushData exiting due to error: %v", err)
+					logg.L.Errorf("PushData exiting due to error: %v", err)
 					continue
 				} else {
-					logger.Errorf("Unrecoverable gRPC Send error: %v", err)
+					logg.L.Errorf("Unrecoverable gRPC Send error: %v", err)
 				}
 			} else {
-				logger.Errorf("Send error: %v", err)
+				logg.L.Errorf("Send error: %v", err)
 				if errors.Is(err, io.EOF) {
-					logger.Errorln("grpc stream closed")
+					logg.L.Error("grpc stream closed")
 					continue
 				}
 				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-					logger.Errorln("net timeout")
+					logg.L.Error("net timeout")
 				}
 				continue
 			}
@@ -271,7 +272,7 @@ func (a *app) grpcPingApp() error {
 				retryDelay *= 2 // 指数退避
 				continue        // 重试
 			}
-			logger.Errorf("Failed to send ping request to server: %v", err)
+			logg.L.Errorf("Failed to send ping request to server: %v", err)
 			return err
 		}
 		i--
@@ -279,20 +280,20 @@ func (a *app) grpcPingApp() error {
 		for {
 			if err := stream.Send(&metapb.Ping{Flag: 0}); err != nil {
 				if err == io.EOF {
-					logger.Errorln("grpc stream closed", "lost link with server")
+					logg.L.Error("grpc stream closed", "lost link with server")
 					break
 				}
 				time.Sleep(time.Second)
-				logger.Errorf("Failed to send ping request to server: %v", err)
+				logg.L.Error("Failed to send ping request to server: %v", err)
 				continue
 			}
 			_, err = stream.Recv()
 			if err != nil {
 				if err == io.EOF {
-					logger.Errorln("grpc stream closed", "lost link with server")
+					logg.L.Error("grpc stream closed", "lost link with server")
 					break
 				}
-				logger.Errorf("Failed to receive response from server: %v", err)
+				logg.L.Errorf("Failed to receive response from server: %v", err)
 			}
 		}
 	}

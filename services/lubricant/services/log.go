@@ -39,7 +39,7 @@ func (Log) Version() string {
 	return "dev"
 }
 
-var logDataCh = make(chan *svcpb.Logs, 100)
+var logDataCh = make(chan *svcpb.Logs, 300)
 
 func (*Log) Transfer(_ context.Context, data *svcpb.Logs, _ bool) (retval error) {
 	logDataCh <- data

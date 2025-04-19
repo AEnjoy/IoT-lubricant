@@ -123,7 +123,7 @@ func (c *agentControl) _checkOnline() bool {
 		}
 	} else {
 		if !c.online {
-			logger.Debug("agent online")
+			logg.L.Debug("agent online")
 			c.reporter <- &corepb.ReportRequest{
 				AgentId: c.id,
 				Req: &corepb.ReportRequest_AgentStatus{
@@ -252,14 +252,14 @@ func (c *agentControl) StartGather() error {
 		defer c.gatherLock.Unlock()
 		if err := c._start(); err != nil {
 			if !strings.Contains(err.Error(), "Gather is working now") {
-				logger.Errorln("agent: Gather start failed", err)
+				logg.L.Error("agent: Gather start failed", err)
 				c.exceptSig <- exception.ErrNewException(err, exceptionCode.ErrGaterStartFailed,
 					exception.WithLevel(errLevel.Error),
 					exception.WithMsg(fmt.Sprintf("AgentID: %s", c.id)),
 				)
 				return
 			}
-			logger.Warnln("agent: Gather is working now", err)
+			logg.L.Warn("agent: Gather is working now", err)
 		}
 
 		ticker := time.NewTicker(time.Duration(c.AgentInfo.GatherCycle) * time.Second)

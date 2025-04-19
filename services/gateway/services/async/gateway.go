@@ -4,9 +4,9 @@ import (
 	"sync/atomic"
 
 	"github.com/aenjoy/iot-lubricant/pkg/cache"
-	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	taskCode "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/panjf2000/ants/v2"
 	"google.golang.org/genproto/googleapis/rpc/status"
 )
@@ -43,7 +43,7 @@ func (r *task) run() {
 			atomic.AddInt32(&r.finished, 1)
 		})
 		if err != nil {
-			logger.Errorf("submit task failed: %v", err)
+			logg.L.Errorf("submit task failed: %v", err)
 			result := cache.NewStoreResult[*corepb.QueryTaskResultResponse](cache.NeverExpired, &corepb.QueryTaskResultResponse{
 				TaskId: detail.TaskId,
 				Result: &corepb.QueryTaskResultResponse_NotFound{
@@ -71,7 +71,7 @@ func (r *task) AddTask(task *corepb.TaskDetail, notice bool) {
 	if notice {
 		task.MessageId = "notice"
 	}
-	logger.Debugf("Add task result cache: id: %s", task.TaskId)
+	logg.L.Debugf("Add task result cache: id: %s", task.TaskId)
 	r.result.Set(task.TaskId, task.TaskId, result)
 	r.queue <- task
 }

@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
@@ -40,6 +41,10 @@ func LogDatabase() *Db {
 	if err != nil {
 		logger.Fatalf("failed to migrate database: %v", err)
 	}
+	sqlDB, _ := db.DB()
+	sqlDB.SetMaxOpenConns(1024)
+	sqlDB.SetMaxIdleConns(1024)
+	sqlDB.SetConnMaxLifetime(20 * time.Second)
 
 	return &Db{db: db}
 }

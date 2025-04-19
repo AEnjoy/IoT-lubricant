@@ -6,12 +6,12 @@ import (
 	"time"
 
 	errCh "github.com/aenjoy/iot-lubricant/pkg/error"
-	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/types/user"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"github.com/bytedance/sonic"
 	"github.com/rs/xid"
@@ -35,7 +35,7 @@ type taskArgs struct {
 // _taskHelper 封装了任务相关的操作
 // 返回：两个值，第一个是响应topic，第二个是taskID
 func _taskHelper(t *taskArgs) (string, string, error) {
-	logger.Debugf("%+v", t)
+	logg.L.Debugf("%+v", t)
 	txn, errorCh, commit := t.txnHelper()
 	defer commit()
 
@@ -68,13 +68,13 @@ func _taskHelper(t *taskArgs) (string, string, error) {
 
 	// topicPrefix: /task/userid
 	topic := fmt.Sprintf("%s/%s/%s", t.topicPrefix, t.targetName, t.executorID)
-	logger.Debugf("send task %s to %s", taskId, topic)
+	logg.L.Debugf("send task %s to %s", taskId, topic)
 
 	go func() {
 		// 任务数据发送需要异步操作(在其它线程订阅这个topic后)，否则可能会导致获取任务失败
 		time.Sleep(500 * time.Millisecond)
 		pbTopic := fmt.Sprintf("%s/%s", topic, taskId)
-		logger.Debugf("send task data to %s", pbTopic)
+		logg.L.Debugf("send task data to %s", pbTopic)
 		_ = t.storeMq.PublishBytes(pbTopic, t.bin)
 	}()
 

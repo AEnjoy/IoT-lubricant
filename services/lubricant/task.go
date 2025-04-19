@@ -11,6 +11,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/errs"
 	"github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/types/user"
+	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/datastore"
 	"github.com/aenjoy/iot-lubricant/services/lubricant/ioc"
 )
@@ -95,9 +96,9 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, userid, targetDevi
 				return
 			case taskID := <-subscribe:
 				if taskID == nil {
-					logger.Error("failed to get taskid from mq", "taskID is nil")
+					logg.L.Error("failed to get taskid from mq", "taskID is nil")
 				} else {
-					logger.Debugf("%v", taskID)
+					logg.L.Debugf("%v", taskID)
 					ch <- string(taskID.([]byte))
 				}
 
@@ -114,7 +115,7 @@ func getTaskIDCh(ctx context.Context, targetType task.Target, userid, targetDevi
 func getTask(_ context.Context, targetType task.Target, userid, targetDeviceID, taskID string) ([]byte, error) {
 	taskMq := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore).Mq
 	topic := fmt.Sprintf("/task/%s/%s/%s/%s", userid, targetType, targetDeviceID, taskID)
-	logger.Debugf("get task topic： %s", topic)
+	logg.L.Debugf("get task topic： %s", topic)
 	t, err := taskMq.SubscribeBytes(topic)
 	if err != nil {
 		return nil, err
