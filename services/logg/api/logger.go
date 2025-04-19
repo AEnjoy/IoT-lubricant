@@ -10,6 +10,7 @@ import (
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
 	"github.com/bytedance/sonic"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -31,6 +32,7 @@ type Logger struct {
 	ctx        context.Context
 	waitOption bool
 	svcpb.LogTransfer
+	_root string
 }
 
 func (l *Logger) WithVersionJson(v []byte) Log {
@@ -60,6 +62,8 @@ func (l *Logger) Reset() {
 }
 func (l *Logger) AsRoot() Log {
 	newLogger := *l
+	newLogger._root = uuid.NewString() // create a new root object
+	fmt.Println(l.String())
 	return &newLogger
 }
 func (l *Logger) NewLog() Log {

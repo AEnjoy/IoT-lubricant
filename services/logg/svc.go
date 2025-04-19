@@ -1,6 +1,8 @@
 package logg
 
 import (
+	"database/sql"
+
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
@@ -19,41 +21,82 @@ func (a *app) handel(in any) {
 		return
 	}
 	err = a.db.Write(a.ctx, &model.Log{
-		LogID:       uuid.NewString(),
-		OperatorID:  pb.OperatorID,
-		ServiceName: pb.ServiceName,
-		Version: func() string {
-			if len(pb.Version) == 0 {
-				return "{}"
+		LogID:      uuid.NewString(),
+		OperatorID: pb.OperatorID,
+		ServiceName: func() sql.NullString {
+			if len(pb.ServiceName) == 0 {
+				return sql.NullString{}
 			}
-			return string(pb.Version)
+			return sql.NullString{String: pb.ServiceName, Valid: true}
 		}(),
-		Level:         pb.Level,
-		IPAddress:     pb.IPAddress,
-		Protocol:      pb.Protocol,
-		Action:        pb.Action,
+		Version: func() sql.NullString {
+			if len(pb.Version) == 0 {
+				return sql.NullString{}
+			}
+			return sql.NullString{String: string(pb.Version), Valid: true}
+		}(),
+		Level: pb.Level,
+		IPAddress: func() sql.NullString {
+			if len(pb.IPAddress) == 0 {
+				return sql.NullString{}
+			}
+			return sql.NullString{String: pb.IPAddress, Valid: true}
+		}(),
+		Protocol: func() sql.NullString {
+			if len(pb.Protocol) == 0 {
+				return sql.NullString{}
+			}
+			return sql.NullString{String: pb.Protocol, Valid: true}
+		}(),
+		Action: func() sql.NullString {
+			if len(pb.Action) == 0 {
+				return sql.NullString{}
+			}
+			return sql.NullString{String: pb.Action, Valid: true}
+		}(),
 		OperationType: pb.OperationType,
-		Cost:          pb.Cost.AsTime().Unix(),
-		Message:       pb.Message,
+		Cost: func() sql.NullInt64 {
+			if pb.Time == nil {
+				return sql.NullInt64{}
+			}
+			if !pb.Time.IsValid() {
+				return sql.NullInt64{}
+			}
+			return sql.NullInt64{Int64: pb.Cost.AsTime().Unix(), Valid: true}
+		}(),
+		Message: func() sql.NullString {
+			if len(pb.Message) == 0 {
+				return sql.NullString{}
+			}
+			return sql.NullString{String: pb.Message, Valid: true}
+		}(),
 		ServiceErrorCode: func() exceptionCode.ResCode {
 			if pb.ServiceErrorCode == nil {
 				return exceptionCode.EmptyValue
 			}
 			return exceptionCode.ResCode(*pb.ServiceErrorCode)
 		}(),
-		Metadata: func() string {
+		Metadata: func() sql.NullString {
 			if len(pb.Metadata) == 0 {
-				return "{}"
+				return sql.NullString{}
 			}
-			return string(pb.Metadata)
+			return sql.NullString{String: string(pb.Metadata), Valid: true}
 		}(),
-		ExceptionInfo: func() string {
+		ExceptionInfo: func() sql.NullString {
 			if len(pb.ExceptionInfo) == 0 {
-				return "{}"
+				return sql.NullString{}
 			}
-			return string(pb.ExceptionInfo)
+			return sql.NullString{String: string(pb.ExceptionInfo), Valid: true}
 		}(),
-		Time: pb.Time.AsTime(),
+		Time: func() sql.NullTime {
+			if pb.Time == nil {
+				return sql.NullTime{}
+			}
+			if !pb.Time.IsValid() {
+				return sql.NullTime{}
+			}
+			return sql.NullTime{Time: pb.Time.AsTime(), Valid: true}
+		}(),
 	})
 	if err != nil {
 		logger.Errorf("failed to write log: %v", err)
