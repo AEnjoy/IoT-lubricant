@@ -35,7 +35,7 @@ func main() {
 }
 
 var (
-	ServiceName       = "IoTLubricantCore-GrpcServer"
+	ServiceName       = "IoTLubricantCore-ReportHandler"
 	Version           string
 	BuildTime         string
 	GoVersion         string

@@ -183,7 +183,30 @@ else
 		-f cmd/grpcserver/Dockerfile .
 endif
 
-build-lubricant: build-apiserver build-core-svc-logger build-core-grpcserver
+build-core-reporter:
+ifeq ($(FAST_BUILD),1)
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-reporter:nightly \
+		-f cmd/reporter/Dockerfile.FastBuild .
+else
+	docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg BUILD_TIME="$(BUILD_TIME)" \
+		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
+		--build-arg FEATURES=$(FEATURES) \
+		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
+		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
+		-t hub.iotroom.top/aenjoy/lubricant-reporter:nightly \
+		-f cmd/reporter/Dockerfile .
+endif
+
+build-lubricant: build-apiserver build-core-svc-logger build-core-grpcserver build-core-reporter
 
 docker-build: build-agent build-gateway-container build-lubricant build-core-svc-logger
 
@@ -194,6 +217,7 @@ load-to-kind-gateway: build-gateway-container
 load-to-kind-core: build-lubricant
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-apiserver:nightly
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly
+	kind load docker-image hub.iotroom.top/aenjoy/lubricant-reporter:nightly
 	kind load docker-image hub.iotroom.top/aenjoy/lubricant-core-logger:nightly
 
 load-to-kind: load-to-kind-agent load-to-kind-core load-to-kind-gateway
@@ -271,11 +295,24 @@ build-all:
 	-X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
 	" \
 	./cmd/grpcserver/main.go
+	CGO_ENABLED=0 go build -v -o ./bin/reporter \
+      -tags=sonic -tags=avx -ldflags "\
+      -w -s \
+      -X 'main.Version=$(VERSION)' \
+      -X 'main.BuildTime=$(BUILD_TIME)' \
+      -X 'main.GoVersion=$(GO_VERSION)' \
+      -X 'main.GitCommit=$(GIT_COMMIT)' \
+      -X 'main.Features=$(FEATURES)' \
+      -X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+      -X 'main.PlatformVersion=$(PLATFORM_VERSION)' \
+      " \
+      ./cmd/reporter/main.go
 
 copy-files:
 	cp bin/lubricant-gateway cmd/gateway/gateway
 	cp bin/apiserver cmd/apiserver/apiserver
 	cp bin/grpcserver cmd/grpcserver/grpcserver
+	cp bin/reporter cmd/apiserver/reporter
 	cp bin/lubricant-agent cmd/agent/agent
 	cp bin/logg cmd/logg/logg
 
