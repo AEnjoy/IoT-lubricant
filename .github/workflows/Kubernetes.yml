@@ -104,7 +104,7 @@ jobs:
           )&
           make build-all
           make copy-files
-          FAST_BUILD=1 make load-to-kind -j4
+          FAST_BUILD=1 make load-to-kind -j
 
       - name: Prepare Lubricant and Test Resources
         run: |
@@ -116,15 +116,17 @@ jobs:
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
           sudo cp scripts/crt.pem /etc/casdoor/public.pem
           openssl x509 -in scripts/crt.pem -text -noout
-          kubectl apply -f deployment/infra/lubricant-core.yaml
+          kubectl apply -f deployment/infra/lubricant-grpcserver.yaml
           kubectl apply -f deployment/infra/lubricant-core-logger.yaml
+          kubectl apply -f deployment/infra/lubricant-apiserver.yaml
+          kubectl apply -f deployment/infra/lubricant-reporter.yaml
           kubectl apply -f deployment/tester/svc.yaml
 
       - name: Start Test
         run: |
           set -e 
           sed -i 's|"http://127.0.0.1"|"http://clock-driver-service.default.svc.cluster.local"|' scripts/test/mock_driver/clock/api.json
-          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-core-apiserver/ {print $1}')
+          lubricant_pod=$(kubectl get pods -n lubricant | awk '/lubricant-apiserver/ {print $1; exit}')
           bash scripts/function/wait_pod.sh $lubricant_pod lubricant
           kubectl apply -f deployment/infra/lubricant-ingress.yaml
           sleep 10
@@ -184,6 +186,6 @@ jobs:
           set -e
           echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER --password-stdin
           docker tag hub.iotroom.top/aenjoy/lubricant-agent:nightly $REGISTRY_DOMAIN/iotroom/lubricant-agent:latest
-          docker tag hub.iotroom.top/aenjoy/lubricant-core:nightly $REGISTRY_DOMAIN/iotroom/lubricant-core:latest
+          docker tag hub.iotroom.top/aenjoy/lubricant-apiserver:nightly $REGISTRY_DOMAIN/iotroom/lubricant-apiserver:latest
           docker tag hub.iotroom.top/aenjoy/lubricant-gateway:nightly $REGISTRY_DOMAIN/iotroom/lubricant-gateway:latest
           echo "You Can Pull Image From: $REGISTRY_DOMAIN"

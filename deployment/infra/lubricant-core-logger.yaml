@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: lubricant-core-logger
-          image: hub.iotroom.top/aenjoy/lubricant-core-logger:nightly
+          image: hub.iotroom.top/aenjoy/lubricant-logg:nightly
           env:
             - name: DB_USER
               value: "lubricant"

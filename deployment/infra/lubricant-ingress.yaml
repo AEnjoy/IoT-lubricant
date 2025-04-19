@@ -15,7 +15,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: lubricant-core-apiserver
+                name: lubricant-apiserver
                 port:
                   number: 80
 ---

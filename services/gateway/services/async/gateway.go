@@ -3,9 +3,9 @@ package async
 import (
 	"sync/atomic"
 
-	"github.com/aenjoy/iot-lubricant/pkg/cache"
 	taskCode "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/panjf2000/ants/v2"
 	"google.golang.org/genproto/googleapis/rpc/status"

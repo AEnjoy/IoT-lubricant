@@ -1,0 +1,13 @@
+FROM alpine:3.21.3 AS builder
+
+WORKDIR /app
+
+COPY cmd/reporter/reporter ./
+RUN chmod +x ./reporter
+
+FROM alpine:3.21.3
+
+WORKDIR /
+COPY --from=builder /app/reporter ./
+
+CMD ["./reporter"]

@@ -1,0 +1,14 @@
+FROM alpine:3.21.3 AS builder
+
+WORKDIR /app
+
+COPY cmd/apiserver/apiserver ./
+RUN chmod +x ./apiserver
+
+FROM alpine:3.21.3
+
+WORKDIR /
+COPY --from=builder /app/apiserver ./
+
+EXPOSE 8080
+CMD ["./apiserver"]
