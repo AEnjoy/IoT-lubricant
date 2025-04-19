@@ -6,6 +6,7 @@ ARG GIT_COMMIT
 ARG FEATURES
 ARG BUILD_HOST_PLATFORM
 ARG PLATFORM_VERSION
+ARG CGO_ENABLED
 
 WORKDIR /app
 
@@ -17,7 +18,7 @@ RUN go mod download
 COPY . .
 
 WORKDIR /app/cmd/apiserver
-RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=0 &&\
+RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=$CGO_ENABLED &&\
 	go build -v -tags=sonic -tags=avx -ldflags "\
 	-w -s \
 	-X 'main.Version=${VERSION}' \
