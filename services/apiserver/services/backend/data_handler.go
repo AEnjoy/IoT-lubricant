@@ -65,5 +65,4 @@ func (d *DataHandler) _dataStoreExecute(payload any) {
 	if err != nil {
 		errCh <- &model.ErrorLogs{Component: "core", Module: "datastore", Message: err.Error()}
 	}
-
 }

@@ -10,7 +10,6 @@ import (
 var (
 	_ ioc.Object = (*AgentService)(nil)
 	_ ioc.Object = (*GatewayService)(nil)
-	_ ioc.Object = (*syncQueue.SyncTaskQueue)(nil)
 )
 
 func (s *GatewayService) Init() error {

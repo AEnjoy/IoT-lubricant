@@ -3,38 +3,7 @@ package backend
 import (
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
-	"github.com/aenjoy/iot-lubricant/services/corepkg/syncQueue"
 )
-
-var (
-	_ ioc.Object = (*ReportHandler)(nil)
-	_ ioc.Object = (*GatewayGuard)(nil)
-	_ ioc.Object = (*ErrLogCollect)(nil)
-	_ ioc.Object = (*DataHandler)(nil)
-)
-
-func (ReportHandler) Weight() uint16 {
-	return ioc.BackendHandlerReport
-}
-
-func (r *ReportHandler) Init() error {
-	//r.AgentService = ioc.Controller.Get(ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE).(*services.AgentService)
-	r.dataCli = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
-	r.SyncTaskQueue = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE).(*syncQueue.SyncTaskQueue)
-	go r.handler()
-	return nil
-}
-func (ReportHandler) Version() string {
-	return ""
-}
-
-func (GatewayGuard) Weight() uint16 {
-	return ioc.GatewayStatusGuard
-}
-
-func (GatewayGuard) Version() string {
-	return ""
-}
 
 func (ErrLogCollect) Weight() uint16 {
 	return ioc.BackendHandlerErrLogs
