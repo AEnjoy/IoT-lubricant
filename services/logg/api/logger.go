@@ -229,7 +229,7 @@ func (l *Logger) Error(args ...interface{}) {
 }
 
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.message = fmt.Sprintf(format, args)
+	l.message = fmt.Sprintf(format, args...)
 	if l.printToStdout {
 		logger.Debug(l.message)
 	}
@@ -237,7 +237,7 @@ func (l *Logger) Debugf(format string, args ...interface{}) {
 }
 
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.message = fmt.Sprintf(format, args)
+	l.message = fmt.Sprintf(format, args...)
 	if l.printToStdout {
 		logger.Info(l.message)
 	}
@@ -248,7 +248,7 @@ func (l *Logger) Infof(format string, args ...interface{}) {
 }
 
 func (l *Logger) Warnf(format string, args ...interface{}) {
-	l.message = fmt.Sprintf(format, args)
+	l.message = fmt.Sprintf(format, args...)
 	if l.printToStdout {
 		logger.Warn(l.message)
 	}
@@ -259,7 +259,7 @@ func (l *Logger) Warnf(format string, args ...interface{}) {
 }
 
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.message = fmt.Sprintf(format, args)
+	l.message = fmt.Sprintf(format, args...)
 	if l.printToStdout {
 		logger.Error(l.message)
 	}
