@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lubricant-grpcserver
+  namespace: lubricant
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lubricant-grpcserver
+  template:
+    metadata:
+      labels:
+        app: lubricant-grpcserver
+    spec:
+      containers:
+        - name: lubricant-grpcserver
+          image: hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly
+          ports:
+            - containerPort: 5423
+              name: grpc
+              protocol: TCP
+              hostPort: 5423
+          env:
+            - name: GRPC_LISTEN_PORT
+              value: "5423"
+            - name: HTTP_LISTEN_PORT
+              value: "8080"
+            - name: DB_USER
+              value: "lubricant"
+            - name: DB_ADDRESS
+              value: "mysql.database.svc.cluster.local"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "lubricant"
+            - name: HOSTNAME
+              value: "localhost"
+            - name: RUNNING_LEVEL
+              value: "debug"
+            - name: AUTH_PROVIDER
+              value: "casdoor"
+            - name: AUTH_ENDPOINT
+              value: "http://casdoor-service.auth-core.svc.cluster.local:8000"
+            - name: AUTH_CLIENT_ID
+              value: "6551a3584403d5264584"
+            - name: AUTH_ORGANIZATION
+              value: "built-in"
+            - name: AUTH_PUBLICKEYFILE
+              value: "/etc/casdoor/public.pem"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lubricant-secrets
+                  key: DB_PASSWORD
+            - name: AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: lubricant-secrets
+                  key: AUTH_CLIENT_SECRET
+            - name: REDIS_ENABLE
+              value: "true"
+            - name: REDIS_HOST
+              value: "redis.database.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: lubricant-secrets
+                  key: redis-password
+            - name: REDIS_DB
+              value: "0"
+            - name: MQ_TYPE
+              value: "nats"
+            - name: NATS_URL
+              value: "nats://nats.database.svc.cluster.local:4222"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lubricant-grpcserver
+  namespace: lubricant
+spec:
+  type: NodePort
+  ports:
+    - port: 5423
+      name: grpc
+      targetPort: 5423
+  selector:
+    app: lubricant-grpcserver
