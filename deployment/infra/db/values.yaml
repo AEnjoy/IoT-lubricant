@@ -1,0 +1,14 @@
+# https://artifacthub.io/packages/helm/bitnami/mysql
+image:
+  tag: "8.4.4-debian-12-r4"
+auth:
+  database: "lubricant"
+  username: "lubricant"
+  existingSecret: "mysql-secret"
+primary:
+  persistence:
+    enabled: true
+    size: 1Gi
+  service:
+    type: ClusterIP
+    annotations:

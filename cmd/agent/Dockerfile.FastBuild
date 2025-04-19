@@ -1,0 +1,13 @@
+FROM alpine:3.21.3 AS builder
+
+WORKDIR /app
+
+COPY cmd/agent/agent ./
+RUN chmod +x ./agent
+
+FROM alpine:3.21.3
+
+WORKDIR /
+COPY --from=builder /app/agent ./
+EXPOSE 5436
+CMD ["./agent"]

@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+import "protobuf/meta/meta.proto";
+import "protobuf/svc/log.proto";
+
+package lubricant.agent;
+
+option go_package = "protobuf/agent";
+
+service edgeService {
+  rpc ping(Ping) returns (Ping) {}
+  rpc registerGateway(RegisterGatewayRequest) returns (RegisterGatewayResponse) {}
+  rpc setAgent(SetAgentRequest) returns (SetAgentResponse) {}
+  rpc getOpenapiDoc(GetOpenapiDocRequest) returns (openapiDoc) {}
+  rpc getAgentInfo(GetAgentInfoRequest) returns (GetAgentInfoResponse) {}
+  rpc getGatherData(GetDataRequest) returns (DataMessage) {}
+  rpc GetDataStream(GetDataRequest) returns (stream dataChunk) {} // 数据流
+  rpc sendHttpMethod(sendHttpMethodRequest) returns (sendHttpMethodResponse) {}
+  rpc startGather(startGatherRequest) returns (CommonResponse) {}
+  rpc stopGather(stopGatherRequest) returns (CommonResponse) {}
+  rpc CollectLogs(CollectLogsRequest) returns (CollectLogsResponse) {}
+}
+
+message RegisterGatewayRequest {
+  string agentID = 1;
+  string gatewayID = 2; // 网关ID
+}
+
+message RegisterGatewayResponse {
+  string agentID = 1; // agentID
+  CommonResponse info = 2;
+}
+
+message AgentInfo{
+  string agentID = 1;
+  optional string description = 2;
+  optional string gatewayID = 3;
+  optional int32 gatherCycle = 4; // seconds 默认5s
+  optional string algorithm= 5; //数据压缩算法 默认不压缩
+  optional openapiDoc dataSource = 6;
+  optional bool stream = 7; // 采集的数据为流式数据，默认为false
+
+  optional int32 reportCycle = 8;
+  optional string address = 9;
+}
+
+message SetAgentRequest {
+  string agentID = 1;
+  optional AgentInfo agentInfo = 2;
+  optional startGatherRequest start = 3;
+  optional stopGatherRequest stop = 4;
+}
+
+message SetAgentResponse {
+  CommonResponse info = 1;
+}
+
+message openapiDoc{
+  optional bytes originalFile = 1;
+  optional bytes enableFile = 2;
+  repeated  KvInt enableSlot = 3; // 如果 enableFile 中启用了多个采集项目，则KvInt：key=path，value=slot
+}
+
+message GetOpenapiDocRequest{
+  string agentID = 1;
+  OpenapiDocType docType = 2;
+}
+
+enum OpenapiDocType {
+    originalFile= 0;
+    enableFile= 1;
+    All = 2;
+}
+
+message DataMessage{
+  string agentID = 1;
+  repeated bytes data = 2;
+  int32 dataLen = 3;
+  string dataGatherStartTime = 4;
+  int32 splitTime = 5; // 数据分片时间
+  CommonResponse info = 6;
+}
+
+message GetAgentInfoRequest{
+  string agentID = 1;
+}
+
+message GetAgentInfoResponse{
+  AgentInfo agentInfo = 1;
+  CommonResponse info = 2;
+}
+
+message GetDataRequest{
+  string agentID = 1;
+  int32 slot = 2; // 一个agent可能会调用多个api获取不同的数据，对应不同的数据临时存储槽位
+}
+
+message sendHttpMethodRequest{
+  string agentID = 1;
+  string path = 2;
+  string method = 3;
+  oneof params{
+    requestBody body = 4;
+    KvMap kv = 5;
+  }
+}
+
+message sendHttpMethodResponse{
+  DataMessage data = 1;
+  CommonResponse info = 2;
+}
+
+message requestBody{
+  bytes body = 1;
+}
+
+message dataChunk{
+  bytes data = 1; // 每个块数据
+  int32 stamp = 2; // 时间戳或偏移量
+}
+message startGatherRequest{
+}
+message stopGatherRequest{
+}
+message CollectLogsRequest{
+}
+message CollectLogsResponse{
+  repeated lubricant.svc.Logs logs = 1;
+}

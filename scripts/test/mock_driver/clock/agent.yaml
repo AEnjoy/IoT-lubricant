@@ -1,0 +1,9 @@
+id: clock-agent
+description: |
+    This is a sample agent that will be used to test the clock service.
+cycle: 1
+report-cycle: 5
+algorithm: '-'
+enable-slot:
+    - 0
+file-name: scripts/test/mock_driver/clock/api.json

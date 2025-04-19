@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lubricant-gateway
+  namespace: lubricant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lubricant-gateway
+  serviceName: lubricant-gateway
+  template:
+    metadata:
+      labels:
+        app: lubricant-gateway
+    spec:
+      containers:
+      - env:
+        - name: GATEWAY_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: USER_ID
+          value: 0373c295-07b7-4916-bb7e-95f2c4701de7
+        - name: CORE_HOST
+          value: lubricant-core-apiserver.lubricant.svc.cluster.local
+        - name: CORE_PORT
+          value: '5423'
+        - name: RUNNING_LEVEL
+          value: debug
+        image: hub.iotroom.top/aenjoy/lubricant-gateway:nightly
+        name: lubricant-gateway

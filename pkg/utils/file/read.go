@@ -1,38 +1,19 @@
 package file
 
 import (
-	"encoding/json"
-	"io"
 	"os"
 
+	json "github.com/bytedance/sonic"
 	"gopkg.in/yaml.v3"
 )
 
 func ReadFile(path string) (string, error) {
-	fs, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	content, err := io.ReadAll(fs)
-	if err != nil {
-		return "", err
-	}
-
-	return string(content), nil
+	content, err := ReadContentFile(path)
+	return string(content), err
 }
 
 func ReadContentFile(filepath string) ([]byte, error) {
-	fd, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
-	}
-	defer fd.Close()
-
-	payload, err := io.ReadAll(fd)
-	if err != nil {
-		return nil, err
-	}
-	return payload, nil
+	return os.ReadFile(filepath)
 }
 func ReadYamlFile(filepath string, v any) error {
 	content, err := ReadContentFile(filepath)
@@ -42,13 +23,7 @@ func ReadYamlFile(filepath string, v any) error {
 	return yaml.Unmarshal(content, v)
 }
 func ReadJsonFile(filepath string, v any) error {
-	fd, err := os.Open(filepath)
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
-
-	payload, err := io.ReadAll(fd)
+	payload, err := ReadContentFile(filepath)
 	if err != nil {
 		return err
 	}

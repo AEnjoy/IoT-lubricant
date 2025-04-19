@@ -1,6 +1,9 @@
-CREATE TABLE driver_data(
-    `agent_id` SERIAL PRIMARY KEY,
-    `data` BYTEA NOT NULL,
-    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-)
+DROP DATABASE IF EXISTS lubricant;
+CREATE DATABASE lubricant;
+GRANT ALL PRIVILEGES ON lubricant.* TO 'lubricant'@'%';
+
+DROP DATABASE IF EXISTS casdoor;
+CREATE DATABASE casdoor;
+CREATE USER 'casdoor'@'%' IDENTIFIED BY '123456';
+GRANT ALL PRIVILEGES ON casdoor.* TO 'casdoor'@'%';
+FLUSH PRIVILEGES;

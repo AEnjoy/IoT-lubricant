@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+import "protobuf/agent/agent.proto";
+//import "google/protobuf/any.proto";
+
+package lubricant.gateway;
+
+option go_package = "protobuf/gateway";
+
+message StartAgentRequest{
+  repeated string agentId =1;
+}
+message StopAgentRequest{
+  repeated string agentId =1;
+}
+message RemoveAgentRequest{
+  repeated string agentId =1;
+}
+message UpdateAgentRequest{
+  string agentId =1;
+  optional bytes conf =2; //agentCreate config
+}
+message EditAgentRequest{
+  string agentId =1;
+  agent.AgentInfo info = 2;
+  optional bytes conf = 3; // CreateAgentRequest config
+}
+message CreateAgentRequest{
+  agent.AgentInfo info = 1;
+  bytes conf = 2;
+}
+message GetAgentStatusRequest{
+  repeated string agentId =1;
+}
+message StartGatherRequest{
+  string agentId =1;
+}
+message StopGatherRequest{
+  string agentId =1;
+}
+message ReloadAgentControlRequest{} // todo
+message GetAgentOpenAPIDocRequest{
+  agent.GetOpenapiDocRequest req = 1;
+}
+message GetAgentInfoRequest{
+  string agentId =1;
+}
+message SetAgentInfoRequest{
+  agent.AgentInfo info = 1;
+}
+message GetAgentIsGatheringRequest{
+  string agentId =1;
+}

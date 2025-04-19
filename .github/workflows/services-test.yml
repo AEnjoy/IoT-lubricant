@@ -1,0 +1,58 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Service End-to-End Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+
+jobs:
+  Agent:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
+    strategy:
+      matrix:
+        go: ['1.24.1']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: E2E Test Agent
+        run: |
+          set -e
+          echo "Creating Python virtual environment"
+          python3 -m venv venv
+          
+          echo "Activating virtual environment and installing dependencies"
+          source venv/bin/activate
+          
+          echo "Preparing python dependency"
+          pip3 install -r scripts/test/mock_driver/clock/requirements.txt
+          
+          echo "Running Mock E2E test server for openapi"
+          sudo bash -c "source venv/bin/activate && python3 scripts/test/mock_driver/clock/clock.py" &
+          
+          echo "Start Agent:"
+          go build -o cmd/agent/agent ./cmd/agent
+          cmd/agent/agent --env=scripts/test/mock_driver/clock/agent_env &
+          
+          echo "Start Test Client:"
+          go build -o scripts/test/agent_test ./cmd/test/agent
+          cd scripts/test
+          ./agent_test mini --agent-id clock-agent --has-inited

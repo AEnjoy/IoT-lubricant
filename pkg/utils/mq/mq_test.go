@@ -8,7 +8,7 @@ import (
 )
 
 func TestMq_SetConditions(t *testing.T) {
-	mq := NewMq[string]()
+	mq := NewMq()
 	mq.SetConditions(5)
 
 	sub, err := mq.Subscribe("testTopic")
@@ -31,7 +31,7 @@ func TestMq_SetConditions(t *testing.T) {
 }
 
 func TestMq_PublishAndSubscribe(t *testing.T) {
-	mq := NewMq[string]()
+	mq := NewMq()
 	mq.SetConditions(10)
 
 	sub1, err1 := mq.Subscribe("topic1")
@@ -64,7 +64,7 @@ func TestMq_PublishAndSubscribe(t *testing.T) {
 }
 
 func TestMq_Unsubscribe(t *testing.T) {
-	mq := NewMq[string]()
+	mq := NewGoMq[string]()
 	mq.SetConditions(10)
 
 	sub, err := mq.Subscribe("topic1")
@@ -85,7 +85,8 @@ func TestMq_Unsubscribe(t *testing.T) {
 	// 取消订阅
 	err = mq.Unsubscribe("topic1", sub)
 	assert.NoError(t, err)
-	for _ = range sub {
+	for range sub {
+		// <-sub
 		// drain the channel
 	}
 
@@ -107,7 +108,7 @@ func TestMq_Unsubscribe(t *testing.T) {
 }
 
 func TestMq_Close(t *testing.T) {
-	mq := NewMq[string]()
+	mq := NewMq()
 	mq.SetConditions(10)
 
 	sub, err := mq.Subscribe("topic1")
@@ -129,7 +130,7 @@ func TestMq_Close(t *testing.T) {
 }
 
 func TestMq_GetPayLoad(t *testing.T) {
-	mq := NewMq[string]()
+	mq := NewMq()
 	mq.SetConditions(10)
 
 	sub, err := mq.Subscribe("topic1")

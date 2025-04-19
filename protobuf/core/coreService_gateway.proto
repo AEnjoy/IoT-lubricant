@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+import "protobuf/meta/meta.proto";
+import "protobuf/svc/log.proto";
+import "protobuf/gateway/api_agent.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+import "google/rpc/status.proto";
+
+package lubricant.core;
+
+option go_package = "protobuf/core";
+
+service coreService {
+  rpc ping(stream Ping) returns (stream Ping) {}
+  rpc getTask(stream Task) returns (stream Task) {} // 服务端可能需要向客户端推送任务
+  rpc pushMessageId(MessageIdInfo) returns (MessageIdInfo) {}
+
+  rpc pushDataStream(stream Data) returns (stream Data) {}
+  rpc pushData(Data) returns (pushDataResponse) {}
+  rpc getCoreCapacity(getCoreCapacityRequest)returns (getCoreCapacityResponse){}//获取核心服务资源容量，为数据发送做准备
+  rpc report(ReportRequest)returns (ReportResponse){}
+}
+
+message TaskDetail {
+  string taskId = 1;
+  string messageId = 2; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;否则getTask req.messageId应该与返回的resp.messageId一致
+  bytes content = 3; // json格式 []byte
+  optional bool isSynchronousTask = 4; // 是否为同步任务
+  oneof task{
+    gateway.StartAgentRequest startAgentRequest = 5;
+    gateway.CreateAgentRequest createAgentRequest=6;
+    gateway.EditAgentRequest editAgentRequest=7;
+    gateway.RemoveAgentRequest removeAgentRequest=8;
+    gateway.StopAgentRequest stopAgentRequest=9;
+    gateway.UpdateAgentRequest updateAgentRequest=10;
+    gateway.GetAgentStatusRequest getAgentStatusRequest=11;
+    gateway.StartGatherRequest startGatherRequest = 12;
+    gateway.StopGatherRequest stopGatherRequest = 13;
+    gateway.ReloadAgentControlRequest reloadAgentControlRequest = 14; //WIP
+    gateway.GetAgentOpenAPIDocRequest getAgentOpenAPIDocRequest = 15;
+    gateway.GetAgentInfoRequest getAgentInfoRequest = 16;
+    gateway.SetAgentInfoRequest setAgentInfoRequest = 17;
+    gateway.GetAgentIsGatheringRequest getAgentIsGatheringRequest = 18;
+  }
+}
+
+message Task { // Resp
+  string ID = 1; // 发起方的ID GatewayID or AgentID
+  oneof task {
+    GatewayTryGetTaskRequest gatewayTryGetTaskRequest = 2;
+    GatewayGetTaskResponse gatewayGetTaskResponse = 3;
+    CorePushTaskRequest corePushTaskRequest = 4;
+    CorePushTaskResponse corePushTaskResponse = 5;
+
+    QueryTaskResultRequest coreQueryTaskResultRequest = 6;
+    QueryTaskResultRequest gatewayQueryTaskResultRequest = 7;
+
+    QueryTaskResultResponse coreQueryTaskResultResponse = 8; // gateway send result -> core
+    QueryTaskResultResponse gatewayQueryTaskResultResponse = 9;
+
+    NoTaskResponse noTaskResponse = 10;
+    ErrorMessage errorMessage = 11;
+  }
+}
+message NoTaskResponse {
+}
+message GatewayTryGetTaskRequest { // gateway -> core
+  string gatewayID = 1;
+  optional string taskId = 2;
+}
+message GatewayGetTaskResponse { // core -> gateway
+    oneof resp {
+      TaskDetail message = 1;
+      google.protobuf.Empty empty = 2;
+    }
+}
+message CorePushTaskRequest { // core -> gateway
+  TaskDetail message = 1;
+}
+message CorePushTaskResponse { // gateway -> core
+  string taskId = 1;
+}
+message QueryTaskResultRequest{
+  string taskId = 1;
+}
+message QueryTaskResultResponse{
+  string taskId = 1;
+  oneof result{
+    google.protobuf.Any finish = 2; // 任务完成
+    google.rpc.Status failed = 3; // 任务失败 错误信息
+    google.rpc.Status working = 4; // 任务进行中 进度信息
+    google.rpc.Status pending = 5; // 任务阻塞中 阻塞原因
+
+    google.rpc.Status notFound = 6;
+  }
+}
+message TaskResultRequest{
+    QueryTaskResultResponse msg = 1;
+}
+message MessageIdInfo {
+  string messageId = 1; // 如果服务端任务该消息需要处理,则会返回预响应的messageID;pushMessageId req.messageId应该与返回的resp.messageId一致
+  string gatewayId = 2;
+  string time = 3;
+  string emergency = 4; // 0: 不需要立即回应 1: 需要立即回应(将直接返回resp的消息ID)
+  bytes content = 5; // json格式 []byte 响应内容resp
+}
+
+message Data {
+  string messageId = 1; //如果messageId不符合uuid,则认为是返回错误信息
+  string gatewayId = 2;
+  string agentID = 3; // agentID用于标记数据所属
+  repeated bytes data = 4;    // 二进制数据字段
+  int32 dataLen = 5;
+  string time = 6; // 起始时间
+  int32 cycle = 7; // 数据周期 s
+}
+
+message pushDataResponse {
+  google.rpc.Status resp = 1;
+}
+message getCoreCapacityRequest{
+  int32 preAllocatedResourcesSize =1 ;
+}
+message getCoreCapacityResponse{
+  google.rpc.Status resp = 1;
+}
+message reportErrorRequest{
+    lubricant.ErrorMessage errorMessage = 1;
+}
+message reportErrorResponse{
+  google.rpc.Status resp = 1;
+}
+message ReportRequest{
+  string gatewayId = 1;
+  string agentId = 2;
+
+  oneof req{
+      reportErrorRequest error = 3;
+      AgentStatusRequest agentStatus = 4;
+      TaskResultRequest taskResult = 5;
+      ReportLogRequest reportLog = 6;
+  }
+}
+message ReportResponse{
+  string gatewayId = 1;
+  string agentId = 2;
+
+  oneof resp{
+      reportErrorResponse error = 3;
+      AgentStatusResponse agentStatus = 4;
+      TaskResultResponse taskResult = 5;
+      ReportLogResponse reportLog = 6;
+  }
+}
+message AgentStatusRequest{
+  google.rpc.Status req = 1;
+}
+message AgentStatusResponse{
+  google.rpc.Status resp = 1;
+}
+message TaskResultResponse{
+  google.rpc.Status resp = 1;
+}
+message ReportLogRequest{
+  string gatewayId = 1;
+  string agentId = 2;
+  repeated lubricant.svc.Logs logs = 3;
+}
+message ReportLogResponse{
+  google.rpc.Status resp = 1;
+}

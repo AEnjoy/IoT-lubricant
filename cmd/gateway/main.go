@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"runtime"
 
-	"github.com/AEnjoy/IoT-lubricant/pkg/gateway"
-	"github.com/AEnjoy/IoT-lubricant/pkg/types"
-	"github.com/AEnjoy/IoT-lubricant/pkg/utils/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/model"
+	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
+	"github.com/aenjoy/iot-lubricant/pkg/version"
+	"github.com/aenjoy/iot-lubricant/services/gateway"
+	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
 	"github.com/joho/godotenv"
 )
 
@@ -19,31 +20,12 @@ const (
 	CORE_GRPC_LISTEN_PORT_STR = "CORE_PORT"
 )
 
-var (
-	Version         string
-	BuildTime       string
-	GoVersion       string
-	GitTag          string
-	Features        string
-	Platform        string
-	PlatformVersion string
-)
-
-func printBuildInfo() {
-	fmt.Printf("IoT-lubricant-Version: %s\n", Version)
-	fmt.Printf("Build-Time: %s\n", BuildTime)
-	fmt.Printf("Go-Version: %s\n", GoVersion)
-	fmt.Printf("Git-Tag: %s\n", GitTag)
-	fmt.Printf("Features: %s\n", Features)
-	fmt.Printf("Platform: %s\n", Platform)
-	fmt.Printf("Platform-Version: %s\n", PlatformVersion)
-	fmt.Printf("Runing Platform Info: %s/%s", runtime.GOOS, runtime.GOARCH)
-}
 func main() {
 	var envFilePath string
+	var confFilePath string
 	flag.StringVar(&envFilePath, "env", "", "Path to .env file")
+	flag.StringVar(&confFilePath, "conf", "", "Path to .yaml file")
 	flag.Parse()
-	printBuildInfo()
 
 	if envFilePath != "" {
 		logger.Info("load env")
@@ -51,17 +33,56 @@ func main() {
 		if err != nil {
 			logger.Info("Failed to load .env file, using system ones.")
 		} else {
-			logger.Infof("Loaded .env file from %s", envFilePath)
+			logger.Infof("Loaded .env file from: %s", envFilePath)
 		}
 	}
-
-	port := os.Getenv(MQ_LISTEN_PORT_STR)
 	id := os.Getenv(GATEWAY_ID_STR)
 
+	if id == "" && confFilePath == "" {
+		id, _ = os.Hostname() // In the kubernetes environment, hostname can be used as the Gateway-ID
+	}
+	var config *model.ServerInfo
+	if confFilePath != "" {
+		config = new(model.ServerInfo)
+		logger.Info("load conf")
+		err := file.ReadYamlFile(confFilePath, config)
+		if err != nil {
+			logger.Info("Failed to load .yaml file, using system ones.")
+		} else {
+			logger.Infof("Loaded .yaml file from: %s", confFilePath)
+		}
+		id = config.GatewayID
+	}
+
 	app := gateway.NewApp(
+		gateway.UseServerInfo(config),
 		gateway.SetGatewayId(id),
-		gateway.SetPort(port),
-		gateway.UseDB(types.NewGatewayDb(nil)),
+		gateway.UseDB(repo.NewGatewayDb(nil)),
+		gateway.LinkCoreServer(),
+		gateway.UseGrpcDebugServer(),
 	)
 	panic(app.Run())
+}
+
+var (
+	ServiceName       = "IoTEdgeGateway"
+	Version           string
+	BuildTime         string
+	GoVersion         string
+	GitCommit         string
+	Features          string
+	BuildHostPlatform string
+	PlatformVersion   string
+)
+
+func init() {
+	version.ServiceName = ServiceName
+	version.Version = Version
+	version.BuildTime = BuildTime
+	version.GoVersion = GoVersion
+	version.GitCommit = GitCommit
+	version.Features = Features
+	version.BuildHostPlatform = BuildHostPlatform
+	version.PlatformVersion = PlatformVersion
+	version.PrintVersionInfo()
 }

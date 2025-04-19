@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lubricant-ingress
+  namespace: lubricant
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /lubricant-service(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: lubricant-core-apiserver
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: casdoor-ingress
+  namespace: auth-core
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /casdoor-service(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: casdoor-service
+                port:
+                  number: 80
