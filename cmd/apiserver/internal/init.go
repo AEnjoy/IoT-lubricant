@@ -13,6 +13,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/corepkg/logCollect"
 	mqService "github.com/aenjoy/iot-lubricant/services/corepkg/mq"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/repo"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/syncQueue"
 )
 
 var once sync.Once
@@ -34,7 +35,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
 
 			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:           &mqService.MqService{},
-			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:     &services.SyncTaskQueue{},
+			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:     &syncQueue.SyncTaskQueue{},
 			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE:       &logCollect.Log{},
 			ioc.APP_NAME_CORE_Internal_Handler_DataUpload:   &backendService.DataHandler{},
 			ioc.APP_NAME_CORE_Internal_Handler_Report:       &backendService.ReportHandler{},

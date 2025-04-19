@@ -10,15 +10,15 @@ import (
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/protobuf/svc"
-	"github.com/aenjoy/iot-lubricant/services/apiserver/services"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/syncQueue"
 
 	"google.golang.org/protobuf/proto"
 )
 
 type ReportHandler struct {
 	dataCli *datastore.DataStore
-	*services.SyncTaskQueue
+	*syncQueue.SyncTaskQueue
 	//*services.AgentService
 }
 

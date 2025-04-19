@@ -17,6 +17,7 @@ import (
 	proxypb "github.com/aenjoy/iot-lubricant/protobuf/gateway"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/repo"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/syncQueue"
 	"github.com/bytedance/sonic"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -27,7 +28,7 @@ var _ IGatewayService = (*GatewayService)(nil)
 type GatewayService struct {
 	db    repo.ICoreDb
 	store *datastore.DataStore
-	*SyncTaskQueue
+	*syncQueue.SyncTaskQueue
 }
 
 func (s *GatewayService) EditGateway(ctx context.Context, gatewayid, description string, tls *crypto.Tls) error {
