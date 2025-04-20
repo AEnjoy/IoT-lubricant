@@ -61,6 +61,8 @@ type Clean struct {
 	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
 	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
 	Description string `json:"description" gorm:"column:description"`
+	ProjectID   string `json:"project_id" gorm:"column:project_id"` // Project.ProjectID
+	Table       string `json:"table" gorm:"column:table"`           //data store to the table name
 
 	Interpreter string `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
 	Script      string `json:"script" gorm:"column:script"`           // 脚本代码
@@ -148,7 +150,7 @@ type GatewayHost struct {
 }
 
 // Deprecated :
-//Use Log instead
+// Use Log instead
 type ErrorLogs struct {
 	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
 	ErrID     string `json:"err_id" gorm:"column:err_id"`
