@@ -29,7 +29,7 @@ LD_FLAGS = -w -s \
 
 COMPONENTS := gateway apiserver agent logg grpcserver reporter # datastore
 
-.PHONY: all test test-coverage install mock docker-build clean help make-output-dir
+.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver
 
 all: build-all
 
@@ -102,6 +102,10 @@ $(eval $(call docker-build-template,grpcserver, hub.iotroom.top/aenjoy/lubricant
 $(eval $(call docker-build-template,reporter, hub.iotroom.top/aenjoy/lubricant-reporter:nightly))
 
 # $(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
+load-test-driver:
+	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
+		-f scripts/test/mock_driver/clock/Dockerfile scripts/test/mock_driver/clock
+	kind load docker-image hub.iotroom.top/aenjoy/test-driver-clock:nightly
 
 build-all: $(addprefix build-,$(COMPONENTS))
 
