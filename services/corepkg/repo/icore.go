@@ -43,6 +43,7 @@ type ICoreDb interface {
 	GetAgentStatus(ctx context.Context, agentID string) (string, error)
 	DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error
 	GetAgentList(ctx context.Context, userID, gatewayID string) ([]model.Agent, error)
+	GetAgentIDByAgentNameAndUserID(ctx context.Context, agentName, userID string) (string, error)
 
 	// Data:
 	StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error

@@ -18,9 +18,9 @@
 //
 //	Its format is:
 //
-//	(id, nodeId, [your dataColumns], time)
+//	(id, node_id, [your dataColumns], ts)
 //
-//	You don't need to consider id, nodeId and time, we have already designed it for you!
+//	You don't need to consider id, nodeId and ts, we have already designed it for you!
 //	You just need to make sure that the data object you pass in conforms to the deserializable json object.
 package driver
 
@@ -39,7 +39,7 @@ type IDriver interface {
 	GetNewDriver(tableName string) IDriver
 	// CreateColumnsWithType Create columns with type: key is column name, value is column type
 	CreateColumnsWithType(map[string]string) error
-	// SetBatchWriteTxnSize Set batch write transaction size: it should be 1<= size <=100.
+	// SetBatchWriteTxnSize Set batch write transaction size: it should be 1<= size <=100.(default is 1)
 	//  if size = 0,it will return currentSize,nil
 	//  if size > 100,or size < 1,it will return 0,and error
 	SetBatchWriteTxnSize(size int) (int, error)

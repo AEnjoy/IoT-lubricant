@@ -20,6 +20,17 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetAgentIDByAgentNameAndUserID(ctx context.Context, agentName, userID string) (string, error) {
+	var ret model.Agent
+	// 需要夸表查询。Agent.GatewayId=Gateway.GatewayID, Gateway.UserID=UserID
+	err := d.db.WithContext(ctx).
+		Model(model.Agent{}).
+		Joins("JOIN gateway ON agent.gateway_id = gateway.gateway_id").
+		Where("gateway.user_id = ? AND agent.agent_name = ?", userID, agentName).
+		First(&ret).Error
+	return ret.AgentId, err
+}
+
 func (d *CoreDb) GetAsyncJobResult(ctx context.Context, requestId string) (status, result string, err error) {
 	var ret model.AsyncJob
 	err = d.db.WithContext(ctx).
