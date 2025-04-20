@@ -23,7 +23,7 @@ spec:
         - name: USER_ID
           value: 0373c295-07b7-4916-bb7e-95f2c4701de7
         - name: CORE_HOST
-          value: lubricant-core-apiserver.lubricant.svc.cluster.local
+          value: lubricant-grpcserver.lubricant.svc.cluster.local
         - name: CORE_PORT
           value: '5423'
         - name: RUNNING_LEVEL

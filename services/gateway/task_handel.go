@@ -3,9 +3,9 @@ package gateway
 import (
 	"fmt"
 
-	"github.com/aenjoy/iot-lubricant/pkg/cache"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"github.com/bytedance/sonic"
