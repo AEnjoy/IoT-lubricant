@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: tdengine
+  namespace: database
+spec:
+  serviceName: tdengine-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tdengine
+  template:
+    metadata:
+      labels:
+        app: tdengine
+    spec:
+      containers:
+        - name: tdengine
+          image: tdengine/tdengine:3.3.6.3
+          env:
+            - name: TAOS_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tsdatabase-secret
+                  key: root-password
+            - name: TAOS_FQDN
+              value: "$(HOSTNAME).tdengine-service.database.svc.cluster.local"
+          ports:
+            - containerPort: 6030
+              name: client
+            - containerPort: 6035
+              name: rest
+            - containerPort: 6041
+              name: cluster
+          volumeMounts:
+            - name: taosdata
+              mountPath: /var/lib/taos
+      volumes:
+        - name: taosdata
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tdengine-service
+  namespace: database
+spec:
+  clusterIP: None
+  ports:
+    - name: client
+      port: 6030
+      targetPort: 6030
+    - name: rest
+      port: 6035
+      targetPort: 6035
+    - name: cluster
+      port: 6041
+      targetPort: 6041
+  selector:
+    app: tdengine
