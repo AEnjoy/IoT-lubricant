@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd-headless # Headless Service for stable network IDs
+  namespace: database
+  labels:
+    app: etcd
+spec:
+  ports:
+    - port: 2379
+      name: client
+      protocol: TCP
+      targetPort: 2379
+    - port: 2380
+      name: peer
+      protocol: TCP
+      targetPort: 2380
+  clusterIP: None # Important: Makes it a Headless Service
+  selector:
+    app: etcd # Selects pods managed by the StatefulSet
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd-client # Regular service for client access
+  namespace: database
+  labels:
+    app: etcd
+spec:
+  ports:
+    - port: 2379
+      name: client
+      protocol: TCP
+      targetPort: 2379
+  selector:
+    app: etcd # Selects pods managed by the StatefulSet
+  type: ClusterIP # Or LoadBalancer/NodePort if needed externally
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  namespace: database
+  labels:
+    app: etcd
+spec:
+  serviceName: "etcd-headless" # Must match the headless service name
+  replicas: 3 # Recommended odd number for quorum (e.g., 3, 5)
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      containers:
+        - name: etcd
+          # Use an appropriate etcd image
+          image: registry.k8s.io/etcd:3.5.21-0
+          ports:
+            - containerPort: 2379
+              name: client
+              protocol: TCP
+            - containerPort: 2380
+              name: peer
+              protocol: TCP
+          volumeMounts:
+            - name: etcd-data
+              mountPath: /var/run/etcd
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Use Downward API to get pod name (e.g., etcd-0, etcd-1)
+              POD_NAME=${POD_NAME:-$(hostname)}
+              # Construct stable DNS name
+              DNS_NAME="${POD_NAME}.etcd-headless.${POD_NAMESPACE}.svc.cluster.local"
+              # Construct initial cluster string (Needs adjustment for scaling beyond initial replicas)
+              # Note: A more robust solution for scaling might involve an init container
+              # or using etcd discovery, or managing cluster membership via API after bootstrap.
+              # This example assumes initial bootstrap of 3 replicas.
+              INITIAL_CLUSTER="etcd-0=http://etcd-0.etcd-headless.${POD_NAMESPACE}.svc.cluster.local:2380,etcd-1=http://etcd-1.etcd-headless.${POD_NAMESPACE}.svc.cluster.local:2380,etcd-2=http://etcd-2.etcd-headless.${POD_NAMESPACE}.svc.cluster.local:2380"
+              
+              # Start etcd
+              exec etcd \
+                --name=${POD_NAME} \
+                --data-dir=/var/run/etcd/default.etcd \
+                --listen-client-urls=http://0.0.0.0:2379 \
+                --advertise-client-urls=http://${DNS_NAME}:2379 \
+                --listen-peer-urls=http://0.0.0.0:2380 \
+                --initial-advertise-peer-urls=http://${DNS_NAME}:2380 \
+                --initial-cluster=${INITIAL_CLUSTER} \
+                --initial-cluster-token=etcd-cluster-1 \
+                --initial-cluster-state=new # Use 'new' for first time, 'existing' if joining existing cluster
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            # Recommended: Set resource requests and limits
+            # resources:
+            #   requests:
+            #     memory: "512Mi"
+            #     cpu: "250m"
+            #   limits:
+            #     memory: "1Gi"
+            #     cpu: "500m"
+  # Volume Claim Template: Defines the PVC created for each pod
+  volumeClaimTemplates:
+    - metadata:
+        name: etcd-data # Name of the volume mount above
+      spec:
+        accessModes: [ "ReadWriteOnce" ] # Suitable for most storage classes
+        storageClassName: "standard" # Replace with your Storage Class name if needed
+        resources:
+          requests:
+            storage: 2Gi # Adjust storage size as needed
