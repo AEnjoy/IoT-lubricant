@@ -19,13 +19,13 @@ CGO_COMPONENTS := datastore
 
 GO_TAGS := -tags=sonic,avx
 LD_FLAGS = -w -s \
-    -X 'main.Version=$(VERSION)' \
-    -X 'main.BuildTime=$(BUILD_TIME)' \
-    -X 'main.GoVersion=$(GO_VERSION)' \
-    -X 'main.GitCommit=$(GIT_COMMIT)' \
-    -X 'main.Features=$(FEATURES)' \
-    -X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
-    -X 'main.PlatformVersion=$(PLATFORM_VERSION)'
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.Version=$(VERSION)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildTime=$(BUILD_TIME)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.GoVersion=$(GO_VERSION)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.GitCommit=$(GIT_COMMIT)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.Features=$(FEATURES)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.PlatformVersion=$(PLATFORM_VERSION)'
 
 COMPONENTS := gateway apiserver agent logg grpcserver reporter # datastore
 
