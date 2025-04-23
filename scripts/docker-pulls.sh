@@ -11,7 +11,7 @@ docker pull python:3.9-slim-buster &
 docker pull nginx:1.27 &
 docker pull nats:2.10.26 &
 docker pull redis:7.4.2 &
-docker pull bitnami/mysql:8.4.4-debian-12-r4 &
+docker pull bitnami/mysql:8.4.4-debian-12-r10 &
 docker pull casbin/casdoor:v1.854.0 &
 docker pull tdengine/tdengine:3.3.6.3 &
 docker pull registry.k8s.io/etcd:3.5.21-0 &

@@ -18,7 +18,7 @@ kubectl create secret generic -n database mysql-secret \
   --from-literal=mysql-username=lubricant
 
 # kubectl apply -f deployment/infra/db/mysql.yaml
-helm upgrade --install mysql bitnami/mysql -n database -f deployment/infra/db/values.yaml
+helm upgrade --install mysql bitnami/mysql --version 12.3.0 -n database -f deployment/infra/db/values.yaml
 
 sleep 3
 mysql_pod=$(kubectl get pods -n database | awk '/mysql/ {print $1}')
