@@ -5,7 +5,7 @@ metadata:
   namespace: database
 spec:
   serviceName: tdengine-service
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: tdengine
@@ -18,13 +18,21 @@ spec:
         - name: tdengine
           image: tdengine/tdengine:3.3.6.3
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: TAOS_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: tsdatabase-secret
                   key: root-password
-            - name: TAOS_FQDN
-              value: "$(HOSTNAME).tdengine-service.database.svc.cluster.local"
+          command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              export TAOS_FQDN=${POD_NAME}.tdengine-service.database.svc.cluster.local
+              exec taosd
           ports:
             - containerPort: 6030
               name: client
