@@ -50,8 +50,8 @@ func NewRedisMqWithUniversalClient(ctx context.Context, client redis.UniversalCl
 	}
 	// Ping to ensure connection is established
 	if err := client.Ping(ctx).Err(); err != nil {
-		client.Close() // Close client if ping fails
-		return nil, fmt.Errorf("failed to connect to redis: %w", err)
+		// Close client if ping fails
+		return nil, fmt.Errorf("failed to connect to redis: %V With Close Result:%v", err, client.Close())
 	}
 
 	// Create cancellable context for the MQ instance
@@ -153,7 +153,10 @@ func (r *RedisMq) Subscribe(topic string) (<-chan any, error) {
 			case <-r.ctx.Done(): // Handle global shutdown
 				// Attempt to unsubscribe cleanly before exiting
 				if ps, ok := r.pubsubMap.Load(topic); ok {
-					ps.(*redis.PubSub).Unsubscribe(context.Background(), topic) // Use background context for cleanup
+					err := ps.(*redis.PubSub).Unsubscribe(context.Background(), topic)
+					if err != nil {
+						fmt.Printf("Error during Unsubscribe for topic '%s': %v\n", topic, err)
+					} // Use background context for cleanup
 					ps.(*redis.PubSub).Close()
 					r.pubsubMap.Delete(topic)
 				}

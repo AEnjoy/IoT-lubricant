@@ -141,7 +141,7 @@ func TestNatsSubscribe(t *testing.T) {
 		assert.NoError(t, err)
 
 		for i := 0; i < 5; i++ {
-			mq.Publish(topic, []byte(fmt.Sprintf("msg%d", i)))
+			assert.NoError(t, mq.Publish(topic, []byte(fmt.Sprintf("msg%d", i))))
 		}
 
 		time.Sleep(500 * time.Millisecond)
