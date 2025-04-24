@@ -11,4 +11,5 @@ docker save \
     tdengine/tdengine:3.3.6.3 \
     registry.k8s.io/etcd:3.5.21-0 \
     aenjoy/debian-tdengine-driver:latest \
+    aenjoy/debian-tdengine-driver-gobuilder:latest \
     -o /tmp/docker-images/base-images.tar &

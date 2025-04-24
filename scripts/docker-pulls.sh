@@ -6,6 +6,7 @@
 docker pull golang:1.24-alpine &
 docker pull alpine:3.21.3 &
 docker pull aenjoy/debian-tdengine-driver:latest &
+docker pull aenjoy/debian-tdengine-driver-gobuilder:latest &
 docker pull kindest/node:v1.32.2 &
 docker pull python:3.9-slim-buster &
 # for Kubernetes yaml

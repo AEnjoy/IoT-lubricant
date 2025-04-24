@@ -1,0 +1,13 @@
+FROM aenjoy/debian-tdengine-driver:latest AS builder
+
+WORKDIR /app
+
+COPY cmd/datastore/datastore ./
+RUN chmod +x ./datastore
+
+FROM aenjoy/debian-tdengine-driver:latest
+
+WORKDIR /
+COPY --from=builder /app/datastore ./
+
+CMD ["./datastore"]

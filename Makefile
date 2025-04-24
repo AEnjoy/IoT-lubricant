@@ -29,7 +29,17 @@ LD_FLAGS = -w -s \
 
 COMPONENTS := gateway apiserver agent logg grpcserver reporter # datastore
 
-.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver
+.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components
+
+list-components:
+	@echo "Available components:"
+	@for comp in $(COMPONENTS); do \
+		echo "  $$comp"; \
+	done
+	@echo "Must CGO_ENABLED components:"
+	@for comp in $(CGO_COMPONENTS); do \
+    		echo "  $$comp"; \
+    done
 
 all: build-all
 
@@ -145,6 +155,7 @@ clean:
 
 help:
 	@echo "Available targets:"
+	@echo "  list-components    List all available build components"
 	@echo "  build-all          Build all components (CGO_ENABLED=0 by default)"
 	@echo "  build-<component>  Build specific component"
 	@echo "  docker-build       Build all Docker images"
