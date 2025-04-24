@@ -18,3 +18,6 @@ linters:
         - (*github.com/pkg/sftp.clientConn).Close
         - (*os.File).Close
         - (*net.Conn).Close
+        - (*github.com/redis/go-redis/v9.PubSub).Close
+        - (*github.com/redis/go-redis/v9.Client).Close
+        - (*github.com/redis/go-redis/v9.UniversalClient).Close
