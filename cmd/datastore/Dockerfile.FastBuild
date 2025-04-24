@@ -8,6 +8,7 @@ RUN chmod +x ./datastore
 FROM aenjoy/debian-tdengine-driver:latest
 
 WORKDIR /
+RUN apt-get update && apt-get install -y libzstd1 && apt-get clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/datastore ./
 
 CMD ["./datastore"]

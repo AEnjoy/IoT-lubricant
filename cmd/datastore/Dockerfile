@@ -16,7 +16,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-
+RUN apt-get update && apt-get install -y libzstd-dev libzstd1
 WORKDIR /app/cmd/datastore
 RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=1 &&\
 	go build -v -tags=sonic -tags=avx -ldflags "\
@@ -32,6 +32,8 @@ RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=1 &&\
 
 FROM aenjoy/debian-tdengine-driver:latest
 WORKDIR /root/
+RUN apt-get update && apt-get install -y libzstd1 && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /datastore .
 
 # COPY scripts/files ./files
