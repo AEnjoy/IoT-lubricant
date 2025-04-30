@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logs
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: database
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: amd64/mongo:8.0-noble
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "admin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "password"
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  namespace: database
+spec:
+  clusterIP: None
+  selector:
+    app: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: logs
+spec:
+  serviceName: elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.13
+          ports:
+            - containerPort: 9200
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: xpack.security.enabled
+              value: "false"
+          volumeMounts:
+            - name: es-data
+              mountPath: /usr/share/elasticsearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: es-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: logs
+spec:
+  clusterIP: None
+  selector:
+    app: elasticsearch
+  ports:
+    - port: 9200
+      targetPort: 9200
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: graylog
+  namespace: logs
+spec:
+  serviceName: graylog
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graylog
+  template:
+    metadata:
+      labels:
+        app: graylog
+    spec:
+      containers:
+        - name: graylog
+          image: graylog/graylog:6.2
+          ports:
+            - containerPort: 9000
+            - containerPort: 12201
+            - containerPort: 1514
+          env:
+            - name: GRAYLOG_PASSWORD_SECRET
+              value: "your-secure-secret" # At least 16 characters
+            - name: GRAYLOG_ROOT_PASSWORD_SHA2
+              value: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918" # SHA-256 of "admin"
+            - name: GRAYLOG_HTTP_EXTERNAL_URI
+              value: "http://graylog.logs.svc.cluster.local:9000/"
+            - name: GRAYLOG_ELASTICSEARCH_HOSTS
+              value: "http://elasticsearch.logs.svc.cluster.local:9200"
+            - name: GRAYLOG_MONGODB_URI
+              value: "mongodb://admin:password@mongodb.database.svc.cluster.local:27017/graylog"
+          volumeMounts:
+            - name: graylog-data
+              mountPath: /usr/share/graylog/data
+  volumeClaimTemplates:
+    - metadata:
+        name: graylog-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graylog
+  namespace: logs
+spec:
+  selector:
+    app: graylog
+  ports:
+    - name: web
+      port: 9000
+      targetPort: 9000
+    - name: gelf-tcp
+      port: 12201
+      targetPort: 12201
+    - name: syslog
+      port: 1514
+      targetPort: 1514
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graylog-headless
+  namespace: logs
+spec:
+  clusterIP: None
+  selector:
+    app: graylog
+  ports:
+    - port: 9000
+      targetPort: 9000
+    - port: 12201
+      targetPort: 12201
+    - port: 1514
+      targetPort: 1514

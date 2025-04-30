@@ -8,4 +8,7 @@ docker save \
     nats:2.10.26 redis:7.4.2 casbin/casdoor:v1.854.0 \
     python:3.9-slim-buster golang:1.24-alpine \
     bitnami/mysql:8.4.4-debian-12-r4 \
+    amd64/mongo:8.0-noble \
+    docker.elastic.co/elasticsearch/elasticsearch:8.13 \
+    graylog/graylog:6.2 \
     -o /tmp/docker-images/base-images.tar &

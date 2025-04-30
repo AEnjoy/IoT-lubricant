@@ -88,6 +88,7 @@ jobs:
           bash deployment/infra/nsinit.sh
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
           kubectl apply -f deployment/infra/db/nats.yaml
+          kubectl apply -f deployment/infra/log-collect/greylog.yaml
           kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
 

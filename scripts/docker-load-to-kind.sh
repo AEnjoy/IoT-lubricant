@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # This file is used to cache the docker in CI
-
+kind load docker-image amd64/mongo:8.0-noble &
+kind load docker-image docker.elastic.co/elasticsearch/elasticsearch:8.13 &
+kind load docker-image graylog/graylog:6.2 &
 kind load docker-image nginx:1.27 &
 kind load docker-image nats:2.10.26 &
 kind load docker-image redis:7.4.2 &
