@@ -4,6 +4,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
+	"github.com/panjf2000/ants/v2"
 )
 
 type app struct {
@@ -15,8 +16,13 @@ type app struct {
 }
 
 func (a *app) Run() error {
+	pool, err := ants.NewPool(2048, ants.WithPreAlloc(true))
+	if err != nil {
+		return err
+	}
 	a.grpcServer = &grpcServer{PbCoreServiceImpl: PbCoreServiceImpl{
 		DataStore: a.DataStore,
+		pool:      pool,
 	}}
 	serverStart, err := a.grpcInit()
 	if err != nil {

@@ -22,7 +22,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (i PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
+func (i *PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest) (*corepb.ReportResponse, error) {
 	gatewayid, _ := i.getGatewayID(ctx)
 	userID, _ := i.getUserID(ctx)
 	logg.L.Debugf("Recv gateway report request: %s", gatewayid)
@@ -70,13 +70,14 @@ func (i PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportRequest
 	}
 }
 
-func (i PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
+func (i *PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
 	gatewayid, _ := i.getGatewayID(ctx)
+	userid, _ := i.getUserID(ctx)
 	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
-	go i.handelRecvData(in)
+	i.handelRecvData(in, userid)
 	return &corepb.PushDataResponse{Resp: &status.Status{Code: 0, Message: "ok"}}, nil
 }
-func (i PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
+func (i *PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := i.getGatewayID(s.Context())
 	userid, _ := i.getUserID(s.Context())
 	taskMq := i.DataStore.Mq
@@ -173,7 +174,7 @@ func (i PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.P
 
 	}
 }
-func (i PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
+func (i *PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
 	gatewayID, _ := i.getGatewayID(s.Context()) // 获取网关ID
 	userid, _ := i.getUserID(s.Context())
 
@@ -303,7 +304,7 @@ func (i PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corep
 //	func (PbCoreServiceImpl) PushMessageId(context.Context, *corepb.MessageIdInfo) (*corepb.MessageIdInfo, error) {
 //		return nil, nil
 //	}
-func (i PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
+func (i *PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := i.getGatewayID(d.Context())
 	userId, _ := i.getUserID(d.Context())
 	logg.L.Debugf("Recv data stream from gateway:%s", gatewayid)
@@ -318,7 +319,7 @@ func (i PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data
 			return err
 		}
 		// 由于数据处理需要消耗一定时间，所以使用goroutine处理
-		go i.handelRecvData(data)
+		i.handelRecvData(data, userId)
 
 		err = d.Send(&corepb.Data{
 			MessageId: data.MessageId,
