@@ -74,7 +74,7 @@ func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, userId string) {
 			return
 		}
 
-		err = dataCli.V2mq.Publish(fmt.Sprintf(constant.DATASTORE_USER_DATA, userId), marshal)
+		err = dataCli.V2mq.QueuePublish(fmt.Sprintf(constant.DATASTORE_USER_DATA, userId), marshal)
 		if err != nil {
 			logg.L.Errorf("failed to publish data: %v", err)
 		}
