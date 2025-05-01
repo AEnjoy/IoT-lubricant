@@ -1,5 +1,5 @@
 package datastoreAssistant
 
-func (a *app) register(in any) {
+func (a *app) handel(userIdStr any) {
 
 }
