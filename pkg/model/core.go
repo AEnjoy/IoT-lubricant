@@ -59,7 +59,7 @@ func (Data) TableName() string {
 
 type Clean struct {
 	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
-	AgentID     string `json:"agent_id" gorm:"column:agent_id"`
+	AgentID     string `json:"agent_id" gorm:"column:agent_id;type:varchar(36);uniqueIndex"`
 	Description string `json:"description" gorm:"column:description"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id"` // Project.ProjectID
 	Table       string `json:"table" gorm:"column:table"`           //data store to the table name

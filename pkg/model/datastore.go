@@ -7,7 +7,7 @@ import (
 
 type Project struct {
 	ID          int    `gorm:"column:id;primary_key;autoIncrement"`
-	ProjectID   string `gorm:"column:project_id;uniqueIndex"` // xid
+	ProjectID   string `gorm:"column:project_id;type:varchar(36);uniqueIndex"` // xid
 	ProjectName string `gorm:"column:project_name;not null" json:"project_name"`
 	Description string `gorm:"column:description" json:"description"`
 	UserID      string `gorm:"column:user_id;index;not null"`
@@ -18,7 +18,7 @@ type Project struct {
 }
 type DataStoreEngine struct {
 	ID          int    `gorm:"column:id;primary_key;autoIncrement"`
-	ProjectID   string `json:"project_id" gorm:"column:project_id"`
+	ProjectID   string `json:"project_id" gorm:"column:project_id;index"`
 	ProjectName string `gorm:"column:project_name;not null" json:"project_name"`
 	Description string `gorm:"column:description" json:"description"`
 
