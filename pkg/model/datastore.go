@@ -19,7 +19,6 @@ type Project struct {
 type DataStoreEngine struct {
 	ID          int    `gorm:"column:id;primary_key;autoIncrement"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id;index"`
-	ProjectName string `gorm:"column:project_name;not null" json:"project_name"`
 	Description string `gorm:"column:description" json:"description"`
 
 	DataBasseType string `gorm:"column:data_basse_type;enum('mysql', 'TDEngine', 'mongodb');default:mysql" json:"data_basse_type"`

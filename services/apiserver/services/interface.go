@@ -72,3 +72,17 @@ type IAgentService interface {
 	SetAgentInfo(ctx context.Context, userid, gatewayid, agentid string, info *agentpb.AgentInfo) (taskid string, err error)
 	IsGathering(ctx context.Context, userid, gatewayid, agentid string) (bool, error)
 }
+type IProjectService interface {
+	AddProject(ctx context.Context, userid, projectid, projectname, description string) (string, error)
+	RemoveProject(ctx context.Context, projectid string, removeAgent, removeGateway *bool) error
+
+	// storeEngine
+	AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description string) error
+	GetProjectDataStoreEngineStatus(ctx context.Context, projectid string) (string, error)
+	UpdateEngineInfo(ctx context.Context, projectid, dsn, dataBaseType, description string) error
+	BindProject(ctx context.Context, projectid string, agents []string) error
+
+	// washer
+	AddWasher(ctx context.Context, req *request.AddWasherRequest) (int, error) // 参照 constant.TrustedTenant
+	BindWasher(ctx context.Context, projectid string, washerID int, agentIDs []string) error
+}

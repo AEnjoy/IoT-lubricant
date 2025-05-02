@@ -16,6 +16,7 @@ const (
 	CoreSyncTaskSystem
 	CoreGatewayService
 	CoreGatewayAgentService
+	CoreProjectService
 
 	GatewayStatusGuard
 	BackendHandlerReport

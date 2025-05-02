@@ -57,16 +57,18 @@ func (Data) TableName() string {
 	return "data"
 }
 
+// data Washer
 type Clean struct {
 	ID          int    `json:"id" gorm:"column:id;primary_key;autoIncrement"`
+	WasherID    int    `json:"washer_id" gorm:"column:washer_id"` // 从0开始递增
 	AgentID     string `json:"agent_id" gorm:"column:agent_id;type:varchar(36);uniqueIndex"`
 	Description string `json:"description" gorm:"column:description"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id"` // Project.ProjectID
-	Table       string `json:"table" gorm:"column:table"`           //data store to the table name
 
-	Interpreter string `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
-	Script      string `json:"script" gorm:"column:script"`           // 脚本代码
-	Command     string `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
+	Table       sql.NullString `json:"table" gorm:"column:table"`             //data store to the table name
+	Interpreter string         `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
+	Script      string         `json:"script" gorm:"column:script"`           // 脚本代码
+	Command     string         `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
 
 	CreatedAt time.Time    `json:"-" gorm:"column:created_at;type:datetime"`
 	UpdatedAt time.Time    `json:"-" gorm:"column:updated_at;type:datetime"`

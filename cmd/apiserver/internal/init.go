@@ -33,6 +33,7 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_GATEWAY_SERVICE:       &services.GatewayService{},
 			ioc.APP_NAME_CORE_GATEWAY_AGENT_SERVICE: &services.AgentService{},
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
+			ioc.APP_NAME_CORE_PROJECT_SERVICE:       &services.ProjectService{},
 
 			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:         &mqService.MqService{},
 			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:   &syncQueue.SyncTaskQueue{},
