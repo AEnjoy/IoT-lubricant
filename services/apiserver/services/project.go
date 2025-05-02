@@ -13,6 +13,16 @@ type ProjectService struct {
 	*datastore.DataStore
 }
 
+func (p *ProjectService) AddProject(ctx context.Context, userid, projectid, projectname, description string) (string, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *ProjectService) RemoveProject(ctx context.Context, projectid string, removeAgent, removeGateway *bool) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *ProjectService) AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description string) error {
 	//TODO implement me
 	panic("implement me")
