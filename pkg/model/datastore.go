@@ -21,10 +21,17 @@ type DataStoreEngine struct {
 	ProjectID   string `json:"project_id" gorm:"column:project_id;index"`
 	Description string `gorm:"column:description" json:"description"`
 
-	DataBasseType string `gorm:"column:data_basse_type;enum('mysql', 'TDEngine', 'mongodb');default:mysql" json:"data_basse_type"`
-	DSN           string `gorm:"column:dsn" json:"dsn"` //base64 Encoded
+	DataBaseType string `gorm:"column:data_base_type;enum('mysql', 'TDEngine', 'mongodb');default:mysql" json:"data_basse_type"`
+	DSN          string `gorm:"column:dsn" json:"dsn"` //base64 Encoded 如果是mysql,则是mysql-dsn,如果是tdengine,则是 TDEngineLinkerInfo
 
 	CreatedAt time.Time    `json:"created_at" gorm:"column:created_at;type:datetime"`
 	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
+}
+type TDEngineLinkerInfo struct {
+	Host string `json:"host"`
+	Port int    `json:"port"`
+	User string `json:"user"`
+	Pass string `json:"pass"`
+	Db   string `json:"db"`
 }

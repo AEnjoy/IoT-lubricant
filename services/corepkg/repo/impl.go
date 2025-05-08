@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model"
@@ -18,6 +19,171 @@ var _ ICoreDb = (*CoreDb)(nil)
 
 type CoreDb struct {
 	db *gorm.DB
+}
+
+func (d *CoreDb) GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projectid string) (int, error) {
+	var size int64
+	err := txn.WithContext(ctx).
+		Model(model.Agent{}).
+		Where("project_id = ?", projectid).
+		Where("deleted_at IS NULL").
+		Count(&size).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return int(size), err
+}
+
+func (d *CoreDb) GetEngineByProjectID(ctx context.Context, projectid string) (model.DataStoreEngine, error) {
+	var engine model.DataStoreEngine
+	err := d.db.WithContext(ctx).
+		Model(model.DataStoreEngine{}).
+		Where("project_id = ?", projectid).
+		Where("deleted_at IS NULL").
+		First(&engine).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return engine, err
+}
+
+func (d *CoreDb) GetAgentsByProjectID(ctx context.Context, txn *gorm.DB, projectID string) ([]model.Agent, error) {
+	var agents []model.Agent
+	err := txn.WithContext(ctx).Model(&model.Agent{}).
+		Where("project_id = ?", projectID).
+		Where("deleted_at IS NULL").
+		Find(&agents).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return agents, err
+}
+
+func (d *CoreDb) AddProject(ctx context.Context, txn *gorm.DB, userid, projectid, projectname, description string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	project := model.Project{
+		ProjectID:   projectid,
+		ProjectName: projectname,
+		Description: description,
+		UserID:      userid,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	return txn.WithContext(ctx).Create(&project).Error
+}
+
+func (d *CoreDb) RemoveProject(ctx context.Context, txn *gorm.DB, projectid string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	return txn.WithContext(ctx).Model(&model.Project{}).
+		Where("project_id = ?", projectid).
+		Update("deleted_at", time.Now()).Error
+}
+
+func (d *CoreDb) GetProject(ctx context.Context, projectid string) (model.Project, error) {
+	var project model.Project
+	err := d.db.WithContext(ctx).
+		Where("project_id = ?", projectid).
+		Where("deleted_at IS NULL").
+		First(&project).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return project, err
+}
+
+func (d *CoreDb) ListProject(ctx context.Context, userID string) ([]model.Project, error) {
+	var projects []model.Project
+	err := d.db.WithContext(ctx).
+		Where("deleted_at IS NULL and user_id = ?", userID).
+		Find(&projects).
+		Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return projects, err
+}
+
+func (d *CoreDb) AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	engine := model.DataStoreEngine{
+		ProjectID:    projectid,
+		DSN:          dsn,
+		DataBaseType: dataBaseType,
+		Description:  description,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+	return txn.WithContext(ctx).Create(&engine).Error
+}
+
+func (d *CoreDb) UpdateEngineInfo(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	updates := map[string]interface{}{
+		"description": description,
+		"updated_at":  time.Now(),
+	}
+	if dsn != "" {
+		updates["dsn"] = dsn
+	}
+	if dataBaseType != "" {
+		updates["database_type"] = dataBaseType
+	}
+	return txn.WithContext(ctx).Model(&model.DataStoreEngine{}).
+		Where("project_id = ?", projectid).
+		Updates(updates).Error
+
+}
+func (d *CoreDb) BindProject(ctx context.Context, txn *gorm.DB, projectid string, agents []string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+
+	var errs error
+	for _, agentID := range agents {
+		errs = errors.Join(errs,
+			txn.WithContext(ctx).Model(&model.Agent{}).
+				Update("project_id", projectid).
+				Update("updated_at", time.Now()).
+				Where("agent_id = ?", agentID).Error,
+		)
+	}
+	return errs
+}
+
+func (d *CoreDb) AddWasher(ctx context.Context, txn *gorm.DB, w *model.Clean) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+	w.CreatedAt = time.Now()
+	w.UpdatedAt = time.Now()
+	return txn.WithContext(ctx).Create(w).Error
+}
+
+func (d *CoreDb) BindWasher(ctx context.Context, txn *gorm.DB, projectid string, washerID int, agentIDs []string) error {
+	if txn == nil {
+		return errs.ErrNeedTxn
+	}
+
+	var errs error
+	for i, agentID := range agentIDs {
+		errs = errors.Join(errs,
+			txn.WithContext(ctx).Model(&model.Clean{}).
+				Where("washer_id", washerID+i).
+				Update("agent_id", agentID).
+				Update("project_id", projectid).
+				Update("updated_at", time.Now()).
+				Error,
+		)
+	}
+	return errs
 }
 
 func (d *CoreDb) GetAgentIDByAgentNameAndUserID(ctx context.Context, agentName, userID string) (string, error) {

@@ -124,6 +124,12 @@ const (
 	MqSubscribeFailed
 )
 
+// project
+const (
+	GetProjectAgentNumberFailed ResCode = 250001 + iota
+	AddWasherFailed
+)
+
 // request parameters
 const (
 	ErrorGatewayHostNeedPasswdOrPrivateKey ResCode = 410001 + iota
@@ -220,6 +226,9 @@ var StatusMsgMap = map[ResCode]string{
 
 	// Request parameters
 	ErrorGatewayHostNeedPasswdOrPrivateKey: "gateway host need passwd or private key for remote login(ssh)",
+	// Project
+	GetProjectAgentNumberFailed: "get project agent number failed",
+	AddWasherFailed:             "add washer failed",
 }
 
 // GetMsg 返回状态码对应msg

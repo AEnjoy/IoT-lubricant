@@ -75,10 +75,12 @@ type IAgentService interface {
 type IProjectService interface {
 	AddProject(ctx context.Context, userid, projectid, projectname, description string) (string, error)
 	RemoveProject(ctx context.Context, projectid string, removeAgent, removeGateway *bool) error
+	ListProject(ctx context.Context, userID string) ([]model.Project, error)
+	GetProject(ctx context.Context, projectid string) (model.Project, error)
 
 	// storeEngine
 	AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description string) error
-	GetProjectDataStoreEngineStatus(ctx context.Context, projectid string) (string, error)
+	GetProjectDataStoreEngineStatus(ctx context.Context, projectid, userId string) (string, error)
 	UpdateEngineInfo(ctx context.Context, projectid, dsn, dataBaseType, description string) error
 	BindProject(ctx context.Context, projectid string, agents []string) error
 

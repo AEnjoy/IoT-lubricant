@@ -248,11 +248,11 @@ func (t TDEngine) GetData(conditions ...ConditionOption) map[string][]any {
 }
 
 func NewTDEngineDriver(userId, host, username, password, db string,
-	port int, table *string, useSchemaless *bool) (IDriver, error) {
+	port int, table *string, useSchemaless *bool) (IDriver, func() error, error) {
 	conn, err := af.Open(host, username, password, db, port)
 	if err != nil {
 		logg.L.Errorf("failed to open tdengine link:%v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	if table == nil {
 		table = new(string)
@@ -268,5 +268,5 @@ func NewTDEngineDriver(userId, host, username, password, db string,
 	if useSchemaless != nil {
 		retval.schemaless = *useSchemaless
 	}
-	return &retval, nil
+	return &retval, conn.Close, nil
 }

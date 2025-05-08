@@ -225,15 +225,15 @@ func (m MySql) GetData(conditions ...ConditionOption) map[string][]any {
 	return result
 }
 
-func NewMySQLDriver(dsn, tableName string, userID string) (IDriver, error) {
+func NewMySQLDriver(dsn, tableName string, userID string) (IDriver, func() error, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		logg.L.
 			WithAction("DataStore-LinkToMySQL").
 			Errorf("failed to open mysql link:%v", err)
-		return nil, err
+		return nil, nil, err
 	}
 	db.SetMaxIdleConns(20)
 	db.SetMaxOpenConns(100)
-	return &MySql{db: db, txnSize: 1, tableName: tableName, userID: userID}, nil
+	return &MySql{db: db, txnSize: 1, tableName: tableName, userID: userID}, db.Close, nil
 }
