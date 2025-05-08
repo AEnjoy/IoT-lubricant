@@ -10,6 +10,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/datastoreAssistant/api"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
+	"github.com/google/uuid"
 )
 
 var _ IProjectService = (*ProjectService)(nil)
@@ -29,6 +30,9 @@ func (p *ProjectService) ListProject(ctx context.Context, userID string) ([]mode
 func (p *ProjectService) AddProject(ctx context.Context, userid, projectid, projectname, description string) (string, error) {
 	txn, _, commit := p.txnHelper()
 	defer commit()
+	if projectid == "" {
+		projectid = uuid.NewString()
+	}
 	return projectid, p.DataStore.AddProject(ctx, txn, userid, projectid, projectname, description)
 }
 

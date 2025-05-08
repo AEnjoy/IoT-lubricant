@@ -30,7 +30,7 @@ func DsnTest(dsnType, dsn, userId string) string {
 			logg.L.Errorf("failed to decode dsn:%s", dsn)
 			return "Failed"
 		}
-		var info model.TDEngineLinkerInfo
+		var info model.LinkerInfo
 		err = sonic.Unmarshal(dsn, &info)
 		if err != nil {
 			logg.L.Errorf("failed to unmarshal dsn:%s", dsn)

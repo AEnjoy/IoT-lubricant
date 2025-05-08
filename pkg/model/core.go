@@ -65,10 +65,11 @@ type Clean struct {
 	Description string `json:"description" gorm:"column:description"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id"` // Project.ProjectID
 
-	Table       *string `json:"table" gorm:"column:table"`             //data store to the table name
-	Interpreter string  `json:"interpreter" gorm:"column:interpreter"` // python,goja,node,bash or other
-	Script      string  `json:"script" gorm:"column:script"`           // 脚本代码
-	Command     string  `json:"command" gorm:"column:command"`         // 提供给解释器的额外参数
+	Table       *string `json:"table" gorm:"column:table"`                                           //data store to the table name
+	Interpreter string  `json:"interpreter" gorm:"column:interpreter"`                               // python,goja,node,bash or other
+	Script      string  `json:"script" gorm:"column:script"`                                         // 脚本代码
+	Command     string  `json:"command" gorm:"column:command"`                                       // 提供给解释器的额外参数
+	Location    string  `json:"location" gorm:"column:location;enum('core','gateway');default:core"` // 脚本执行位置
 
 	CreatedAt time.Time    `json:"-" gorm:"column:created_at;type:datetime"`
 	UpdatedAt time.Time    `json:"-" gorm:"column:updated_at;type:datetime"`

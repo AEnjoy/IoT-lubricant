@@ -42,6 +42,7 @@ message TaskDetail {
     gateway.GetAgentInfoRequest getAgentInfoRequest = 16;
     gateway.SetAgentInfoRequest setAgentInfoRequest = 17;
     gateway.GetAgentIsGatheringRequest getAgentIsGatheringRequest = 18;
+    gateway.SetAgentDataWasherRequest setAgentDataWasherRequest = 19;
   }
 }
 
