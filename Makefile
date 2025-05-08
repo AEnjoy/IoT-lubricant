@@ -15,7 +15,7 @@ PLATFORM_VERSION := unknown
 endif
 
 CGO_ENABLED ?= 0
-CGO_COMPONENTS := datastore
+CGO_COMPONENTS := gateway datastore
 
 GO_TAGS := -tags=sonic,avx
 LD_FLAGS = -w -s \
