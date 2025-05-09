@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/compress"
