@@ -121,6 +121,7 @@ jobs:
           kubectl apply -f deployment/infra/lubricant-grpcserver.yaml
           kubectl apply -f deployment/infra/lubricant-core-logger.yaml
           kubectl apply -f deployment/infra/lubricant-apiserver.yaml
+          kubectl apply -f deployment/infra/lubricant-datastore.yaml
           kubectl apply -f deployment/infra/lubricant-reporter.yaml
           kubectl apply -f deployment/tester/svc.yaml
 

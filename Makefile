@@ -15,7 +15,7 @@ PLATFORM_VERSION := unknown
 endif
 
 CGO_ENABLED ?= 0
-CGO_COMPONENTS := gateway datastore
+CGO_COMPONENTS := gateway datastore apiserver # todo: need to fix bug: apiserver should be CGO_ENABLED=0 due to using datastoreApi,should use rpc
 
 GO_TAGS := -tags=sonic,avx
 LD_FLAGS = -w -s \
@@ -27,7 +27,7 @@ LD_FLAGS = -w -s \
     -X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
     -X 'github.com/aenjoy/iot-lubricant/pkg/version.PlatformVersion=$(PLATFORM_VERSION)'
 
-COMPONENTS := gateway apiserver agent logg grpcserver reporter # datastore
+COMPONENTS := gateway apiserver agent logg grpcserver reporter datastore
 
 .PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components
 
