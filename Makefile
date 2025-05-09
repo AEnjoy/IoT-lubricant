@@ -68,9 +68,9 @@ endif
 define go-build-template
 build-$(1): make-output-dir
 	$(if $(filter $(1),$(CGO_COMPONENTS)),\
-		@$(MAKE) cgo-init COMPONENT=$(1) CGO_ENABLED=$(CGO_ENABLED))
-	@echo "Building $(1) with CGO_ENABLED=$(CGO_ENABLED)"
-	CGO_ENABLED=$(CGO_ENABLED) go build -v -o ./bin/$(1) \
+		@$(MAKE) cgo-init COMPONENT=$(1))
+	@echo "Building $(1) with CGO_ENABLED=$(if $(filter $(1),$(CGO_COMPONENTS)),1,$(CGO_ENABLED))"
+	CGO_ENABLED=$(if $(filter $(1),$(CGO_COMPONENTS)),1,$(CGO_ENABLED)) go build -v -o ./bin/$(1) \
 	$(GO_TAGS) -ldflags "$(LD_FLAGS)" \
 	./cmd/$(1)/main.go
 endef
@@ -110,6 +110,7 @@ $(eval $(call docker-build-template,apiserver, hub.iotroom.top/aenjoy/lubricant-
 $(eval $(call docker-build-template,logg, hub.iotroom.top/aenjoy/lubricant-logg:nightly))
 $(eval $(call docker-build-template,grpcserver, hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly))
 $(eval $(call docker-build-template,reporter, hub.iotroom.top/aenjoy/lubricant-reporter:nightly))
+$(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
 
 # $(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
 load-test-driver:
