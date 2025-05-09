@@ -1,18 +1,17 @@
 package api
 
 import (
-	"encoding/base64"
-
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/services/datastoreAssistant/driver"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/bytedance/sonic"
+	"github.com/cloudwego/base64x"
 )
 
 func DsnTest(dsnType, dsn, userId string) string {
 	switch dsnType {
 	case "mysql":
-		dsn, err := base64.StdEncoding.DecodeString(dsn)
+		dsn, err := base64x.StdEncoding.DecodeString(dsn)
 		if err != nil {
 			logg.L.Errorf("failed to decode dsn:%s", dsn)
 			return "Failed"
@@ -25,7 +24,7 @@ func DsnTest(dsnType, dsn, userId string) string {
 		_ = f()
 		return "Success"
 	case "TDEngine":
-		dsn, err := base64.StdEncoding.DecodeString(dsn)
+		dsn, err := base64x.StdEncoding.DecodeString(dsn)
 		if err != nil {
 			logg.L.Errorf("failed to decode dsn:%s", dsn)
 			return "Failed"

@@ -1,7 +1,6 @@
 package project
 
 import (
-	"encoding/base64"
 	"fmt"
 	"net/http"
 
@@ -9,7 +8,9 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/helper"
+
 	"github.com/bytedance/sonic"
+	"github.com/cloudwego/base64x"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,7 +45,7 @@ func (a Api) AddProject(c *gin.Context) {
 			return
 		}
 
-		dsn = base64.StdEncoding.EncodeToString([]byte(dsn))
+		dsn = base64x.StdEncoding.EncodeToString([]byte(dsn))
 		err = a.IProjectService.AddDataStoreEngine(c, projectId, dsn, req.DataBaseType, req.Description, req.StoreTable)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
