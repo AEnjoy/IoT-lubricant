@@ -24,10 +24,10 @@ type CoreDb struct {
 func (d *CoreDb) GetProjectByAgentID(ctx context.Context, agentID string) (model.Project, error) {
 	var project model.Project
 	err := d.db.WithContext(ctx).
-		Model(model.Project{}).
+		Model(&project).
 		Joins("JOIN agent ON project.project_id = agent.project_id").
 		Where("agent.agent_id = ?", agentID).
-		Where("project.deleted_at IS NULL").
+		Where("project.deleteAt IS NULL").
 		First(&project).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
@@ -38,9 +38,9 @@ func (d *CoreDb) GetProjectByAgentID(ctx context.Context, agentID string) (model
 func (d *CoreDb) GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projectid string) (int, error) {
 	var size int64
 	err := txn.WithContext(ctx).
-		Model(model.Agent{}).
+		Model(&model.Agent{}).
 		Where("project_id = ?", projectid).
-		Where("deleted_at IS NULL").
+		Where("deleteAt IS NULL").
 		Count(&size).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
@@ -51,9 +51,9 @@ func (d *CoreDb) GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projec
 func (d *CoreDb) GetEngineByProjectID(ctx context.Context, projectid string) (model.DataStoreEngine, error) {
 	var engine model.DataStoreEngine
 	err := d.db.WithContext(ctx).
-		Model(model.DataStoreEngine{}).
+		Model(&engine).
 		Where("project_id = ?", projectid).
-		Where("deleted_at IS NULL").
+		Where("deleteAt IS NULL").
 		First(&engine).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
@@ -65,7 +65,7 @@ func (d *CoreDb) GetAgentsByProjectID(ctx context.Context, txn *gorm.DB, project
 	var agents []model.Agent
 	err := txn.WithContext(ctx).Model(&model.Agent{}).
 		Where("project_id = ?", projectID).
-		Where("deleted_at IS NULL").
+		Where("deleteAt IS NULL").
 		Find(&agents).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
@@ -94,14 +94,14 @@ func (d *CoreDb) RemoveProject(ctx context.Context, txn *gorm.DB, projectid stri
 	}
 	return txn.WithContext(ctx).Model(&model.Project{}).
 		Where("project_id = ?", projectid).
-		Update("deleted_at", time.Now()).Error
+		Update("deleteAt", time.Now()).Error
 }
 
 func (d *CoreDb) GetProject(ctx context.Context, projectid string) (model.Project, error) {
 	var project model.Project
-	err := d.db.WithContext(ctx).
+	err := d.db.WithContext(ctx).Model(&project).
 		Where("project_id = ?", projectid).
-		Where("deleted_at IS NULL").
+		Where("deleteAt IS NULL").
 		First(&project).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
@@ -112,7 +112,8 @@ func (d *CoreDb) GetProject(ctx context.Context, projectid string) (model.Projec
 func (d *CoreDb) ListProject(ctx context.Context, userID string) ([]model.Project, error) {
 	var projects []model.Project
 	err := d.db.WithContext(ctx).
-		Where("deleted_at IS NULL and user_id = ?", userID).
+		Model(&model.Project{}).
+		Where("deleteAt IS NULL and user_id = ?", userID).
 		Find(&projects).
 		Error
 	if err == gorm.ErrRecordNotFound {
@@ -153,6 +154,7 @@ func (d *CoreDb) UpdateEngineInfo(ctx context.Context, txn *gorm.DB, projectid, 
 	}
 	return txn.WithContext(ctx).Model(&model.DataStoreEngine{}).
 		Where("project_id = ?", projectid).
+		Where("deleteAt IS NULL").
 		Updates(updates).Error
 
 }
@@ -167,7 +169,8 @@ func (d *CoreDb) BindProject(ctx context.Context, txn *gorm.DB, projectid string
 			txn.WithContext(ctx).Model(&model.Agent{}).
 				Update("project_id", projectid).
 				Update("updated_at", time.Now()).
-				Where("agent_id = ?", agentID).Error,
+				Where("agent_id = ?", agentID).
+				Where("deleteAt IS NULL").Error,
 		)
 	}
 	return errs
@@ -195,7 +198,7 @@ func (d *CoreDb) BindWasher(ctx context.Context, txn *gorm.DB, projectid string,
 				Update("agent_id", agentID).
 				Update("project_id", projectid).
 				Update("updated_at", time.Now()).
-				Error,
+				Where("deleted_at IS NULL").Error,
 		)
 	}
 	return errs
