@@ -26,6 +26,7 @@ type AddProjectRequest struct {
 	Description string `json:"description"`
 
 	DataBaseType  string            `json:"data_base_type,omitempty"` // mysql, TDEngine, mongodb
+	StoreTable    string            `json:"store_table,omitempty"`
 	DSNLinkerInfo *model.LinkerInfo `json:"dsn_linker_info,omitempty"`
 	//Agents        []string          `json:"agents,omitempty"`
 	Washer *AddWasherRequest `json:"washer,omitempty"`

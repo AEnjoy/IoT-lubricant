@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
@@ -9,6 +8,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/helper"
+	"github.com/cloudwego/base64x"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/rs/xid"
@@ -66,7 +66,7 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 		err error
 	)
 	if req.OpenApiDoc != "" {
-		openapidoc, err = base64.StdEncoding.DecodeString(req.OpenApiDoc)
+		openapidoc, err = base64x.StdEncoding.DecodeString(req.OpenApiDoc)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.ErrNewException(err, exceptionCode.ErrorDecodeFailed,
@@ -75,7 +75,7 @@ func (a Api) AddAgentInternal(c *gin.Context) {
 		}
 	}
 	if req.EnableConf != "" {
-		enableFile, err = base64.StdEncoding.DecodeString(req.EnableConf)
+		enableFile, err = base64x.StdEncoding.DecodeString(req.EnableConf)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.ErrNewException(err, exceptionCode.ErrorDecodeFailed,

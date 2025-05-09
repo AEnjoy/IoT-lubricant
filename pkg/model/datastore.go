@@ -20,6 +20,7 @@ type DataStoreEngine struct {
 	ID          int    `gorm:"column:id;primary_key;autoIncrement"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id;index"`
 	Description string `gorm:"column:description" json:"description"`
+	Table       string `gorm:"column:table" json:"table"`
 
 	DataBaseType string `gorm:"column:data_base_type;enum('mysql', 'TDEngine', 'mongodb');default:mysql" json:"data_basse_type"`
 	DSN          string `gorm:"column:dsn" json:"dsn"` //base64 Encoded 如果是mysql,则是mysql-dsn,如果是tdengine,则是 LinkerInfo
@@ -34,4 +35,6 @@ type LinkerInfo struct {
 	User string `json:"user"`
 	Pass string `json:"pass"`
 	Db   string `json:"db"`
+
+	Schemaless *bool `json:"schemaless,omitempty"` // 是否无模式(TDEngine)
 }

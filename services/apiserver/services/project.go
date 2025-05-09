@@ -70,11 +70,11 @@ func (p *ProjectService) RemoveProject(ctx context.Context, projectid string, re
 	return p.DataStore.RemoveProject(ctx, txn, projectid)
 }
 
-func (p *ProjectService) AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description string) error {
+func (p *ProjectService) AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description, table string) error {
 	txn, _, commit := p.txnHelper()
 	defer commit()
 
-	err := p.DataStore.AddDataStoreEngine(ctx, txn, projectid, dsn, dataBaseType, description)
+	err := p.DataStore.AddDataStoreEngine(ctx, txn, projectid, dsn, dataBaseType, description, table)
 	if err != nil {
 		return err
 	}

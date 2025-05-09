@@ -45,7 +45,7 @@ func (a Api) AddProject(c *gin.Context) {
 		}
 
 		dsn = base64.StdEncoding.EncodeToString([]byte(dsn))
-		err = a.IProjectService.AddDataStoreEngine(c, projectId, dsn, req.DataBaseType, req.Description)
+		err = a.IProjectService.AddDataStoreEngine(c, projectId, dsn, req.DataBaseType, req.Description, req.StoreTable)
 		if err != nil {
 			helper.FailedWithJson(http.StatusInternalServerError,
 				exception.ErrNewException(err, exceptionCode.ErrorAddProjectFailed), c)

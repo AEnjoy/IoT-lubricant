@@ -1,7 +1,6 @@
 package gateway
 
 import (
-	"encoding/base64"
 	"net/http"
 
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
@@ -9,6 +8,8 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/types/exception"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/helper"
+
+	"github.com/cloudwego/base64x"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +22,7 @@ func (a Api) AgentPushTask(c *gin.Context) {
 		}
 		return &req.TaskID
 	}()
-	task, err := base64.StdEncoding.DecodeString(req.Task)
+	task, err := base64x.StdEncoding.DecodeString(req.Task)
 	if err != nil {
 		helper.FailedWithJson(http.StatusInternalServerError,
 			exception.ErrNewException(err, exceptionCode.ErrorDecodeFailed,

@@ -79,7 +79,7 @@ type IProjectService interface {
 	GetProject(ctx context.Context, projectid string) (model.Project, error)
 
 	// storeEngine
-	AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description string) error
+	AddDataStoreEngine(ctx context.Context, projectid, dsn, dataBaseType, description, table string) error
 	GetProjectDataStoreEngineStatus(ctx context.Context, projectid, userId string) (string, error)
 	UpdateEngineInfo(ctx context.Context, projectid, dsn, dataBaseType, description string) error
 	BindProject(ctx context.Context, projectid string, agents []string) error

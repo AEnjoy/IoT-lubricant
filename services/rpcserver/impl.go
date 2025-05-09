@@ -72,11 +72,16 @@ func (i *PbCoreServiceImpl) Report(ctx context.Context, req *corepb.ReportReques
 
 func (i *PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*corepb.PushDataResponse, error) {
 	gatewayid, _ := i.getGatewayID(ctx)
-	userid, _ := i.getUserID(ctx)
+	projectId, err := i.getProjectId(ctx, in.AgentID)
+	if err != nil {
+		logg.L.WithOperatorID(gatewayid).Errorf("failed to get project id: %v", err)
+		return nil, status2.Errorf(codes.Internal, err.Error())
+	}
 	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
-	i.handelRecvData(in, userid)
+	i.handelRecvData(in, projectId)
 	return &corepb.PushDataResponse{Resp: &status.Status{Code: 0, Message: "ok"}}, nil
 }
+
 func (i *PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.Ping]) error {
 	gatewayID, _ := i.getGatewayID(s.Context())
 	userid, _ := i.getUserID(s.Context())
@@ -174,6 +179,7 @@ func (i *PbCoreServiceImpl) Ping(s grpc.BidiStreamingServer[metapb.Ping, metapb.
 
 	}
 }
+
 func (i *PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, corepb.Task]) error {
 	gatewayID, _ := i.getGatewayID(s.Context()) // 获取网关ID
 	userid, _ := i.getUserID(s.Context())
@@ -306,7 +312,6 @@ func (i *PbCoreServiceImpl) GetTask(s grpc.BidiStreamingServer[corepb.Task, core
 //	}
 func (i *PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Data, corepb.Data]) error {
 	gatewayid, _ := i.getGatewayID(d.Context())
-	userId, _ := i.getUserID(d.Context())
 	logg.L.Debugf("Recv data stream from gateway:%s", gatewayid)
 
 	for {
@@ -319,13 +324,18 @@ func (i *PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Dat
 			return err
 		}
 		// 由于数据处理需要消耗一定时间，所以使用goroutine处理
-		i.handelRecvData(data, userId)
+		projectId, err := i.getProjectId(d.Context(), data.AgentID)
+		if err != nil {
+			logg.L.WithOperatorID(gatewayid).Errorf("failed to get project id: %v", err)
+			return status2.Errorf(codes.Internal, err.Error())
+		}
+		i.handelRecvData(data, projectId)
 
 		err = d.Send(&corepb.Data{
 			MessageId: data.MessageId,
 		})
 		if err != nil {
-			logg.L.WithOperatorID(userId).Errorf("grpc stream error: %s", err.Error())
+			logg.L.WithOperatorID(projectId).Errorf("grpc stream error: %s", err.Error())
 			continue
 		}
 	}

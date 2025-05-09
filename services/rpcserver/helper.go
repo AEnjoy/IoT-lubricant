@@ -2,6 +2,7 @@ package rpcserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
@@ -17,6 +18,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
+
+var ErrProjectNotFound = errors.New("project not found")
 
 func (*PbCoreServiceImpl) taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], code int, message string) {
 	var out corepb.Task
@@ -61,20 +64,20 @@ func (*PbCoreServiceImpl) getUserID(ctx context.Context) (string, error) {
 	return userIDs[0], nil
 }
 
-func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, userId string) {
+func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, projectId string) {
 	err := i.pool.Submit(func() {
 		dataCli := i.DataStore
 		marshal, err := proto.Marshal(data)
 		if err != nil {
 			logg.L.Errorf("failed to marshal data: %v", err)
 		}
-		err = dataCli.V2mq.Publish(constant.DATASTORE_USER, []byte(userId))
+		err = dataCli.V2mq.Publish(constant.DATASTORE_PROJECT, []byte(projectId))
 		if err != nil {
-			logg.L.Errorf("failed to publish userid[%s] to datastore topic: %v", userId, err)
+			logg.L.Errorf("failed to publish projectId[%s] to datastore topic: %v", projectId, err)
 			return
 		}
 
-		err = dataCli.V2mq.QueuePublish(fmt.Sprintf(constant.DATASTORE_USER_DATA, userId), marshal)
+		err = dataCli.V2mq.QueuePublish(fmt.Sprintf(constant.DATASTORE_PROJECT_DATA, projectId), marshal)
 		if err != nil {
 			logg.L.Errorf("failed to publish data: %v", err)
 		}
@@ -82,4 +85,19 @@ func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, userId string) {
 	if err != nil {
 		logg.L.Errorf("failed to create save data to store task thread")
 	}
+}
+func (i *PbCoreServiceImpl) getProjectId(ctx context.Context, agentid string) (string, error) {
+	id, err := i.CacheCli.Get(ctx, fmt.Sprintf("project-id-agent-%s", agentid))
+	if err != nil || id == "" {
+		i.getProjectIdMutex.Lock()
+		defer i.getProjectIdMutex.Unlock()
+
+		project, _ := i.DataStore.GetProjectByAgentID(ctx, agentid)
+		if project.ProjectID == "" {
+			return "", ErrProjectNotFound
+		}
+		id = project.ProjectID
+		err = i.CacheCli.Set(ctx, fmt.Sprintf("project-id-agent-%s", agentid), id)
+	}
+	return id, err
 }

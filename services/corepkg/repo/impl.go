@@ -21,6 +21,20 @@ type CoreDb struct {
 	db *gorm.DB
 }
 
+func (d *CoreDb) GetProjectByAgentID(ctx context.Context, agentID string) (model.Project, error) {
+	var project model.Project
+	err := d.db.WithContext(ctx).
+		Model(model.Project{}).
+		Joins("JOIN agent ON project.project_id = agent.project_id").
+		Where("agent.agent_id = ?", agentID).
+		Where("project.deleted_at IS NULL").
+		First(&project).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return project, err
+}
+
 func (d *CoreDb) GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projectid string) (int, error) {
 	var size int64
 	err := txn.WithContext(ctx).
@@ -107,7 +121,7 @@ func (d *CoreDb) ListProject(ctx context.Context, userID string) ([]model.Projec
 	return projects, err
 }
 
-func (d *CoreDb) AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error {
+func (d *CoreDb) AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description, table string) error {
 	if txn == nil {
 		return errs.ErrNeedTxn
 	}
@@ -116,6 +130,7 @@ func (d *CoreDb) AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid
 		DSN:          dsn,
 		DataBaseType: dataBaseType,
 		Description:  description,
+		Table:        table,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}

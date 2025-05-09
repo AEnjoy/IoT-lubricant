@@ -3,6 +3,7 @@ package rpcserver
 import (
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
@@ -21,7 +22,8 @@ type grpcServer struct {
 type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 	*datastore.DataStore
-	pool *ants.Pool
+	pool              *ants.Pool
+	getProjectIdMutex sync.Mutex
 }
 
 func (a *app) grpcInit() (serve func() error, err error) {

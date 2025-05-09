@@ -86,9 +86,10 @@ type ICoreDb interface {
 	RemoveProject(ctx context.Context, txn *gorm.DB, projectid string) error
 	GetProject(ctx context.Context, projectid string) (model.Project, error)
 	ListProject(ctx context.Context, userID string) ([]model.Project, error)
+	GetProjectByAgentID(ctx context.Context, agentID string) (model.Project, error)
 
 	GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projectid string) (int, error)
-	AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error
+	AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description, table string) error
 	UpdateEngineInfo(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error
 	GetEngineByProjectID(ctx context.Context, projectid string) (model.DataStoreEngine, error)
 	BindProject(ctx context.Context, txn *gorm.DB, projectid string, agents []string) error

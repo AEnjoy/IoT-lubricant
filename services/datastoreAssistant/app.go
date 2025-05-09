@@ -18,7 +18,7 @@ import (
 )
 
 type app struct {
-	subscribed  map[string]struct{} //userId-subscribed
+	subscribed  map[string]struct{} //projectId-subscribed
 	subMapMutex sync.Mutex
 
 	*datastore.DataStore
@@ -42,7 +42,7 @@ func (a *app) Run() error {
 
 	hostname, _ := os.Hostname()
 	consumerID := fmt.Sprintf("%s-%d", hostname, time.Now().UnixNano())
-	userIdBytesCh, err := a.V2mq.Subscribe(constant.DATASTORE_USER)
+	projectIdBytesCh, err := a.V2mq.Subscribe(constant.DATASTORE_PROJECT)
 	if err != nil {
 		return err
 	}
@@ -58,18 +58,18 @@ func (a *app) Run() error {
 		case <-a.Ctx.Done():
 			time.Sleep(3 * time.Second)
 			os.Exit(0)
-		case userIdBytes := <-userIdBytesCh:
-			userID := string(userIdBytes.([]byte))
-			partitionID := api.GetPartition(userID, 64)
+		case projectIdBytes := <-projectIdBytesCh:
+			projectId := string(projectIdBytes.([]byte))
+			partitionID := api.GetPartition(projectId, 64)
 			if isPartitionAssigned(partitionID) {
 				a.subMapMutex.Lock()
-				_, ok := a.subscribed[userID]
+				_, ok := a.subscribed[projectId]
 				if !ok {
-					err := a.pool.Invoke(userID)
+					err := a.pool.Invoke(projectId)
 					if err != nil {
-						logg.L.Errorf("[%s] Failed to invoke pool: %v", userID, err)
+						logg.L.Errorf("[%s] Failed to invoke pool: %v", projectId, err)
 					} else {
-						a.subscribed[userID] = struct{}{}
+						a.subscribed[projectId] = struct{}{}
 					}
 				}
 				a.subMapMutex.Unlock()
