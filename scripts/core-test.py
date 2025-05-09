@@ -16,6 +16,7 @@ CORE_API_BASE_URL = "http://127.0.0.1/lubricant-service"
 CALLBACK_URL = CORE_API_BASE_URL + "/api/v1/signin"
 USER_INFO_URL = CORE_API_BASE_URL + "/api/v1/user/info"
 QUERY_TASK_STATUS_URL = CORE_API_BASE_URL + "/api/v1/task/query"
+ADD_PROJECT_URL = CORE_API_BASE_URL + "/api/v1/project/add"
 CREATE_GATEWAY_URL = CORE_API_BASE_URL + "/api/v1/gateway/add"
 ADD_AGENT_URL = CORE_API_BASE_URL  # +"/api/v1/gateway/{ 0 }/agent/internal/add"
 SET_AGENT_URL = CORE_API_BASE_URL + "/api/v1/agent/set"
@@ -47,6 +48,21 @@ create_gateway_data = {
         "ca": ""
     },
 }
+
+add_project_data = {
+    "project_name":"test-project",
+    "description":"test-project",
+    "data_base_type":"TDEngine",
+    "store_table":"lubricant_test_store_table",
+    "dsn_linker_info":{
+        "host":"tdengine-0.tdengine.database.svc.cluster.local",
+        "port": 0, # 原生连接时不需要指定端口
+        "user":"root",
+        "password":"123456",
+        "db":""
+    }
+}
+
 add_agent_data = {
     "description": "agent",
     "gather_cycle": 1,
@@ -200,13 +216,6 @@ def login_and_get_session():
 
     return session
 
-def modify_user_id(data, new_uuid):
-    try:
-        data['spec']['template']['spec']['containers'][0]['env'][1]['value'] = new_uuid
-        return data
-    except (KeyError, IndexError, TypeError):
-        print("Error：can't find the specified key or index in the data.")
-        sys.exit(1)
 def get_user_info(session):
     global userId
     print("Getting user info...")
@@ -304,11 +313,27 @@ def test_uncreated_gateway(session, gateway_id):
     else:
         print("Gateway Deploy Success")
 
+def test_add_project(session):
+    print("API:Adding project...")
+    try:
+        add_project_response = session.post(ADD_PROJECT_URL, headers=headers, json=add_project_data)
+        add_project_response.raise_for_status()
+        msg = add_project_response.json().get("msg")
+        if msg != "success":
+            print(f"Error: Failed to add project, msg={msg}")
+            print(f"Response: {add_project_response.text}")
+            sys.exit(1)
+    except Exception as e:
+        print("Error: Failed to add project")
+        print(f"Response: {add_project_response.text if 'add_project_response' in locals() else str(e)}")
+        sys.exit(1)
+    return add_project_response.json().get("data")
 
-def test_add_agent(session, gateway_id):
+def test_add_agent(session, gateway_id,project_id):
     print("API:Adding agent...")
     agent_id = ""
     task_id = ""
+    add_agent_data['project_id'] = project_id
     try:
         add_agent_response = session.post(ADD_AGENT_URL + f"/api/v1/gateway/{gateway_id}/agent/internal/add",
                                           headers=headers, json=add_agent_data)
@@ -450,14 +475,12 @@ def main():
     print("Begin Test:")
     test_create_gateway(session, "lubricant-gateway-0")
     test_uncreated_gateway(session, "lubricant-gateway")
-    agent_id = test_add_agent(session, "lubricant-gateway-0")
+    project_id = test_add_project(session)
+    agent_id = test_add_agent(session, "lubricant-gateway-0",project_id)
     test_set_agent(session, "lubricant-gateway-0", agent_id)
     sleep(3)
     test_agent_operator(session, "lubricant-gateway-0", agent_id)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: core-test.py <pod_name>")
-        sys.exit(1)
     main()
