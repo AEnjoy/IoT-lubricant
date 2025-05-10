@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -79,6 +80,9 @@ func NewRedisMq(ctx context.Context, opts RedisMqOptions) (*RedisMq, error) {
 
 	if len(opts.Addrs) == 1 {
 		// Single Node Configuration
+		if !strings.Contains(opts.Addrs[0], ":") {
+			opts.Addrs[0] = fmt.Sprintf("%s:6379", opts.Addrs[0])
+		}
 		rdbOpts := &redis.Options{
 			Addr:     opts.Addrs[0],
 			Password: opts.Password,

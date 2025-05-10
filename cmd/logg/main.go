@@ -17,25 +17,7 @@ func main() {
 	panic(app.Run())
 }
 
-var (
-	ServiceName       = "SvcLogger"
-	Version           string
-	BuildTime         string
-	GoVersion         string
-	GitCommit         string
-	Features          string
-	BuildHostPlatform string
-	PlatformVersion   string
-)
-
 func init() {
-	version.ServiceName = ServiceName
-	version.Version = Version
-	version.BuildTime = BuildTime
-	version.GoVersion = GoVersion
-	version.GitCommit = GitCommit
-	version.Features = Features
-	version.BuildHostPlatform = BuildHostPlatform
-	version.PlatformVersion = PlatformVersion
+	version.ServiceName = "SvcLogger"
 	version.PrintVersionInfo()
 }

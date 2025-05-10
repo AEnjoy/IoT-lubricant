@@ -14,7 +14,7 @@ import (
 
 var taskChMap sync.Map
 
-func (i PbCoreServiceImpl) getTaskIDCh(ctx context.Context, targetType task.Target, userid, targetDeviceID string) (chan string, func(), error) {
+func (i *PbCoreServiceImpl) getTaskIDCh(ctx context.Context, targetType task.Target, userid, targetDeviceID string) (chan string, func(), error) {
 	topic := fmt.Sprintf("/task/%s/%s/%s", userid, targetType, targetDeviceID)
 	logger.Debugf("get task id chan topic： %s", topic)
 
@@ -74,7 +74,7 @@ func (i PbCoreServiceImpl) getTaskIDCh(ctx context.Context, targetType task.Targ
 	return ch, cancel, nil
 }
 
-func (i PbCoreServiceImpl) getTask(_ context.Context, targetType task.Target, userid, targetDeviceID, taskID string) ([]byte, error) {
+func (i *PbCoreServiceImpl) getTask(_ context.Context, targetType task.Target, userid, targetDeviceID, taskID string) ([]byte, error) {
 	taskMq := i.DataStore.Mq
 	topic := fmt.Sprintf("/task/%s/%s/%s/%s", userid, targetType, targetDeviceID, taskID)
 	logg.L.Debugf("get task topic： %s", topic)

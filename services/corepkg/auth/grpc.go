@@ -2,28 +2,27 @@ package auth
 
 // grpc-server-auth
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
-	"github.com/aenjoy/iot-lubricant/services/corepkg/repo"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-)
-
-import (
-	"context"
 )
 
 var _ ioc.Object = (*InterceptorImpl)(nil)
 
 type InterceptorImpl struct {
-	Db repo.ICoreDb
+	Db *datastore.DataStore
 }
 
 func (i *InterceptorImpl) Init() error {
-	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
+	cli := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
 	i.Db = cli
 	return nil
 }
@@ -93,7 +92,7 @@ func (i *InterceptorImpl) UnaryServerInterceptor(ctx context.Context, req any, i
 		logger.Errorf("user_id not present")
 		return nil, fmt.Errorf("user_id not present")
 	}
-	if !i.Db.IsGatewayIdExists(userID[0], gwID[0]) {
+	if !i.isGatewayIdExists(userID[0], gwID[0]) {
 		logger.Errorf("error gateway client:%s", gwID[0])
 		return nil, fmt.Errorf("error gateway client")
 	}
@@ -119,7 +118,7 @@ func (i *InterceptorImpl) StreamServerInterceptor(srv any, ss grpc.ServerStream,
 		logger.Errorf("user_id not present")
 		return fmt.Errorf("user_id not present")
 	}
-	if !i.Db.IsGatewayIdExists(userID[0], gwID[0]) {
+	if !i.isGatewayIdExists(userID[0], gwID[0]) {
 		logger.Errorf("error gateway client:%s", gwID[0])
 		return fmt.Errorf("error gateway client")
 	}
@@ -135,4 +134,36 @@ func (i *InterceptorImpl) StreamServerInterceptor(srv any, ss grpc.ServerStream,
 	i.Db.Commit(txn)
 	// 响应后的处理
 	return handler(srv, ss)
+}
+
+var getExistsMutex sync.Mutex
+
+func (i *InterceptorImpl) isGatewayIdExists(userID string, gatewayID string) bool {
+	getExistsMutex.Lock()
+	defer getExistsMutex.Unlock()
+	// cache
+	key := fmt.Sprintf("gateway-id-exist-(user-gateway-id):%s:%s", userID, gatewayID)
+	result, err := i.Db.Get(context.Background(), key)
+	if err != nil || result == "" {
+		if i.Db.IsGatewayIdExists(userID, gatewayID) {
+			// cache
+			err = i.Db.Set(context.Background(), key, "true")
+			if err != nil {
+				logger.Errorf("set cache error:%s", err)
+			}
+			return true
+		} else {
+			// cache
+			err = i.Db.Set(context.Background(), key, "false")
+			if err != nil {
+				logger.Errorf("set cache error:%s", err)
+			}
+			return false
+		}
+	}
+
+	if result == "true" {
+		return true
+	}
+	return false
 }

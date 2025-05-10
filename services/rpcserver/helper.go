@@ -2,9 +2,10 @@ package rpcserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/constant"
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	taskTypes "github.com/aenjoy/iot-lubricant/pkg/types/task"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
@@ -18,14 +19,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (i PbCoreServiceImpl) taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], code int, message string) {
+var ErrProjectNotFound = errors.New("project not found")
+
+func (*PbCoreServiceImpl) taskSendErrorMessage(s grpc.BidiStreamingServer[corepb.Task, corepb.Task], code int, message string) {
 	var out corepb.Task
 	var errorResp corepb.Task_ErrorMessage
 	errorResp.ErrorMessage = &metapb.ErrorMessage{Code: &status.Status{Code: int32(code), Message: message}}
 	out.Task = &errorResp
 	_ = s.Send(&out)
 }
-func (i PbCoreServiceImpl) gatewayOffline(mq mq.Mq, userid, gatewayid string) error {
+func (*PbCoreServiceImpl) gatewayOffline(mq mq.Mq, userid, gatewayid string) error {
 	logg.L.Debugf("gateway offline: %s", gatewayid)
 	return mq.PublishBytes(fmt.Sprintf("/monitor/%s/offline", taskTypes.TargetGateway),
 		[]byte(fmt.Sprintf("%s<!SPLIT!>%s", userid, gatewayid)))
@@ -34,7 +37,7 @@ func (i PbCoreServiceImpl) gatewayOffline(mq mq.Mq, userid, gatewayid string) er
 // getGatewayID 获取调用接口的网关ID
 //
 //	todo:(现阶段其实应该叫做网关名,后续需要使用真正的id)
-func (i PbCoreServiceImpl) getGatewayID(ctx context.Context) (string, error) {
+func (*PbCoreServiceImpl) getGatewayID(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return "", fmt.Errorf("metadata not found")
@@ -47,13 +50,13 @@ func (i PbCoreServiceImpl) getGatewayID(ctx context.Context) (string, error) {
 
 	return gatewayIDs[0], nil
 }
-func (i PbCoreServiceImpl) getUserID(ctx context.Context) (string, error) {
+func (*PbCoreServiceImpl) getUserID(ctx context.Context) (string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return "", fmt.Errorf("metadata not found")
 	}
 
-	userIDs := md.Get(def.USER_ID)
+	userIDs := md.Get(constant.USER_ID)
 	if len(userIDs) == 0 {
 		return "", fmt.Errorf("userid not found in metadata")
 	}
@@ -61,15 +64,40 @@ func (i PbCoreServiceImpl) getUserID(ctx context.Context) (string, error) {
 	return userIDs[0], nil
 }
 
-func (i PbCoreServiceImpl) handelRecvData(data *corepb.Data) {
-	dataCli := i.DataStore
-	marshal, err := proto.Marshal(data)
-	if err != nil {
-		logg.L.Errorf("failed to marshal data: %v", err)
-	}
+func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, projectId string) {
+	err := i.pool.Submit(func() {
+		dataCli := i.DataStore
+		marshal, err := proto.Marshal(data)
+		if err != nil {
+			logg.L.Errorf("failed to marshal data: %v", err)
+		}
+		err = dataCli.V2mq.Publish(constant.DATASTORE_PROJECT, []byte(projectId))
+		if err != nil {
+			logg.L.Errorf("failed to publish projectId[%s] to datastore topic: %v", projectId, err)
+			return
+		}
 
-	err = dataCli.Mq.PublishBytes("/handler/data", marshal)
+		err = dataCli.V2mq.QueuePublish(fmt.Sprintf(constant.DATASTORE_PROJECT_DATA, projectId), marshal)
+		if err != nil {
+			logg.L.Errorf("failed to publish data: %v", err)
+		}
+	})
 	if err != nil {
-		logg.L.Errorf("failed to publish data: %v", err)
+		logg.L.Errorf("failed to create save data to store task thread")
 	}
+}
+func (i *PbCoreServiceImpl) getProjectId(ctx context.Context, agentid string) (string, error) {
+	id, err := i.CacheCli.Get(ctx, fmt.Sprintf("project-id-agent-%s", agentid))
+	if err != nil || id == "" {
+		i.getProjectIdMutex.Lock()
+		defer i.getProjectIdMutex.Unlock()
+
+		project, _ := i.DataStore.GetProjectByAgentID(ctx, agentid)
+		if project.ProjectID == "" {
+			return "", ErrProjectNotFound
+		}
+		id = project.ProjectID
+		err = i.CacheCli.Set(ctx, fmt.Sprintf("project-id-agent-%s", agentid), id)
+	}
+	return id, err
 }

@@ -9,6 +9,7 @@ const (
 	APP_NAME_CORE_WEB_SERVER            = "lubricant-core-web-server"
 	APP_NAME_CORE_GATEWAY_SERVICE       = "lubricant-core-gateway-service"
 	APP_NAME_CORE_GATEWAY_AGENT_SERVICE = "lubricant-core-gateway-agent-service"
+	APP_NAME_CORE_PROJECT_SERVICE       = "lubricant-core-project-service"
 
 	APP_NAME_CORE_Internal_MQ_SERVICE           = "lubricant-core-internal-mq-service"
 	APP_NAME_CORE_Internal_LOGGER_SERVICE       = "lubricant-core-internal-logger-service"

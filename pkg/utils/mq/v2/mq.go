@@ -38,7 +38,7 @@ type Mq interface {
 
 const (
 	// Default capacity for the channels returned by Subscribe/QueueSubscribe
-	defaultChannelCapacity = 128
+	defaultChannelCapacity = 2048
 	// Default Queue Group Name Suffix (can be customized)
 	// Using a fixed suffix helps differentiate queue groups if needed
 	defaultQueueGroupSuffix = "-qgroup"

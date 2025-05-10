@@ -61,6 +61,9 @@ type Config struct {
 	AuthOrganization    string `yaml:"auth_organization" env:"AUTH_ORGANIZATION"`
 	AuthPublicKeyFile   string `yaml:"auth_public_key_file" env:"AUTH_PUBLICKEYFILE" `
 	AuthApplicationName string `yaml:"auth_application_name" env:"AUTH_APPLICATION_NAME" envDefault:"application_lubricant"`
+
+	InternalWorkThreadNumber int    `yaml:"internal_work_thread_number" env:"INTERNAL_WORK_THREAD_NUMBER" envDefault:"4096"`
+	EtcdEndpoints            string `yaml:"etcd_endpoints" env:"ETCD_ENDPOINTS"` // "," split
 }
 
 func (c *Config) Init() error {

@@ -28,3 +28,8 @@ func _txnHelper(db repo.ICoreDb) (txn *gorm.DB, errorCh *errCh.ErrorChan, f func
 		Do
 	return
 }
+
+// txnHelper return: database txn, error channel,and a function that must call by defer
+func (s *ProjectService) txnHelper() (txn *gorm.DB, errorCh *errCh.ErrorChan, f func()) {
+	return _txnHelper(s.DataStore)
+}

@@ -239,6 +239,7 @@ func (s *GatewayService) AddAgentInternal(ctx context.Context, taskid *string, u
 	err = s.db.AddAgent(ctx, txn, gatewayid, model.Agent{
 		AgentId:     agentID,
 		GatewayId:   gatewayid,
+		ProjectID:   req.ProjectID,
 		Description: req.Description,
 		Algorithm:   req.DataCompressAlgorithm,
 		GatherCycle: int(req.GatherCycle),

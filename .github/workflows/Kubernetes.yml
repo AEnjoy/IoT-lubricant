@@ -90,6 +90,8 @@ jobs:
           kubectl apply -f deployment/infra/db/nats.yaml
           kubectl run nginx --image=nginx:1.27
           bash deployment/infra/db/redis.sh
+          bash deployment/infra/db/tdengine.sh
+          kubectl apply -f deployment/infra/db/etcd.yaml
 
       - name: Build And Load Containers To Kubernetes
         run: |
@@ -119,6 +121,7 @@ jobs:
           kubectl apply -f deployment/infra/lubricant-grpcserver.yaml
           kubectl apply -f deployment/infra/lubricant-core-logger.yaml
           kubectl apply -f deployment/infra/lubricant-apiserver.yaml
+          kubectl apply -f deployment/infra/lubricant-datastore.yaml
           kubectl apply -f deployment/infra/lubricant-reporter.yaml
           kubectl apply -f deployment/tester/svc.yaml
 

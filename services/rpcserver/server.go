@@ -3,12 +3,14 @@ package rpcserver
 import (
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/auth"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
+	"github.com/panjf2000/ants/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
@@ -20,10 +22,12 @@ type grpcServer struct {
 type PbCoreServiceImpl struct {
 	corepb.UnimplementedCoreServiceServer
 	*datastore.DataStore
+	pool              *ants.Pool
+	getProjectIdMutex sync.Mutex
 }
 
 func (a *app) grpcInit() (serve func() error, err error) {
-	middlewares := &auth.InterceptorImpl{Db: a.ICoreDb}
+	middlewares := &auth.InterceptorImpl{Db: a.DataStore}
 	var server *grpc.Server
 
 	kasp := keepalive.ServerParameters{

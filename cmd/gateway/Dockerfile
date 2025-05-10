@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS builder
+FROM aenjoy/debian-tdengine-driver-gobuilder:latest AS builder
 
 ARG VERSION
 ARG BUILD_TIME
@@ -16,22 +16,25 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+RUN apt-get update && apt-get install -y libzstd-dev libzstd1
 
 WORKDIR /app/cmd/gateway
 RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=$CGO_ENABLED && \
-	go build -v -tags=sonic -tags=avx -ldflags "\
+	go build -v -tags=sonic,avx,external_libzstd -ldflags "\
 	-w -s \
-	-X 'main.Version=${VERSION}' \
-	-X 'main.BuildTime=${BUILD_TIME}' \
-	-X 'main.GoVersion=$GO_VERSION' \
-	-X 'main.GitCommit=${GIT_COMMIT}' \
-	-X 'main.Features=${FEATURES}' \
-	-X 'main.BuildHostPlatform=${BUILD_HOST_PLATFORM}' \
-	-X 'main.PlatformVersion=${PLATFORM_VERSION}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.Version=${VERSION}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildTime=${BUILD_TIME}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.GoVersion=$GO_VERSION' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.GitCommit=${GIT_COMMIT}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.Features=${FEATURES}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildHostPlatform=${BUILD_HOST_PLATFORM}' \
+	-X 'github.com/aenjoy/iot-lubricant/pkg/version.PlatformVersion=${PLATFORM_VERSION}' \
     " -o /gateway
 
-FROM alpine:3.21.3
+FROM aenjoy/debian-tdengine-driver:latest
 WORKDIR /root/
+RUN apt-get update && apt-get install -y libzstd1 && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /gateway .
 EXPOSE 5436
 

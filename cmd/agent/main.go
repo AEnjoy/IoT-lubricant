@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/constant"
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
@@ -14,13 +14,8 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/utils/openapi"
 	"github.com/aenjoy/iot-lubricant/pkg/version"
 	"github.com/aenjoy/iot-lubricant/services/agent"
-	"github.com/joho/godotenv"
-)
 
-const (
-	CONF_FILE_ENV = "CONFIG"
-	HOST_ENV      = "HOST"
-	BIND_GRPC_ENV = "BIND_GRPC"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -38,14 +33,14 @@ func main() {
 		}
 	}
 
-	configFile := os.Getenv(CONF_FILE_ENV)
-	hostname := os.Getenv(HOST_ENV) //ip:port
-	bindGrpc := os.Getenv(BIND_GRPC_ENV)
+	configFile := os.Getenv(constant.ENV_CONF_FILE_ENV)
+	hostname := os.Getenv(constant.ENV_HOST) //ip:port
+	bindGrpc := os.Getenv(constant.ENV_BIND_GRPC)
 
 	var config model.EdgeSystem
 	if configFile == "" {
 		logger.Warnln("No config file specified, using default values.")
-		configFile = def.AgentDefaultConfigFileName
+		configFile = constant.AgentDefaultConfigFileName
 	}
 	if err := file.ReadYamlFile(configFile, &config); err != nil {
 		logger.Warnln("Failed to read config file:", err)
@@ -62,25 +57,7 @@ func main() {
 	panic(app.Run())
 }
 
-var (
-	ServiceName       = "IoTEdgeAgent"
-	Version           string
-	BuildTime         string
-	GoVersion         string
-	GitCommit         string
-	Features          string
-	BuildHostPlatform string
-	PlatformVersion   string
-)
-
 func init() {
-	version.ServiceName = ServiceName
-	version.Version = Version
-	version.BuildTime = BuildTime
-	version.GoVersion = GoVersion
-	version.GitCommit = GitCommit
-	version.Features = Features
-	version.BuildHostPlatform = BuildHostPlatform
-	version.PlatformVersion = PlatformVersion
+	version.ServiceName = "IoTEdgeAgent"
 	version.PrintVersionInfo()
 }

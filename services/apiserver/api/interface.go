@@ -47,3 +47,14 @@ type ITask interface {
 type ILog interface {
 	GetLogList(*gin.Context)
 }
+type IProject interface {
+	AddProject(*gin.Context)
+	RemoveProject(*gin.Context)
+	AddDataStoreEngine(*gin.Context)
+	GetProjectDataStoreEngineStatus(*gin.Context)
+	UpdateEngineInfo(*gin.Context)
+	AgentBindProject(*gin.Context)
+
+	AddWasher(*gin.Context)
+	AgentBindWasher(*gin.Context)
+}

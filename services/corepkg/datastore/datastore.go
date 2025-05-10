@@ -1,10 +1,13 @@
 package datastore
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+	mqV2 "github.com/aenjoy/iot-lubricant/pkg/utils/mq/v2"
 
 	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
@@ -19,16 +22,18 @@ type DataStore struct {
 	cache.CacheCli[string]
 	repo.ICoreDb
 	mq.Mq
+	V2mq mqV2.Mq
 }
 
 func (d *DataStore) Init() error {
 	d.ICoreDb = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
 	if d.CacheEnable {
-		if d.CacheCli == nil {
-			o := ioc.Controller.Get(cache.APP_NAME)
-			d.CacheCli = o.(cache.CacheCli[string])
-		}
-	} else if d.CacheCli == nil {
+		logger.Info("Enabling cache")
+		o := ioc.Controller.Get(cache.APP_NAME)
+		d.CacheCli = o.(cache.CacheCli[string])
+	}
+	if d.CacheCli == nil {
+		logger.Info("Using null cache")
 		nilCache := cache.NewNullCache[string]()
 		ioc.Controller.Registry(cache.APP_NAME, nilCache)
 		d.CacheCli = nilCache
@@ -41,12 +46,32 @@ func (d *DataStore) Init() error {
 			return err
 		}
 		d.Mq = natsMq
-	//case "redis":
-	//	redisMq, err := mq.NewRedisMQ[[]byte](fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort), c.RedisPassword, c.RedisDB)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	d.Mq = redisMq
+		v2, err := mqV2.NewNatsMq(c.NatUrl)
+		if err != nil {
+			return err
+		}
+		d.V2mq = v2
+	case "redis":
+		redisMq, err := mq.NewRedisMQ(fmt.Sprintf("%s:%d", c.RedisHost, c.RedisPort), c.RedisPassword, c.RedisDB)
+		if err != nil {
+			return err
+		}
+		d.Mq = redisMq
+		address := strings.Split(c.RedisHost, ",")
+		for i := range address {
+			if !strings.Contains(address[i], ":") {
+				address[i] = fmt.Sprintf("%s:%d", address[i], c.RedisPort)
+			}
+		}
+		redis, err := mqV2.NewRedisMq(context.Background(), mqV2.RedisMqOptions{
+			Addrs:    address,
+			Password: c.RedisPassword,
+			DB:       c.RedisDB,
+		})
+		if err != nil {
+			return err
+		}
+		d.V2mq = redis
 	//case "kafka":
 	//	d.Mq = mq.NewKafkaMq(c.KaBrokers, c.KaGroupID, c.KaPartition, 10)
 	//case "internal":
