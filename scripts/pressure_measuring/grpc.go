@@ -66,14 +66,18 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 		<-startSig
 
 		for d := range sendBufferSig {
-			_, err := cli.PushData(ctx, &corepb.Data{
+			data := &corepb.Data{
 				GatewayId: gatewayID,
 				AgentID:   randGetAgentID(),
 				Data:      d,
 				DataLen:   10,
 				Time:      time.Now().Add(-10 * time.Second).Format("2006-01-02 15:04:05"),
 				Cycle:     1,
-			})
+			}
+			if data.AgentID == "" {
+				continue
+			}
+			_, err := cli.PushData(ctx, data)
 			if err != nil {
 				atomic.AddInt32(&sendCountFail, 1)
 			} else {

@@ -27,7 +27,7 @@ type PbCoreServiceImpl struct {
 }
 
 func (a *app) grpcInit() (serve func() error, err error) {
-	middlewares := &auth.InterceptorImpl{Db: a.ICoreDb}
+	middlewares := &auth.InterceptorImpl{Db: a.DataStore}
 	var server *grpc.Server
 
 	kasp := keepalive.ServerParameters{
