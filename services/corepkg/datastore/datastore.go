@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	mqV2 "github.com/aenjoy/iot-lubricant/pkg/utils/mq/v2"
 
@@ -27,11 +28,12 @@ type DataStore struct {
 func (d *DataStore) Init() error {
 	d.ICoreDb = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE).(repo.ICoreDb)
 	if d.CacheEnable {
-		if d.CacheCli == nil {
-			o := ioc.Controller.Get(cache.APP_NAME)
-			d.CacheCli = o.(cache.CacheCli[string])
-		}
-	} else if d.CacheCli == nil {
+		logger.Info("Enabling cache")
+		o := ioc.Controller.Get(cache.APP_NAME)
+		d.CacheCli = o.(cache.CacheCli[string])
+	}
+	if d.CacheCli == nil {
+		logger.Info("Using null cache")
 		nilCache := cache.NewNullCache[string]()
 		ioc.Controller.Registry(cache.APP_NAME, nilCache)
 		d.CacheCli = nilCache

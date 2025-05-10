@@ -21,7 +21,11 @@ func initAgentIDPools(filePath string) error {
 	}
 	agentsID = strings.Split(string(file), "\n")
 	for i := range agentsID {
-		agentsID[i] = strings.TrimSpace(agentsID[i])
+		id := strings.TrimSpace(agentsID[i])
+		if id == "" {
+			continue
+		}
+		agentsID[i] = id
 	}
 	_agentIDPoolSize = len(agentsID)
 	if _agentIDPoolSize == 0 {

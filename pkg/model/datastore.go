@@ -16,6 +16,11 @@ type Project struct {
 	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
+
+func (Project) TableName() string {
+	return "project"
+}
+
 type DataStoreEngine struct {
 	ID          int    `gorm:"column:id;primary_key;autoIncrement"`
 	ProjectID   string `json:"project_id" gorm:"column:project_id;index"`
@@ -29,6 +34,11 @@ type DataStoreEngine struct {
 	UpdatedAt time.Time    `json:"updated_at" gorm:"column:updated_at;type:datetime"`
 	DeleteAt  sql.NullTime `json:"deleteAt" gorm:"column:deleted_at;type:datetime"`
 }
+
+func (DataStoreEngine) TableName() string {
+	return "data_store_engine"
+}
+
 type LinkerInfo struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`

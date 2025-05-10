@@ -3,6 +3,7 @@ package internal
 import (
 	"sync"
 
+	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
@@ -20,8 +21,9 @@ func AppInit() error {
 		var objects = map[string]ioc.Object{
 			config.APP_NAME: config.GetConfig(),
 
+			ioc.APP_NAME_CORE_CACHE:          &cache.RedisCli[string]{},
 			ioc.APP_NAME_CORE_DATABASE:       &repo.CoreDb{},
-			ioc.APP_NAME_CORE_DATABASE_STORE: &datastore.DataStore{},
+			ioc.APP_NAME_CORE_DATABASE_STORE: &datastore.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 
 			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:     &mq.MqService{},
 			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE: &logCollect.Log{},
