@@ -50,6 +50,6 @@ spec:
             - name: NATS_URL
               value: "nats://nats.database.svc.cluster.local:4222"
             - name: ETCD_ENDPOINTS
-              value: "etcd.database.svc.cluster.local:2379"
+              value: "etcd-headless.database.svc.cluster.local:2379"
             - name: INTERNAL_WORK_THREAD_NUMBER
               value: "2048"
