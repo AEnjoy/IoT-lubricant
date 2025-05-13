@@ -6,8 +6,10 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/compress"
+	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	"github.com/aenjoy/iot-lubricant/services/datastoreAssistant/driver"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/bytedance/sonic"
 	"github.com/cloudwego/base64x"
@@ -87,12 +89,25 @@ func (a *app) handel(projectIdStr any) {
 			logg.L.Infof("Context done, exiting...")
 			return
 		case data := <-subscribeCh:
-			deData, err := decompressor.Decompress(data.([]byte))
+			var pbdata corepb.Data
+			err := proto.Unmarshal(data.([]byte), &pbdata)
 			if err != nil {
-				logg.L.Errorf("Failed to decompress data: %s", err)
+				logg.L.Errorf("Failed to unmarshal data: %s", err)
 				continue
 			}
-			dri.Write(deData)
+
+			for _, d := range pbdata.GetData() {
+				deData, err := decompressor.Decompress(d)
+				if err != nil {
+					logg.L.Errorf("Failed to decompress data: %s", err)
+					continue
+				}
+
+				_, err = dri.Write(deData)
+				if err != nil {
+					logg.L.Errorf("Failed to write data: %s", err)
+				}
+			}
 		}
 	}
 }

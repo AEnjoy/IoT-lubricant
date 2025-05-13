@@ -34,6 +34,8 @@ type app struct {
 
 func (a *app) Run() error {
 	_app = a
+
+	a.subscribed = make(map[string]struct{})
 	regPool, err := ants.NewPoolWithFunc(a.internalThreadNumber, a.handel, ants.WithPreAlloc(true))
 	if err != nil {
 		return err
@@ -46,13 +48,27 @@ func (a *app) Run() error {
 	if err != nil {
 		return err
 	}
+
 	id, err := a.registerConsumer(consumerID)
 	if err != nil {
 		return fmt.Errorf("[%s] Failed to register consumer: %v", consumerID, err)
 	}
-	logg.L.Debugf("Consumer:[%s] LeaseID: %s", consumerID, id)
+	logg.L.Debugf("Consumer:[%s] LeaseID: %d", consumerID, id)
+
 	go a.watchAssignments(consumerID)
 	go a.campaignForLeadership(consumerID)
+
+	printAssignedOnceMap := make(map[int]struct{})
+	_printAssignedOnceMapMutex := sync.Mutex{}
+	var printAssigned = func(partitionID int) {
+		_printAssignedOnceMapMutex.Lock()
+		defer _printAssignedOnceMapMutex.Unlock()
+
+		if _, ok := printAssignedOnceMap[partitionID]; !ok {
+			printAssignedOnceMap[partitionID] = struct{}{}
+			logg.L.Infof("[%s] Assigned partition: %d", consumerID, partitionID)
+		}
+	}
 
 	for {
 		select {
@@ -63,7 +79,7 @@ func (a *app) Run() error {
 			projectId := string(projectIdBytes.([]byte))
 			partitionID := api.GetPartition(projectId, 64)
 			if isPartitionAssigned(partitionID) {
-				logg.L.Debugf("[%s] Assigned partition: %s", consumerID, partitionID)
+				printAssigned(partitionID)
 				a.subMapMutex.Lock()
 				_, ok := a.subscribed[projectId]
 				if !ok {

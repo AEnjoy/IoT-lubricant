@@ -22,17 +22,24 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: SERVICE_NAME
+              value: "taosd"
+            - name: STS_NAME
+              value: "tdengine"
+            - name: STS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TAOS_FIRST_EP
+              value: "tdengine-0.tdengine-service.database.svc.cluster.local:$(TAOS_SERVER_PORT)"
+            # TAOS_FQND should always be set in k8s env.
+            - name: TAOS_FQDN
+              value: "$(POD_NAME).tdengine-service.database.svc.cluster.local"
             - name: TAOS_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: tsdatabase-secret
                   key: root-password
-          command:
-            - "/bin/sh"
-            - "-c"
-            - |
-              export TAOS_FQDN=${POD_NAME}.tdengine-service.database.svc.cluster.local
-              exec taosd
           ports:
             - containerPort: 6030
               name: client
@@ -43,6 +50,24 @@ spec:
           volumeMounts:
             - name: taosdata
               mountPath: /var/lib/taos
+          startupProbe:
+            exec:
+              command:
+                - taos-check
+            failureThreshold: 360
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - taos-check
+            initialDelaySeconds: 5
+            timeoutSeconds: 5000
+          livenessProbe:
+            exec:
+              command:
+                - taos-check
+            initialDelaySeconds: 15
+            periodSeconds: 20
       volumes:
         - name: taosdata
           emptyDir: {}
