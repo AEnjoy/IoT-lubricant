@@ -15,6 +15,7 @@ const leaseTTL = 10
 func (a *app) registerConsumer(consumerID string) (clientv3.LeaseID, error) {
 	regKey := constant.Etcd_DatastorePrefixConsumerReg + consumerID
 	regValue := consumerID
+	logg.L.Debugf("[%s] Registering consumer at %s with value %s", consumerID, regKey, regValue)
 
 	leaseResp, err := a.cli.Grant(a.Ctx, leaseTTL)
 	if err != nil {
@@ -22,7 +23,7 @@ func (a *app) registerConsumer(consumerID string) (clientv3.LeaseID, error) {
 		return 0, err
 	}
 	leaseID := leaseResp.ID
-	logg.L.Errorf("[%s] Granted lease ID: %d", consumerID, leaseID)
+	logg.L.Infof("[%s] Granted lease ID: %d", consumerID, leaseID)
 
 	_, err = a.cli.Put(a.Ctx, regKey, regValue, clientv3.WithLease(leaseID))
 	if err != nil {

@@ -46,10 +46,11 @@ func (a *app) Run() error {
 	if err != nil {
 		return err
 	}
-	_, err = a.registerConsumer(consumerID)
+	id, err := a.registerConsumer(consumerID)
 	if err != nil {
 		return fmt.Errorf("[%s] Failed to register consumer: %v", consumerID, err)
 	}
+	logg.L.Debugf("Consumer:[%s] LeaseID: %s", consumerID, id)
 	go a.watchAssignments(consumerID)
 	go a.campaignForLeadership(consumerID)
 
@@ -62,6 +63,7 @@ func (a *app) Run() error {
 			projectId := string(projectIdBytes.([]byte))
 			partitionID := api.GetPartition(projectId, 64)
 			if isPartitionAssigned(partitionID) {
+				logg.L.Debugf("[%s] Assigned partition: %s", consumerID, partitionID)
 				a.subMapMutex.Lock()
 				_, ok := a.subscribed[projectId]
 				if !ok {

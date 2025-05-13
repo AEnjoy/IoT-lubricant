@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
-	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	mqV2 "github.com/aenjoy/iot-lubricant/pkg/utils/mq/v2"
 	"github.com/aenjoy/iot-lubricant/pkg/version"
-
 	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
@@ -17,17 +18,21 @@ import (
 var _ ioc.Object = (*Log)(nil)
 
 type Log struct {
-	mq.Mq
+	mqV2.Mq
 }
 
 func (l *Log) Init() error {
-	l.Mq = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_MQ_SERVICE).(mq.Mq)
+	ds := ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
+	l.Mq = ds.V2mq
 	logg.L, _ = logg.NewLogger(l, false)
 	logg.SetServiceName(version.ServiceName)
 	logg.L = logg.L.
 		WithVersionJson(version.VersionJson()).
 		WithPrintToStdout().
 		AsRoot()
+	logger.Debugf("Success Init Logger Compent<internal>: %s", version.VersionJson())
+	logg.L.Debugf("Success Init Logger Compent<Logg>: %s", version.VersionJson())
+	logger.Debugf("Logger Info: %s", logg.L.String())
 
 	go l.loggerStore()
 	return nil
@@ -53,6 +58,6 @@ func (l *Log) loggerStore() {
 		if err != nil {
 			return
 		}
-		_ = l.PublishBytes(constant.MESSAGE_SVC_LOGGER, logdata)
+		_ = l.QueuePublish(constant.MESSAGE_SVC_LOGGER, logdata)
 	}
 }

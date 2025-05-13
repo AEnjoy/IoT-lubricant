@@ -6,7 +6,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
-	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
+	mqV2 "github.com/aenjoy/iot-lubricant/pkg/utils/mq/v2"
 	"github.com/aenjoy/iot-lubricant/services/logg/dao"
 
 	"github.com/panjf2000/ants/v2"
@@ -14,7 +14,7 @@ import (
 
 type app struct {
 	ctx context.Context
-	mq  mq.Mq
+	mq  mqV2.Mq
 	db  dao.ILogg
 }
 
@@ -23,7 +23,7 @@ func (a *app) Run() error {
 	if err != nil {
 		logger.Fatalf("Failed to create ants pool: %v", err)
 	}
-	ch, err := a.mq.SubscribeBytes(constant.MESSAGE_SVC_LOGGER)
+	ch, err := a.mq.QueueSubscribe(constant.MESSAGE_SVC_LOGGER)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func UseContext(ctx context.Context) func(*app) error {
 		return nil
 	}
 }
-func UseMq(mq mq.Mq, err error) func(*app) error {
+func UseMq(mq mqV2.Mq, err error) func(*app) error {
 	return func(app *app) error {
 		if err != nil {
 			return err

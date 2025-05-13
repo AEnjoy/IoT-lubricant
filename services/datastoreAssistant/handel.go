@@ -14,6 +14,7 @@ import (
 )
 
 func (a *app) handel(projectIdStr any) {
+	logg.L.Debugf("[%s] Handel called", projectIdStr)
 	topic := fmt.Sprintf(constant.DATASTORE_PROJECT_DATA, projectIdStr)
 	subscribeCh, err := a.DataStore.V2mq.QueueSubscribe(topic)
 	if err != nil {
