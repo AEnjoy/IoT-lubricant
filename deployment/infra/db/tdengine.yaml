@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: tdengine
-          image: tdengine/tdengine:3.3.6.3
+          image: tdengine/tdengine:3.3.5.2 # TDEngineDriver 对版本有严格要求，只有前三位一致才能使用 https://docs.taosdata.com/train-faq/faq/#26-%E9%81%87%E5%88%B0%E6%8A%A5%E9%94%99-dnd-error-version-not-compatible-client-3000700-server-3020300
           env:
             - name: POD_NAME
               valueFrom:
@@ -51,7 +51,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tdengine-service
+  name: tdengine
   namespace: database
 spec:
   clusterIP: None
