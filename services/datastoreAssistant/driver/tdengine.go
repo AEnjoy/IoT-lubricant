@@ -147,7 +147,7 @@ func (t *TDEngine) Insert(m map[string]any) error {
 		placeholders = append(placeholders, "("+strings.Repeat("?,", len(columns)-1)+"?)")
 	}
 
-	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s",
+	stmt := fmt.Sprintf("INSERT INTO %s (%s) VALUES %s;",
 		t.table,
 		strings.Join(columns, ","),
 		strings.Join(placeholders, ","),
@@ -255,7 +255,8 @@ func NewTDEngineDriver(userId, host, username, password, db string,
 		return nil, nil, err
 	}
 	if table == nil {
-		table = new(string)
+		t := "meters"
+		table = &t
 	}
 	//ants.NewPool(2048, ants.WithPreAlloc(true))
 	retval := TDEngine{
