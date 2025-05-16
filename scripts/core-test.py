@@ -53,9 +53,9 @@ add_project_data = {
     "project_name":"test-project",
     "description":"test-project",
     "data_base_type":"TDEngine",
-    "store_table":"lubricant_test_store_table",
+    "store_table":"",
     "dsn_linker_info":{
-        "host":"tdengine-0.tdengine.database.svc.cluster.local",
+        "host":"tdengine.database.svc.cluster.local",
         "port": 0, # 原生连接时不需要指定端口
         "user":"root",
         "password":"123456",
@@ -476,6 +476,7 @@ def main():
     test_create_gateway(session, "lubricant-gateway-0")
     test_uncreated_gateway(session, "lubricant-gateway")
     project_id = test_add_project(session)
+    print("Project ID: ", project_id)
     agent_id = test_add_agent(session, "lubricant-gateway-0",project_id)
     test_set_agent(session, "lubricant-gateway-0", agent_id)
     sleep(3)
