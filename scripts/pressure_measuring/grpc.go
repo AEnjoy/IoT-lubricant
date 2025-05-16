@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"sync/atomic"
 	"time"
 
@@ -77,7 +79,9 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 			if data.AgentID == "" {
 				continue
 			}
+			reqStart := time.Now()
 			_, err := cli.PushData(ctx, data)
+			timeCostCh <- time.Since(reqStart)
 			if err != nil {
 				atomic.AddInt32(&sendCountFail, 1)
 			} else {
@@ -102,5 +106,17 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 			sendBuffer = nil
 			sendBufferCount = 0
 		}
+	}
+}
+
+var timeCostCh = make(chan time.Duration, 1000)
+
+func writeLog() {
+	file, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	for t := range timeCostCh {
+		fmt.Fprintf(file, "ReqCost:%s\n", t.String())
 	}
 }

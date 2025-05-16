@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	go writeLog()
 	client, ctx, err := newCoreClient(hostAddress, userID, gatewayID)
 	if err != nil {
 		panic(err)
