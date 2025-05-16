@@ -27,6 +27,9 @@ func (a *app) CheckLinker(_ context.Context, req *svcpb.CheckLinkerRequest) (*sv
 func (a *app) StoreData(context.Context, *svcpb.StoreDataRequest) (*svcpb.StoreDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StoreData not implemented")
 }
-func (a *app) Ping(context.Context, *metapb.Ping) (*metapb.Ping, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+func (a *app) Ping(_ context.Context, req *metapb.Ping) (*metapb.Ping, error) {
+	if req.GetFlag() == 0 {
+		return &metapb.Ping{Flag: 1}, nil
+	}
+	return &metapb.Ping{Flag: 2}, nil
 }

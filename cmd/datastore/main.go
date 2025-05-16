@@ -37,6 +37,8 @@ func main() {
 		datastoreAssistant.NewEtcdClient(internal.GetEtcdEndpoints()),
 		datastoreAssistant.SetDataStore(internal.GetDataStore()),
 		datastoreAssistant.SetThreadNumber(internal.GetInternalWorkThreadNumber()),
+		datastoreAssistant.UseTls(internal.GetTLS()),
+		datastoreAssistant.GrpcServer(internal.GetPort()),
 		datastoreAssistant.UseSignalHandler(utils.HandelExitSignal(nil, datastoreAssistant.ExitHandel, nil, 30*time.Second)),
 	)
 	panic(app.Run())
