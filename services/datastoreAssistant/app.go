@@ -3,18 +3,24 @@ package datastoreAssistant
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
+	"github.com/aenjoy/iot-lubricant/pkg/grpc/middleware"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
+	"github.com/aenjoy/iot-lubricant/pkg/types/crypto"
+	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/datastoreAssistant/api"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
-	"github.com/panjf2000/ants/v2"
 
+	"github.com/panjf2000/ants/v2"
 	etcd "go.etcd.io/etcd/client/v3"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type app struct {
@@ -25,8 +31,13 @@ type app struct {
 	cli                  *etcd.Client
 	internalThreadNumber int
 	pool                 *ants.PoolWithFunc
+	Tls                  *crypto.Tls
 
 	StoringMutex sync.Mutex // 只要有任意的线程在存储数据，则不允许未消费完就退出
+
+	svcpb.UnimplementedDataStoreServiceServer
+	debug svcpb.UnimplementedDataStoreDebugServiceServer
+	*grpc.Server
 
 	Ctx    context.Context
 	Cancel context.CancelFunc
@@ -147,6 +158,69 @@ func WithContext(ctx context.Context) func(*app) error {
 func UseSignalHandler(handler func()) func(*app) error {
 	return func(a *app) error {
 		go handler()
+		return nil
+	}
+}
+func UseTls(tls *crypto.Tls) func(*app) error {
+	return func(a *app) error {
+		a.Tls = tls
+		return nil
+	}
+}
+func GrpcServer(port string) func(*app) error {
+	return func(a *app) error {
+		kasp := keepalive.ServerParameters{
+			MaxConnectionIdle:     time.Minute * 10, // 连接空闲超过 10 分钟则关闭
+			MaxConnectionAge:      time.Hour * 2,    // 连接存活超过 2 小时则关闭
+			MaxConnectionAgeGrace: time.Minute * 5,  // 连接关闭前的宽限期
+			Time:                  time.Minute * 1,  // 每隔 1 分钟发送一次 ping
+			Timeout:               time.Second * 20, // ping 超时时间为 20 秒
+		}
+		kaep := keepalive.EnforcementPolicy{
+			MinTime:             time.Minute * 5, // 连接建立后至少 5 分钟才能发送 ping
+			PermitWithoutStream: true,            // 允许在没有流的情况下发送 ping
+		}
+		if a.Tls != nil && a.Tls.Enable {
+			grpcTlsOption, err := a.Tls.GetServerTlsConfig()
+			if err != nil {
+				return err
+			}
+			a.Server = grpc.NewServer(
+				grpcTlsOption,
+				grpc.KeepaliveParams(kasp),
+				grpc.KeepaliveEnforcementPolicy(kaep),
+				grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+				grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
+				grpc.ChainUnaryInterceptor(
+					//middlewares.UnaryServerInterceptor,
+					middleware.GetLoggerInterceptor(),
+					middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
+				),
+			)
+		} else {
+			a.Server = grpc.NewServer(
+				grpc.KeepaliveParams(kasp),
+				grpc.KeepaliveEnforcementPolicy(kaep),
+				grpc.MaxRecvMsgSize(1024*1024*100), // 100 MB
+				grpc.MaxSendMsgSize(1024*1024*100), // 100 MB
+				grpc.ChainUnaryInterceptor(
+					//middlewares.UnaryServerInterceptor,
+					middleware.GetLoggerInterceptor(),
+					middleware.GetRecovery(middleware.GetRegistry(middleware.GetSrvMetrics())),
+				),
+			)
+		}
+		svcpb.RegisterDataStoreServiceServer(a.Server, a)
+		svcpb.RegisterDataStoreDebugServiceServer(a.Server, a.debug)
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+		if err != nil {
+			return err
+		}
+		go func() {
+			if err := a.Server.Serve(lis); err != nil {
+				logger.Fatalf("Failed to serve: %v", err)
+			}
+		}()
 		return nil
 	}
 }
