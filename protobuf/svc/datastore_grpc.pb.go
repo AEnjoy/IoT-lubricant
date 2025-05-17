@@ -95,7 +95,7 @@ type UnimplementedDataStoreServiceServer struct{}
 func (UnimplementedDataStoreServiceServer) CheckLinker(context.Context, *CheckLinkerRequest) (*CheckLinkerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckLinker not implemented")
 }
-func (UnimplementedDataStoreServiceServer) StoreData(req grpc.ClientStreamingServer[StoreDataRequest, StoreDataResponse]) error {
+func (UnimplementedDataStoreServiceServer) StoreData(grpc.ClientStreamingServer[StoreDataRequest, StoreDataResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method StoreData not implemented")
 }
 func (UnimplementedDataStoreServiceServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {

@@ -22,7 +22,7 @@ message CheckMySQLLinkerRequest{
   string dsn = 1; //使用base64编码的 mysql dsn
 }
 enum CheckLinkerResult{
-  Unknown = 0;
+  UnknownResult = 0;
   Success = 1;
   Failed = 2;
 }
