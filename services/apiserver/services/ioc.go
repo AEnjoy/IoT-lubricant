@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/aenjoy/iot-lubricant/services/corepkg/dataapi"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/repo"
@@ -45,6 +46,7 @@ func (*AgentService) Version() string {
 
 func (p *ProjectService) Init() error {
 	p.DataStore = ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore)
+	p.DataStoreApiService = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_DATASTORE_API_SERVICE).(*dataapi.DataStoreApiService)
 	return nil
 }
 

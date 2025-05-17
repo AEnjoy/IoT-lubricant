@@ -11,6 +11,7 @@ const (
 
 	CoreMqService
 	SvcLoggerService
+	SvcDataStoreApiService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
 	CoreSyncTaskSystem

@@ -5,6 +5,7 @@ import (
 
 	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/dataapi"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/logCollect"
@@ -25,8 +26,9 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_DATABASE:       &repo.CoreDb{},
 			ioc.APP_NAME_CORE_DATABASE_STORE: &datastore.DataStore{CacheEnable: config.GetConfig().RedisEnable},
 
-			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:     &mq.MqService{},
-			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE: &logCollect.Log{},
+			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:            &mq.MqService{},
+			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE:        &logCollect.Log{},
+			ioc.APP_NAME_CORE_Internal_DATASTORE_API_SERVICE: &dataapi.DataStoreApiService{},
 		}
 
 		ioc.Controller.LoadObject(objects)

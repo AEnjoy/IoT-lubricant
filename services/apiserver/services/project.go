@@ -7,8 +7,9 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/model/request"
 	exceptionCode "github.com/aenjoy/iot-lubricant/pkg/types/exception/code"
+	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/dataapi"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
-	"github.com/aenjoy/iot-lubricant/services/datastoreAssistant/api"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 	"github.com/google/uuid"
 )
@@ -17,6 +18,7 @@ var _ IProjectService = (*ProjectService)(nil)
 
 type ProjectService struct {
 	*datastore.DataStore
+	*dataapi.DataStoreApiService
 }
 
 func (p *ProjectService) GetProject(ctx context.Context, projectid string) (model.Project, error) {
@@ -87,8 +89,32 @@ func (p *ProjectService) GetProjectDataStoreEngineStatus(ctx context.Context, pr
 		logg.L.Errorf("failed to get project data store engine status for project %s", projectid)
 		return "Failed", err
 	}
+	var resp *svcpb.CheckLinkerResponse
+	if engine.DataBaseType == "mysql" {
+		resp, err = p.DataStoreApiService.CheckLinker(ctx, &svcpb.CheckLinkerRequest{
+			UserID: userId,
+			Request: &svcpb.CheckLinkerRequest_Mysql{
+				Mysql: &svcpb.CheckMySQLLinkerRequest{
+					Dsn: engine.DSN,
+				},
+			},
+		})
+	} else if engine.DataBaseType == "TDEngine" {
+		resp, err = p.DataStoreApiService.CheckLinker(ctx, &svcpb.CheckLinkerRequest{
+			UserID: userId,
+			Request: &svcpb.CheckLinkerRequest_Tde{
+				Tde: &svcpb.CheckTDEngineLinkerRequest{
+					Dsn: engine.DSN,
+				},
+			},
+		})
+	}
+	if err != nil || resp == nil {
+		logg.L.Errorf("failed to check project data store engine status for project %s", projectid)
+		return "Failed", err
+	}
 
-	return api.DsnTest(engine.DataBaseType, engine.DSN, userId), nil
+	return svcpb.CheckLinkerResult_name[int32(resp.GetResult())], nil
 }
 
 func (p *ProjectService) UpdateEngineInfo(ctx context.Context, projectid, dsn, dataBaseType, description string) error {

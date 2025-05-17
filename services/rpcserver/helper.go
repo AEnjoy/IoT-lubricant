@@ -14,6 +14,8 @@ import (
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
 	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/dataapi"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -71,8 +73,7 @@ var (
 	_initDataStoreServiceClientMutex sync.Mutex
 	_storeDataCliStreamMutex         sync.Mutex
 
-	serv               svcpb.DataStoreServiceClient
-	closeCall          func() error
+	serv               *dataapi.DataStoreApiService
 	storeDataCliStream grpc.ClientStreamingClient[svcpb.StoreDataRequest, svcpb.StoreDataResponse]
 )
 
@@ -108,12 +109,7 @@ func (i *PbCoreServiceImpl) handelRecvData(ctx context.Context, data *corepb.Dat
 		if config.GetConfig().SvcDataStoreMode == "rpc" {
 			_initDataStoreServiceClientMutex.Lock()
 			if serv == nil {
-				serv, closeCall, err = svcpb.NewDataStoreServiceClientWithHost(config.GetConfig().SvcDataStoreEndpoint, config.GetConfig().SvcDataStoreTls)
-				if err != nil {
-					logg.L.Errorf("failed to create datastore service client: %v", err)
-					_initDataStoreServiceClientMutex.Unlock()
-					return
-				}
+				serv = ioc.Controller.Get(ioc.APP_NAME_CORE_Internal_DATASTORE_API_SERVICE).(*dataapi.DataStoreApiService)
 			}
 			_initDataStoreServiceClientMutex.Unlock()
 			err := i._svcDataStoreServiceClientDataStream(ctx, marshal, projectId)

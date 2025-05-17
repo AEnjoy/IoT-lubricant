@@ -8,6 +8,7 @@ import (
 	backendService "github.com/aenjoy/iot-lubricant/services/apiserver/services/backend"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/cache"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/dataapi"
 	data "github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/ioc"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/logCollect"
@@ -35,11 +36,12 @@ func AppInit() error {
 			ioc.APP_NAME_CORE_WEB_SERVER:            &router.WebService{},
 			ioc.APP_NAME_CORE_PROJECT_SERVICE:       &services.ProjectService{},
 
-			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:         &mqService.MqService{},
-			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:   &syncQueue.SyncTaskQueue{},
-			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE:     &logCollect.Log{},
-			ioc.APP_NAME_CORE_Internal_Handler_DataUpload: &backendService.DataHandler{},
-			ioc.APP_NAME_CORE_Internal_Handler_ErrLogs:    &backendService.ErrLogCollect{},
+			ioc.APP_NAME_CORE_Internal_MQ_SERVICE:            &mqService.MqService{},
+			ioc.APP_NAME_CORE_Internal_SyncTask_SERVICE:      &syncQueue.SyncTaskQueue{},
+			ioc.APP_NAME_CORE_Internal_LOGGER_SERVICE:        &logCollect.Log{},
+			ioc.APP_NAME_CORE_Internal_Handler_DataUpload:    &backendService.DataHandler{},
+			ioc.APP_NAME_CORE_Internal_Handler_ErrLogs:       &backendService.ErrLogCollect{},
+			ioc.APP_NAME_CORE_Internal_DATASTORE_API_SERVICE: &dataapi.DataStoreApiService{},
 		}
 
 		ioc.Controller.LoadObject(objects)

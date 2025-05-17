@@ -15,7 +15,7 @@ PLATFORM_VERSION := unknown
 endif
 
 CGO_ENABLED ?= 0
-CGO_COMPONENTS := gateway datastore apiserver # todo: need to fix bug: apiserver should be CGO_ENABLED=0 due to using datastoreApi,should use rpc
+CGO_COMPONENTS := gateway datastore
 
 GO_TAGS := -tags=sonic,avx
 LD_FLAGS = -w -s \
