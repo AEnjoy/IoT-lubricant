@@ -23,8 +23,11 @@ func (a *app) handelProjectIDStr(projectIdStr any) {
 		logg.L.Errorf("Failed to subscribe to topic %s: %s", projectIdStr.(string), err)
 		return
 	}
-	defer a.DataStore.V2mq.QueueUnsubscribe(topic)
 	a._handel(a.Ctx, projectIdStr.(string), subscribeCh)
+	err = a.DataStore.V2mq.QueueUnsubscribe(topic)
+	if err != nil {
+		logg.L.Errorf("Failed to unsubscribe from topic %s: %s", projectIdStr.(string), err)
+	}
 }
 
 func (a *app) _handel(ctx context.Context, projectID string, dataCh <-chan any) {
@@ -85,7 +88,13 @@ func (a *app) _handel(ctx context.Context, projectID string, dataCh <-chan any) 
 		logg.L.Errorf("Failed to create driver: %s userId:%s projectId:%s", err, project.UserID, projectID)
 		return
 	}
-	defer closer()
+	defer func() {
+		err := closer()
+		if err != nil {
+			logg.L.Errorf("Failed to close driver: %s", err)
+			return
+		}
+	}()
 
 	for {
 		select {

@@ -117,6 +117,6 @@ func writeLog() {
 		panic(err)
 	}
 	for t := range timeCostCh {
-		fmt.Fprintf(file, "ReqCost:%s\n", t.String())
+		_, _ = fmt.Fprintf(file, "ReqCost:%s\n", t.String())
 	}
 }

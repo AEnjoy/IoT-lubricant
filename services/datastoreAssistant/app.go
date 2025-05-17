@@ -44,8 +44,6 @@ type app struct {
 }
 
 func (a *app) Run() error {
-	_app = a
-
 	a.subscribed = make(map[string]struct{})
 	regPool, err := ants.NewPoolWithFunc(a.internalThreadNumber, a.handelProjectIDStr, ants.WithPreAlloc(true))
 	if err != nil {
@@ -106,8 +104,6 @@ func (a *app) Run() error {
 		}
 	}
 }
-
-var _app *app
 
 func ExitHandel() {
 	// todo: 优雅退出

@@ -26,7 +26,7 @@ type TDEngine struct {
 	buffer []map[string]any
 }
 
-func (TDEngine) GetDriverName() string {
+func (*TDEngine) GetDriverName() string {
 	return "TDEngine"
 }
 
@@ -34,7 +34,7 @@ func (t *TDEngine) SetTableName(tableName string) {
 	t.table = tableName
 }
 
-func (t TDEngine) GetNewDriver(tableName string) IDriver {
+func (t *TDEngine) GetNewDriver(tableName string) IDriver {
 	return &TDEngine{
 		schemaless:       t.schemaless,
 		td:               t.td,
@@ -46,7 +46,7 @@ func (t TDEngine) GetNewDriver(tableName string) IDriver {
 	}
 }
 
-func (t TDEngine) CreateColumnsWithType(data map[string]string) error {
+func (t *TDEngine) CreateColumnsWithType(data map[string]string) error {
 	var (
 		columns []string
 		types   []string
@@ -85,11 +85,11 @@ func (t *TDEngine) SetBatchWriteTxnSize(size int) (int, error) {
 	return t.maxWriteLineSize, nil
 }
 
-func (t TDEngine) Migrate(m map[string]string) error {
+func (t *TDEngine) Migrate(m map[string]string) error {
 	//TODO implement me
 	panic("implement me")
 }
-func (TDEngine) anys2DriverValues(m []any) []driver.Value {
+func (*TDEngine) anys2DriverValues(m []any) []driver.Value {
 	var retVal []driver.Value
 	for _, v := range m {
 		retVal = append(retVal, v)
@@ -167,7 +167,7 @@ func (t *TDEngine) Write(p []byte) (n int, err error) {
 	return len(p), t.Insert(data)
 }
 
-func (t TDEngine) GetData(conditions ...ConditionOption) map[string][]any {
+func (t *TDEngine) GetData(conditions ...ConditionOption) map[string][]any {
 	qc := &QueryCondition{}
 	for _, opt := range conditions {
 		opt(qc)
@@ -228,7 +228,12 @@ func (t TDEngine) GetData(conditions ...ConditionOption) map[string][]any {
 	if err != nil {
 		return make(map[string][]any)
 	}
-	defer rows.Close()
+	defer func(rows driver.Rows) {
+		err := rows.Close()
+		if err != nil {
+			logg.L.Errorf("failed to close rows:%v", err)
+		}
+	}(rows)
 
 	result := make(map[string][]any)
 	columns := rows.Columns()

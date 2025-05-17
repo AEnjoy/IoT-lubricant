@@ -21,3 +21,4 @@ linters:
         - (*github.com/redis/go-redis/v9.PubSub).Close
         - (*github.com/redis/go-redis/v9.Client).Close
         - (*github.com/redis/go-redis/v9.UniversalClient).Close
+        - (*go.etcd.io/etcd/client/v3/concurrency.Session).Close

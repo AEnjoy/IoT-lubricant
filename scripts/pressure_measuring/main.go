@@ -20,9 +20,12 @@ func main() {
 		panic(err)
 	}
 	for range 1024 {
-		pool.Submit(func() {
+		err := pool.Submit(func() {
 			pushData2Core(client, ctx, dataCh)
 		})
+		if err != nil {
+			logger.Errorf("failed to submit task to pool: %v", err)
+		}
 	}
 	StartConcurrentGeneration(2)
 

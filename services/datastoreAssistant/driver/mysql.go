@@ -20,7 +20,7 @@ type MySql struct {
 	buffer []map[string]any
 }
 
-func (MySql) GetDriverName() string {
+func (*MySql) GetDriverName() string {
 	return "mysql"
 }
 
@@ -28,11 +28,11 @@ func (m *MySql) SetTableName(tableName string) {
 	m.tableName = tableName
 }
 
-func (m MySql) GetNewDriver(tableName string) IDriver {
+func (m *MySql) GetNewDriver(tableName string) IDriver {
 	return &MySql{tableName: tableName, txnSize: m.txnSize, db: m.db, userID: m.userID}
 }
 
-func (m MySql) CreateColumnsWithType(data map[string]string) error {
+func (m *MySql) CreateColumnsWithType(data map[string]string) error {
 	var (
 		columns []string
 		types   []string
@@ -71,7 +71,7 @@ func (m *MySql) SetBatchWriteTxnSize(size int) (int, error) {
 	return m.txnSize, nil
 }
 
-func (m MySql) Migrate(columns map[string]string) error {
+func (m *MySql) Migrate(columns map[string]string) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -115,8 +115,7 @@ func (m *MySql) Insert(data map[string]any) error {
 	)
 
 	if _, err := tx.Exec(stmt, values...); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("batch insert failed: %w", err)
+		return fmt.Errorf("batch insert failed: %w %v", err, tx.Rollback())
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -136,7 +135,7 @@ func (m *MySql) Write(p []byte) (n int, err error) {
 	return len(p), m.Insert(data)
 }
 
-func (m MySql) GetData(conditions ...ConditionOption) map[string][]any {
+func (m *MySql) GetData(conditions ...ConditionOption) map[string][]any {
 	qc := &QueryCondition{}
 	for _, opt := range conditions {
 		opt(qc)
@@ -197,7 +196,12 @@ func (m MySql) GetData(conditions ...ConditionOption) map[string][]any {
 	if err != nil {
 		return make(map[string][]any)
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			logg.L.Errorf("failed to close rows: %v", err)
+		}
+	}(rows)
 
 	result := make(map[string][]any)
 	columns, _ := rows.Columns()

@@ -39,7 +39,7 @@ func randGetAgentID() string {
 
 func regAgentOnline(cli corepb.CoreServiceClient, ctx context.Context) {
 	for _, id := range agentsID {
-		cli.Report(ctx, &corepb.ReportRequest{
+		_, _ = cli.Report(ctx, &corepb.ReportRequest{
 			GatewayId: gatewayID,
 			AgentId:   id,
 			Req: &corepb.ReportRequest_AgentStatus{
@@ -52,7 +52,7 @@ func regAgentOnline(cli corepb.CoreServiceClient, ctx context.Context) {
 }
 func regAgentOffline(cli corepb.CoreServiceClient, ctx context.Context) {
 	for _, id := range agentsID {
-		cli.Report(ctx, &corepb.ReportRequest{
+		_, _ = cli.Report(ctx, &corepb.ReportRequest{
 			GatewayId: gatewayID,
 			AgentId:   id,
 			Req: &corepb.ReportRequest_AgentStatus{
