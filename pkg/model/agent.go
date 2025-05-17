@@ -16,8 +16,11 @@ import (
 )
 
 type Agent struct {
-	ID          int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
-	AgentId     string `json:"agent_id" gorm:"column:agent_id"` // agent id
+	ID        int    `json:"-" gorm:"column:id;primary_key;autoIncrement"`
+	AgentId   string `json:"agent_id" gorm:"column:agent_id;type:varchar(36);uniqueIndex"` // agent id
+	AgentName string `json:"agent_name" gorm:"column:agent_name;index"`                    // node_name
+	ProjectID string `json:"project_id" gorm:"column:project_id;index"`                    // project id
+
 	GatewayId   string `json:"gateway_id" gorm:"column:gateway_id"`
 	Description string `json:"description" gorm:"column:description"`
 	BindConfig  string `json:"bind_config" gorm:"column:bind_config"` // GatherNodeConfig.ConfigID

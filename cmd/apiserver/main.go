@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aenjoy/iot-lubricant/cmd/apiserver/internal"
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
 	"github.com/aenjoy/iot-lubricant/pkg/version"
@@ -13,11 +14,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/pflag"
-)
-
-const (
-	HTTP_LISTEN_PORT_STR   = "HTTP_LISTEN_PORT"
-	LUBRICANT_HOSTNAME_STR = "HOSTNAME"
 )
 
 func main() {
@@ -39,8 +35,8 @@ func main() {
 		panic(err)
 	}
 
-	listenPort := os.Getenv(HTTP_LISTEN_PORT_STR)
-	hostName := os.Getenv(LUBRICANT_HOSTNAME_STR)
+	listenPort := os.Getenv(constant.ENV_HTTP_LISTEN_PORT_STR)
+	hostName := os.Getenv(constant.ENV_LUBRICANT_HOSTNAME_STR)
 	app := apiserver.NewApp(
 		apiserver.SetHostName(hostName),
 		apiserver.SetPort(listenPort),
@@ -53,25 +49,7 @@ func main() {
 	panic(app.Run())
 }
 
-var (
-	ServiceName       = "IoTLubricantCore-ApiServer"
-	Version           string
-	BuildTime         string
-	GoVersion         string
-	GitCommit         string
-	Features          string
-	BuildHostPlatform string
-	PlatformVersion   string
-)
-
 func init() {
-	version.ServiceName = ServiceName
-	version.Version = Version
-	version.BuildTime = BuildTime
-	version.GoVersion = GoVersion
-	version.GitCommit = GitCommit
-	version.Features = Features
-	version.BuildHostPlatform = BuildHostPlatform
-	version.PlatformVersion = PlatformVersion
+	version.ServiceName = "IoTLubricantCore-ApiServer"
 	version.PrintVersionInfo()
 }

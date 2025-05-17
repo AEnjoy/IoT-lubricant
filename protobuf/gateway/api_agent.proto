@@ -51,3 +51,6 @@ message SetAgentInfoRequest{
 message GetAgentIsGatheringRequest{
   string agentId =1;
 }
+message SetAgentDataWasherRequest{
+  bytes Washer = 1; // json format: model.Clean
+}

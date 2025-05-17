@@ -21,7 +21,11 @@ func initAgentIDPools(filePath string) error {
 	}
 	agentsID = strings.Split(string(file), "\n")
 	for i := range agentsID {
-		agentsID[i] = strings.TrimSpace(agentsID[i])
+		id := strings.TrimSpace(agentsID[i])
+		if id == "" {
+			continue
+		}
+		agentsID[i] = id
 	}
 	_agentIDPoolSize = len(agentsID)
 	if _agentIDPoolSize == 0 {
@@ -35,7 +39,7 @@ func randGetAgentID() string {
 
 func regAgentOnline(cli corepb.CoreServiceClient, ctx context.Context) {
 	for _, id := range agentsID {
-		cli.Report(ctx, &corepb.ReportRequest{
+		_, _ = cli.Report(ctx, &corepb.ReportRequest{
 			GatewayId: gatewayID,
 			AgentId:   id,
 			Req: &corepb.ReportRequest_AgentStatus{
@@ -48,7 +52,7 @@ func regAgentOnline(cli corepb.CoreServiceClient, ctx context.Context) {
 }
 func regAgentOffline(cli corepb.CoreServiceClient, ctx context.Context) {
 	for _, id := range agentsID {
-		cli.Report(ctx, &corepb.ReportRequest{
+		_, _ = cli.Report(ctx, &corepb.ReportRequest{
 			GatewayId: gatewayID,
 			AgentId:   id,
 			Req: &corepb.ReportRequest_AgentStatus{

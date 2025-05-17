@@ -6,7 +6,8 @@ type AddAgentRequest struct {
 	Description           string `json:"description"`
 	GatherCycle           int32  `json:"gather_cycle"`
 	ReportCycle           int32  `json:"report_cycle"`
-	Address               string `json:"address"` // ip:port optional
+	ProjectID             string `json:"project_id,omitempty"`
+	Address               string `json:"address,omitempty"` // ip:port optional
 	DataCompressAlgorithm string `json:"data_compress_algorithm"`
 	EnableStreamAbility   bool   `json:"enable_stream_ability"`
 

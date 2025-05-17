@@ -11,11 +11,13 @@ const (
 
 	CoreMqService
 	SvcLoggerService
+	SvcDataStoreApiService
 	CoreGrpcAuthInterceptor
 	CoreGrpcServer
 	CoreSyncTaskSystem
 	CoreGatewayService
 	CoreGatewayAgentService
+	CoreProjectService
 
 	GatewayStatusGuard
 	BackendHandlerReport

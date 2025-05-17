@@ -30,7 +30,7 @@ enum level{
   ERROR = 4;
 }
 enum Operation{
-  Unknown = 0;
+  UnknownOperator = 0;
   UserLogin              = 10;
   UserLogout             = 11;
   UserChangePassword     = 12;

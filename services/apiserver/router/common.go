@@ -11,6 +11,7 @@ var CommonGroups = []CommonRouter{
 	groups.MonitorRoute{},
 	groups.AgentRoute{},
 	groups.TaskRoute{},
+	groups.ProjectRoute{},
 }
 
 type CommonRouter interface {

@@ -1,3 +1,8 @@
+// Package mq implements a message queue with publish/subscribe pattern.
+//
+//	It allows for subscribing to topics and publishing messages to those topics.
+//
+//	Deprecated: use github.com/aenjoy/iot-lubricant/pkg/utils/mq/v2 instead.
 package mq
 
 import (

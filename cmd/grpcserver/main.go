@@ -36,25 +36,7 @@ func main() {
 	panic(app.Run())
 }
 
-var (
-	ServiceName       = "IoTLubricantCore-GrpcServer"
-	Version           string
-	BuildTime         string
-	GoVersion         string
-	GitCommit         string
-	Features          string
-	BuildHostPlatform string
-	PlatformVersion   string
-)
-
 func init() {
-	version.ServiceName = ServiceName
-	version.Version = Version
-	version.BuildTime = BuildTime
-	version.GoVersion = GoVersion
-	version.GitCommit = GitCommit
-	version.Features = Features
-	version.BuildHostPlatform = BuildHostPlatform
-	version.PlatformVersion = PlatformVersion
+	version.ServiceName = "IoTLubricantCore-GrpcServer"
 	version.PrintVersionInfo()
 }

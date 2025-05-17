@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
 	"sync/atomic"
 	"time"
 
-	def "github.com/aenjoy/iot-lubricant/pkg/default"
+	def "github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/compress"
@@ -66,14 +68,20 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 		<-startSig
 
 		for d := range sendBufferSig {
-			_, err := cli.PushData(ctx, &corepb.Data{
+			data := &corepb.Data{
 				GatewayId: gatewayID,
 				AgentID:   randGetAgentID(),
 				Data:      d,
 				DataLen:   10,
 				Time:      time.Now().Add(-10 * time.Second).Format("2006-01-02 15:04:05"),
 				Cycle:     1,
-			})
+			}
+			if data.AgentID == "" {
+				continue
+			}
+			reqStart := time.Now()
+			_, err := cli.PushData(ctx, data)
+			timeCostCh <- time.Since(reqStart)
 			if err != nil {
 				atomic.AddInt32(&sendCountFail, 1)
 			} else {
@@ -98,5 +106,17 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 			sendBuffer = nil
 			sendBufferCount = 0
 		}
+	}
+}
+
+var timeCostCh = make(chan time.Duration, 1000)
+
+func writeLog() {
+	file, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	for t := range timeCostCh {
+		_, _ = fmt.Fprintf(file, "ReqCost:%s\n", t.String())
 	}
 }

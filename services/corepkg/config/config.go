@@ -61,6 +61,16 @@ type Config struct {
 	AuthOrganization    string `yaml:"auth_organization" env:"AUTH_ORGANIZATION"`
 	AuthPublicKeyFile   string `yaml:"auth_public_key_file" env:"AUTH_PUBLICKEYFILE" `
 	AuthApplicationName string `yaml:"auth_application_name" env:"AUTH_APPLICATION_NAME" envDefault:"application_lubricant"`
+
+	InternalWorkThreadNumber int    `yaml:"internal_work_thread_number" env:"INTERNAL_WORK_THREAD_NUMBER" envDefault:"4096"`
+	EtcdEndpoints            string `yaml:"etcd_endpoints" env:"ETCD_ENDPOINTS"` // "," split
+
+	// svc endpoints
+	SvcDataStoreEndpoint string `yaml:"svc_datastore_endpoint" env:"SVC_DATASTORE_ENDPOINT"`
+	SvcDataStoreTls      bool   `yaml:"svc_datastore_tls" env:"SVC_DATASTORE_TLS" envDefault:"false"`
+	SvcDataStoreMode     string `yaml:"svc_datastore_mode" env:"SVC_DATASTORE_MODE" envDefault:"mq"` // support: mq/rpc
+	SvcLoggEndpoint      string `yaml:"svc_logg_endpoint" env:"SVC_LOGG_ENDPOINT"`
+	SvcLoggTls           bool   `yaml:"svc_logg_tls" env:"SVC_LOGG_TLS" envDefault:"false"`
 }
 
 func (c *Config) Init() error {

@@ -6,6 +6,7 @@ import (
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/gateway"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/log"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/monitor"
+	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/project"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/task"
 	"github.com/aenjoy/iot-lubricant/services/apiserver/api/v1/user"
 	"github.com/aenjoy/iot-lubricant/services/corepkg/datastore"
@@ -22,6 +23,7 @@ var (
 	_ IAgent   = (*agent.Api)(nil)
 	_ ITask    = (*task.Api)(nil)
 	_ ILog     = (*log.Api)(nil)
+	_ IProject = (*project.Api)(nil)
 
 	_gateway IGateway
 	_user    IUser
@@ -30,6 +32,7 @@ var (
 	_agent   IAgent
 	_task    ITask
 	_log     ILog
+	_project IProject
 )
 
 func NewGateway() IGateway {
@@ -89,4 +92,13 @@ func NewLog() ILog {
 		}
 	}
 	return _log
+}
+func NewProject() IProject {
+	if _project == nil {
+		_project = project.Api{
+			DataStore:       ioc.Controller.Get(ioc.APP_NAME_CORE_DATABASE_STORE).(*datastore.DataStore),
+			IProjectService: ioc.Controller.Get(ioc.APP_NAME_CORE_PROJECT_SERVICE).(services.IProjectService),
+		}
+	}
+	return _project
 }

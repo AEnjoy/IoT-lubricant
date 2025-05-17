@@ -15,21 +15,31 @@ PLATFORM_VERSION := unknown
 endif
 
 CGO_ENABLED ?= 0
-CGO_COMPONENTS := datastore
+CGO_COMPONENTS := gateway datastore
 
 GO_TAGS := -tags=sonic,avx
 LD_FLAGS = -w -s \
-    -X 'main.Version=$(VERSION)' \
-    -X 'main.BuildTime=$(BUILD_TIME)' \
-    -X 'main.GoVersion=$(GO_VERSION)' \
-    -X 'main.GitCommit=$(GIT_COMMIT)' \
-    -X 'main.Features=$(FEATURES)' \
-    -X 'main.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
-    -X 'main.PlatformVersion=$(PLATFORM_VERSION)'
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.Version=$(VERSION)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildTime=$(BUILD_TIME)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.GoVersion=$(GO_VERSION)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.GitCommit=$(GIT_COMMIT)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.Features=$(FEATURES)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildHostPlatform=$(BUILD_HOST_PLATFORM)' \
+    -X 'github.com/aenjoy/iot-lubricant/pkg/version.PlatformVersion=$(PLATFORM_VERSION)'
 
-COMPONENTS := gateway apiserver agent logg grpcserver reporter # datastore
+COMPONENTS := gateway apiserver agent logg grpcserver reporter datastore
 
-.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver
+.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components install-tdengine-driver
+
+list-components:
+	@echo "Available components:"
+	@for comp in $(COMPONENTS); do \
+		echo "  $$comp"; \
+	done
+	@echo "Must CGO_ENABLED components:"
+	@for comp in $(CGO_COMPONENTS); do \
+    		echo "  $$comp"; \
+    done
 
 all: build-all
 
@@ -58,9 +68,9 @@ endif
 define go-build-template
 build-$(1): make-output-dir
 	$(if $(filter $(1),$(CGO_COMPONENTS)),\
-		@$(MAKE) cgo-init COMPONENT=$(1) CGO_ENABLED=$(CGO_ENABLED))
-	@echo "Building $(1) with CGO_ENABLED=$(CGO_ENABLED)"
-	CGO_ENABLED=$(CGO_ENABLED) go build -v -o ./bin/$(1) \
+		@$(MAKE) cgo-init COMPONENT=$(1))
+	@echo "Building $(1) with CGO_ENABLED=$(if $(filter $(1),$(CGO_COMPONENTS)),1,$(CGO_ENABLED))"
+	CGO_ENABLED=$(if $(filter $(1),$(CGO_COMPONENTS)),1,$(CGO_ENABLED)) go build -v -o ./bin/$(1) \
 	$(GO_TAGS) -ldflags "$(LD_FLAGS)" \
 	./cmd/$(1)/main.go
 endef
@@ -100,6 +110,7 @@ $(eval $(call docker-build-template,apiserver, hub.iotroom.top/aenjoy/lubricant-
 $(eval $(call docker-build-template,logg, hub.iotroom.top/aenjoy/lubricant-logg:nightly))
 $(eval $(call docker-build-template,grpcserver, hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly))
 $(eval $(call docker-build-template,reporter, hub.iotroom.top/aenjoy/lubricant-reporter:nightly))
+$(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
 
 # $(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
 load-test-driver:
@@ -140,11 +151,18 @@ load-to-kind: docker-build
 	@$(foreach comp,$(COMPONENTS),\
 		kind load docker-image hub.iotroom.top/aenjoy/lubricant-$(comp):nightly;)
 
+install-driver:
+	wget https://static.iotroom.top/TDengine-client-3.3.5.2-Linux-x64.tar.gz -O /tmp/tdengine.tar.gz && \
+    	tar -xzf /tmp/tdengine.tar.gz -C /tmp/ && \
+    	cd /tmp/TDengine-client-3.3.5.2 && \
+    	bash install_client.sh
+
 clean:
 	@rm -rf bin
 
 help:
 	@echo "Available targets:"
+	@echo "  list-components    List all available build components"
 	@echo "  build-all          Build all components (CGO_ENABLED=0 by default)"
 	@echo "  build-<component>  Build specific component"
 	@echo "  docker-build       Build all Docker images"
@@ -153,6 +171,7 @@ help:
 	@echo "  mock               Generate mock files"
 	@echo "  copy-files         Copy binaries to cmd directories"
 	@echo "  load-to-kind       Load images to kind cluster"
+	@echo "  install-driver     Install TDengine driver"
 	@echo "  clean              Clean build artifacts"
 	@echo "  help               Show this help"
 	@echo ""

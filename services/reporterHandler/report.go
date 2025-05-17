@@ -81,7 +81,7 @@ func (a app) reporterPayload(payload any) {
 				if err != nil {
 					logg.L.Errorf("failed to marshal logs: %v", err)
 				}
-				err = a.DataStore.Mq.PublishBytes(constant.MESSAGE_SVC_LOGGER, data)
+				err = a.DataStore.V2mq.QueuePublish(constant.MESSAGE_SVC_LOGGER, data)
 				if err != nil {
 					logg.L.Errorf("failed to publish logs: %v", err)
 				}

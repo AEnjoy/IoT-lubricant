@@ -1,0 +1,44 @@
+syntax = "proto3";
+package lubricant.svc;
+
+import "protobuf/meta/meta.proto";
+
+option go_package = "protobuf/svc";
+
+message CheckLinkerRequest{
+  string userID  = 1;
+  oneof request{
+    CheckTDEngineLinkerRequest tde = 2; //使用base64编码的 model.LinkerInfo json struct
+    CheckMySQLLinkerRequest mysql = 3; //使用base64编码的 mysql dsn
+  }
+}
+message CheckLinkerResponse{
+    CheckLinkerResult result = 1; //检查结果
+}
+message CheckTDEngineLinkerRequest{
+  string dsn = 1; //使用base64编码的 model.LinkerInfo json struct
+}
+message CheckMySQLLinkerRequest{
+  string dsn = 1; //使用base64编码的 mysql dsn
+}
+enum CheckLinkerResult{
+  UnknownResult = 0;
+  Success = 1;
+  Failed = 2;
+}
+message StoreDataRequest{
+  string projectID = 1; //项目ID
+  bytes data = 2; //数据
+}
+message StoreDataResponse{
+  string projectID = 1; //项目ID
+  int64  LeaseID = 2; //分配到的租约ID
+}
+service DataStoreService{
+  rpc CheckLinker(CheckLinkerRequest) returns (CheckLinkerResponse);
+  rpc StoreData(stream StoreDataRequest) returns (StoreDataResponse);
+  rpc ping(Ping) returns (Ping) {}
+}
+service DataStoreDebugService{
+  rpc ping(Ping) returns (Ping) {}
+}

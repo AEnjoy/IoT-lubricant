@@ -37,12 +37,14 @@ type ICoreDb interface {
 
 	// Agent:
 	GetAgentInfo(id string) (*model.Agent, error)
+	GetAgentsByProjectID(ctx context.Context, txn *gorm.DB, projectID string) ([]model.Agent, error)
 	AddAgent(ctx context.Context, txn *gorm.DB, gatewayID string, agent model.Agent) error
 	UpdateAgent(ctx context.Context, txn *gorm.DB, agent model.Agent) error
 	UpdateAgentStatus(ctx context.Context, txn *gorm.DB, agentID, status string) error
 	GetAgentStatus(ctx context.Context, agentID string) (string, error)
 	DeleteAgent(ctx context.Context, txn *gorm.DB, id string) error
 	GetAgentList(ctx context.Context, userID, gatewayID string) ([]model.Agent, error)
+	GetAgentIDByAgentNameAndUserID(ctx context.Context, agentName, userID string) (string, error)
 
 	// Data:
 	StoreAgentGatherData(ctx context.Context, txn *gorm.DB, id, content string) error
@@ -78,4 +80,19 @@ type ICoreDb interface {
 	// internal
 	SetGatewayStatus(ctx context.Context, txn *gorm.DB, userid, gatewayID, status string) error
 	GetGatewayStatus(ctx context.Context, gatewayID string) (string, error)
+
+	// project
+	AddProject(ctx context.Context, txn *gorm.DB, userid, projectid, projectname, description string) error
+	RemoveProject(ctx context.Context, txn *gorm.DB, projectid string) error
+	GetProject(ctx context.Context, projectid string) (model.Project, error)
+	ListProject(ctx context.Context, userID string) ([]model.Project, error)
+	GetProjectByAgentID(ctx context.Context, agentID string) (model.Project, error)
+
+	GetProjectAgentNumber(ctx context.Context, txn *gorm.DB, projectid string) (int, error)
+	AddDataStoreEngine(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description, table string) error
+	UpdateEngineInfo(ctx context.Context, txn *gorm.DB, projectid, dsn, dataBaseType, description string) error
+	GetEngineByProjectID(ctx context.Context, projectid string) (model.DataStoreEngine, error)
+	BindProject(ctx context.Context, txn *gorm.DB, projectid string, agents []string) error
+	AddWasher(ctx context.Context, txn *gorm.DB, w *model.Clean) error
+	BindWasher(ctx context.Context, txn *gorm.DB, projectid string, washerID int, agentIDs []string) error
 }

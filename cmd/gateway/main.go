@@ -4,20 +4,15 @@ import (
 	"flag"
 	"os"
 
+	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
 	"github.com/aenjoy/iot-lubricant/pkg/model"
 	"github.com/aenjoy/iot-lubricant/pkg/utils/file"
 	"github.com/aenjoy/iot-lubricant/pkg/version"
 	"github.com/aenjoy/iot-lubricant/services/gateway"
 	"github.com/aenjoy/iot-lubricant/services/gateway/repo"
-	"github.com/joho/godotenv"
-)
 
-const (
-	GATEWAY_ID_STR            = "GATEWAY_ID"
-	MQ_LISTEN_PORT_STR        = "GATEWAY_MQ_PORT"
-	CORE_HOST_STR             = "CORE_HOST"
-	CORE_GRPC_LISTEN_PORT_STR = "CORE_PORT"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -36,7 +31,7 @@ func main() {
 			logger.Infof("Loaded .env file from: %s", envFilePath)
 		}
 	}
-	id := os.Getenv(GATEWAY_ID_STR)
+	id := os.Getenv(constant.ENV_GATEWAY_ID_STR)
 
 	if id == "" && confFilePath == "" {
 		id, _ = os.Hostname() // In the kubernetes environment, hostname can be used as the Gateway-ID
@@ -64,25 +59,7 @@ func main() {
 	panic(app.Run())
 }
 
-var (
-	ServiceName       = "IoTEdgeGateway"
-	Version           string
-	BuildTime         string
-	GoVersion         string
-	GitCommit         string
-	Features          string
-	BuildHostPlatform string
-	PlatformVersion   string
-)
-
 func init() {
-	version.ServiceName = ServiceName
-	version.Version = Version
-	version.BuildTime = BuildTime
-	version.GoVersion = GoVersion
-	version.GitCommit = GitCommit
-	version.Features = Features
-	version.BuildHostPlatform = BuildHostPlatform
-	version.PlatformVersion = PlatformVersion
+	version.ServiceName = "IoTEdgeGateway"
 	version.PrintVersionInfo()
 }

@@ -6,6 +6,7 @@ package compress
 
 import (
 	"bytes"
+	"runtime"
 
 	"github.com/DataDog/zstd"
 )
@@ -22,6 +23,7 @@ func (z *Zstd) GetName() string {
 func (z *Zstd) Compress(in []byte) ([]byte, error) {
 	var buf bytes.Buffer
 	writer := zstd.NewWriter(&buf)
+	_ = writer.SetNbWorkers(runtime.NumCPU())
 	_, err := writer.Write(in)
 	if err != nil {
 		return nil, err
