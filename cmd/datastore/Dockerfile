@@ -16,7 +16,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN apt-get update && apt-get install -y libzstd-dev libzstd1
+RUN apt-get update && apt-get install -y libzstd-dev libzstd1 pkg-config
 WORKDIR /app/cmd/datastore
 RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=1 &&\
 	go build -v -tags=sonic,avx,external_libzstd -ldflags "\

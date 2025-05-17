@@ -19,7 +19,7 @@ on:
       - 'LICENSE'
       - 'README.md'
 jobs:
-  TestAtKubernetes:
+  test-on-k8s:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     steps:
@@ -135,61 +135,3 @@ jobs:
           kubectl apply -f deployment/infra/lubricant-ingress.yaml
           sleep 10
           python3 scripts/core-test.py $lubricant_pod
-  PushToAliRegistry:
-    name: Push Images To Ali Cloud Registry
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: TestAtKubernetes
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache Docker Images
-        id: cache-docker
-        uses: actions/cache@v4
-        with:
-          path: /tmp/docker-images
-          key: ${{ runner.os }}-docker-images-${{ hashFiles('scripts/docker-load-to-kind.sh','scripts/docker-pulls.sh','scripts/docker-save.sh') }}-v1
-          restore-keys: |
-            ${{ runner.os }}-docker-images-
-
-      - name: Pull and Save Docker Images
-        if: steps.cache-docker.outputs.cache-hit != 'true'
-        run: |
-          set -e
-          bash scripts/docker-pulls.sh
-          bash scripts/docker-save.sh
-
-      - name: Load Docker Images
-        if: steps.cache-docker.outputs.cache-hit == 'true'
-        run: |
-          if [ -f /tmp/docker-images/base-images.tar ]; then
-            echo "Cache(Hit): Loading Docker Images..."
-            docker load -i /tmp/docker-images/base-images.tar
-          fi
-
-      - name: Cache Go Modules
-        uses: actions/cache@v4
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod', '**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-mod-
-      - name: Build Image
-        run: |
-          set -e
-          go mod download
-          make build-all -j
-          make copy-files
-          FAST_BUILD=1 make docker-build
-      - name: Push Image
-        env:
-          REGISTRY_DOMAIN: ${{ secrets.ALI_REG_DOMAIN }}
-          REGISTRY_USER: ${{ secrets.ALI_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.ALI_CI_ACTION_PASSWORD }}
-        run: |
-          set -e
-          echo $REGISTRY_PASSWORD | docker login $REGISTRY_DOMAIN -u $REGISTRY_USER --password-stdin
-          docker tag hub.iotroom.top/aenjoy/lubricant-agent:nightly $REGISTRY_DOMAIN/iotroom/lubricant-agent:latest
-          docker tag hub.iotroom.top/aenjoy/lubricant-apiserver:nightly $REGISTRY_DOMAIN/iotroom/lubricant-apiserver:latest
-          docker tag hub.iotroom.top/aenjoy/lubricant-gateway:nightly $REGISTRY_DOMAIN/iotroom/lubricant-gateway:latest
-          echo "You Can Pull Image From: $REGISTRY_DOMAIN"

@@ -14,6 +14,8 @@ else
 PLATFORM_VERSION := unknown
 endif
 
+DOCKER_TAG := $(if $(RELEASE),$(RELEASE),nightly)
+
 CGO_ENABLED ?= 0
 CGO_COMPONENTS := gateway datastore
 
@@ -30,6 +32,33 @@ LD_FLAGS = -w -s \
 COMPONENTS := gateway apiserver agent logg grpcserver reporter datastore
 
 .PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components install-tdengine-driver
+
+help:
+	@echo "Available targets:"
+	@echo "  list-components    List all available build components"
+	@echo "  build-all          Build all components (CGO_ENABLED=0 by default)"
+	@echo "  build-<component>  Build specific component"
+	@echo "  docker-build       Build all Docker images"
+	@echo "  test               Run unit tests"
+	@echo "  test-coverage      Run tests with coverage"
+	@echo "  mock               Generate mock files"
+	@echo "  copy-files         Copy binaries to cmd directories"
+	@echo "  load-to-kind       Load images to kind cluster"
+	@echo "  install-driver     Install TDengine driver"
+	@echo "  push-image         Push Docker images to registry"
+	@echo "  clean              Clean build artifacts"
+	@echo "  help               Show this help"
+	@echo ""
+	@echo "Environment variables:"
+	@echo "  CGO_ENABLED=1      Enable CGO for supported components"
+	@echo "  FAST_BUILD=1       Use fast Docker build method"
+	@echo "  RELEASE=<tag>      Specify a release tag for Docker images(default: nightly)"
+	@echo ""
+	@echo "Example:"
+	@echo "   CGO_ENABLED=1 make build-gateway"
+	@echo "   FAST_BUILD=1 make docker-build"
+	@echo "   RELEASE=v0.0.1 FAST_BUILD=1 make docker-build"
+	@echo "   make load-to-kind"
 
 list-components:
 	@echo "Available components:"
@@ -88,7 +117,7 @@ ifeq ($(FAST_BUILD),1)
 		--build-arg FEATURES=$(FEATURES) \
 		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
-		-t $(2) \
+		-t $(2):$(DOCKER_TAG) \
 		-f cmd/$(1)/Dockerfile.FastBuild .
 else
 	docker build \
@@ -99,20 +128,19 @@ else
 		--build-arg FEATURES=$(FEATURES) \
 		--build-arg BUILD_HOST_PLATFORM=$(BUILD_HOST_PLATFORM) \
 		--build-arg PLATFORM_VERSION="$(PLATFORM_VERSION)" \
-		-t $(2) \
+		-t $(2):$(DOCKER_TAG) \
 		-f cmd/$(1)/Dockerfile .
 endif
 endef
 
-$(eval $(call docker-build-template,agent, hub.iotroom.top/aenjoy/lubricant-agent:nightly))
-$(eval $(call docker-build-template,gateway, hub.iotroom.top/aenjoy/lubricant-gateway:nightly))
-$(eval $(call docker-build-template,apiserver, hub.iotroom.top/aenjoy/lubricant-apiserver:nightly))
-$(eval $(call docker-build-template,logg, hub.iotroom.top/aenjoy/lubricant-logg:nightly))
-$(eval $(call docker-build-template,grpcserver, hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly))
-$(eval $(call docker-build-template,reporter, hub.iotroom.top/aenjoy/lubricant-reporter:nightly))
-$(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
+$(eval $(call docker-build-template,agent, hub.iotroom.top/aenjoy/lubricant-agent))
+$(eval $(call docker-build-template,gateway, hub.iotroom.top/aenjoy/lubricant-gateway))
+$(eval $(call docker-build-template,apiserver, hub.iotroom.top/aenjoy/lubricant-apiserver))
+$(eval $(call docker-build-template,logg, hub.iotroom.top/aenjoy/lubricant-logg))
+$(eval $(call docker-build-template,grpcserver, hub.iotroom.top/aenjoy/lubricant-grpcserver))
+$(eval $(call docker-build-template,reporter, hub.iotroom.top/aenjoy/lubricant-reporter))
+$(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore))
 
-# $(eval $(call docker-build-template,datastore, hub.iotroom.top/aenjoy/lubricant-datastore:nightly))
 load-test-driver:
 	docker build -t hub.iotroom.top/aenjoy/test-driver-clock:nightly \
 		-f scripts/test/mock_driver/clock/Dockerfile scripts/test/mock_driver/clock
@@ -156,30 +184,9 @@ install-driver:
     	tar -xzf /tmp/tdengine.tar.gz -C /tmp/ && \
     	cd /tmp/TDengine-client-3.3.5.2 && \
     	bash install_client.sh
+push-image:
+	@$(foreach comp,$(COMPONENTS),\
+		docker push hub.iotroom.top/aenjoy/lubricant-$(comp):$(DOCKER_TAG);)
 
 clean:
 	@rm -rf bin
-
-help:
-	@echo "Available targets:"
-	@echo "  list-components    List all available build components"
-	@echo "  build-all          Build all components (CGO_ENABLED=0 by default)"
-	@echo "  build-<component>  Build specific component"
-	@echo "  docker-build       Build all Docker images"
-	@echo "  test               Run unit tests"
-	@echo "  test-coverage      Run tests with coverage"
-	@echo "  mock               Generate mock files"
-	@echo "  copy-files         Copy binaries to cmd directories"
-	@echo "  load-to-kind       Load images to kind cluster"
-	@echo "  install-driver     Install TDengine driver"
-	@echo "  clean              Clean build artifacts"
-	@echo "  help               Show this help"
-	@echo ""
-	@echo "Environment variables:"
-	@echo "  CGO_ENABLED=1      Enable CGO for supported components"
-	@echo "  FAST_BUILD=1       Use fast Docker build method"
-	@echo ""
-	@echo "Example:"
-	@echo "   CGO_ENABLED=1 make build-gateway"
-	@echo "   FAST_BUILD=1 make docker-build"
-	@echo "   make load-to-kind"
