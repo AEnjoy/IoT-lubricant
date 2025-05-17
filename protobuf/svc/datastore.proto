@@ -36,7 +36,7 @@ message StoreDataResponse{
 }
 service DataStoreService{
   rpc CheckLinker(CheckLinkerRequest) returns (CheckLinkerResponse);
-  rpc StoreData(StoreDataRequest) returns (StoreDataResponse);
+  rpc StoreData(stream StoreDataRequest) returns (StoreDataResponse);
   rpc ping(Ping) returns (Ping) {}
 }
 service DataStoreDebugService{

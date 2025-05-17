@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DataStoreServiceClient interface {
 	CheckLinker(ctx context.Context, in *CheckLinkerRequest, opts ...grpc.CallOption) (*CheckLinkerResponse, error)
-	StoreData(ctx context.Context, in *StoreDataRequest, opts ...grpc.CallOption) (*StoreDataResponse, error)
+	StoreData(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[StoreDataRequest, StoreDataResponse], error)
 	Ping(ctx context.Context, in *meta.Ping, opts ...grpc.CallOption) (*meta.Ping, error)
 }
 
@@ -52,15 +52,18 @@ func (c *dataStoreServiceClient) CheckLinker(ctx context.Context, in *CheckLinke
 	return out, nil
 }
 
-func (c *dataStoreServiceClient) StoreData(ctx context.Context, in *StoreDataRequest, opts ...grpc.CallOption) (*StoreDataResponse, error) {
+func (c *dataStoreServiceClient) StoreData(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[StoreDataRequest, StoreDataResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StoreDataResponse)
-	err := c.cc.Invoke(ctx, DataStoreService_StoreData_FullMethodName, in, out, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &DataStoreService_ServiceDesc.Streams[0], DataStoreService_StoreData_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &grpc.GenericClientStream[StoreDataRequest, StoreDataResponse]{ClientStream: stream}
+	return x, nil
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type DataStoreService_StoreDataClient = grpc.ClientStreamingClient[StoreDataRequest, StoreDataResponse]
 
 func (c *dataStoreServiceClient) Ping(ctx context.Context, in *meta.Ping, opts ...grpc.CallOption) (*meta.Ping, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -77,7 +80,7 @@ func (c *dataStoreServiceClient) Ping(ctx context.Context, in *meta.Ping, opts .
 // for forward compatibility.
 type DataStoreServiceServer interface {
 	CheckLinker(context.Context, *CheckLinkerRequest) (*CheckLinkerResponse, error)
-	StoreData(context.Context, *StoreDataRequest) (*StoreDataResponse, error)
+	StoreData(grpc.ClientStreamingServer[StoreDataRequest, StoreDataResponse]) error
 	Ping(context.Context, *meta.Ping) (*meta.Ping, error)
 	mustEmbedUnimplementedDataStoreServiceServer()
 }
@@ -92,8 +95,8 @@ type UnimplementedDataStoreServiceServer struct{}
 func (UnimplementedDataStoreServiceServer) CheckLinker(context.Context, *CheckLinkerRequest) (*CheckLinkerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckLinker not implemented")
 }
-func (UnimplementedDataStoreServiceServer) StoreData(context.Context, *StoreDataRequest) (*StoreDataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StoreData not implemented")
+func (UnimplementedDataStoreServiceServer) StoreData(req grpc.ClientStreamingServer[StoreDataRequest, StoreDataResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method StoreData not implemented")
 }
 func (UnimplementedDataStoreServiceServer) Ping(context.Context, *meta.Ping) (*meta.Ping, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -137,23 +140,12 @@ func _DataStoreService_CheckLinker_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DataStoreService_StoreData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StoreDataRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataStoreServiceServer).StoreData(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataStoreService_StoreData_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataStoreServiceServer).StoreData(ctx, req.(*StoreDataRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+func _DataStoreService_StoreData_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DataStoreServiceServer).StoreData(&grpc.GenericServerStream[StoreDataRequest, StoreDataResponse]{ServerStream: stream})
 }
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type DataStoreService_StoreDataServer = grpc.ClientStreamingServer[StoreDataRequest, StoreDataResponse]
 
 func _DataStoreService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(meta.Ping)
@@ -185,15 +177,17 @@ var DataStoreService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DataStoreService_CheckLinker_Handler,
 		},
 		{
-			MethodName: "StoreData",
-			Handler:    _DataStoreService_StoreData_Handler,
-		},
-		{
 			MethodName: "ping",
 			Handler:    _DataStoreService_Ping_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StoreData",
+			Handler:       _DataStoreService_StoreData_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "protobuf/svc/datastore.proto",
 }
 

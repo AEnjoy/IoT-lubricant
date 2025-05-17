@@ -1,6 +1,7 @@
 package datastoreAssistant
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
@@ -15,31 +16,34 @@ import (
 	"github.com/cloudwego/base64x"
 )
 
-func (a *app) handel(projectIdStr any) {
-	logg.L.Debugf("[%s] Handel called", projectIdStr)
-	topic := fmt.Sprintf(constant.DATASTORE_PROJECT_DATA, projectIdStr)
+func (a *app) handelProjectIDStr(projectIdStr any) {
+	topic := fmt.Sprintf(constant.DATASTORE_PROJECT_DATA, projectIdStr.(string))
 	subscribeCh, err := a.DataStore.V2mq.QueueSubscribe(topic)
 	if err != nil {
-		logg.L.Errorf("Failed to subscribe to topic %s: %s", projectIdStr, err)
+		logg.L.Errorf("Failed to subscribe to topic %s: %s", projectIdStr.(string), err)
 		return
 	}
 	defer a.DataStore.V2mq.QueueUnsubscribe(topic)
+	a._handel(a.Ctx, projectIdStr.(string), subscribeCh)
+}
 
-	project, err := a.DataStore.GetProject(a.Ctx, projectIdStr.(string))
+func (a *app) _handel(ctx context.Context, projectID string, dataCh <-chan any) {
+	logg.L.Debugf("[%s] Handel called", projectID)
+	project, err := a.DataStore.GetProject(ctx, projectID)
 	if err != nil {
-		logg.L.Errorf("Failed to get project by projectId %s: %s", projectIdStr, err)
+		logg.L.Errorf("Failed to get project by projectId %s: %s", projectID, err)
 		return
 	}
 
 	txn := a.DataStore.Begin()
-	agents, err := a.DataStore.GetAgentsByProjectID(a.Ctx, txn, projectIdStr.(string))
+	agents, err := a.DataStore.GetAgentsByProjectID(ctx, txn, projectID)
 	a.DataStore.Commit(txn)
 	if err != nil {
-		logg.L.Errorf("Failed to get agents by projectId %s: %s", projectIdStr, err)
+		logg.L.Errorf("Failed to get agents by projectId %s: %s", projectID, err)
 		return
 	}
 	if len(agents) < 1 {
-		logg.L.Errorf("No agents found for projectId %s", projectIdStr)
+		logg.L.Errorf("No agents found for projectId %s", projectID)
 		return
 	}
 	agent := agents[0]
@@ -50,9 +54,9 @@ func (a *app) handel(projectIdStr any) {
 		return
 	}
 
-	engine, err := a.DataStore.GetEngineByProjectID(a.Ctx, projectIdStr.(string))
+	engine, err := a.DataStore.GetEngineByProjectID(ctx, projectID)
 	if err != nil {
-		logg.L.Errorf("Failed to get engine by projectId %s: %s", projectIdStr, err)
+		logg.L.Errorf("Failed to get engine by projectId %s: %s", projectID, err)
 		return
 	}
 	var (
@@ -78,17 +82,21 @@ func (a *app) handel(projectIdStr any) {
 		return
 	}
 	if err != nil {
-		logg.L.Errorf("Failed to create driver: %s userId:%s projectId:%s", err, project.UserID, projectIdStr)
+		logg.L.Errorf("Failed to create driver: %s userId:%s projectId:%s", err, project.UserID, projectID)
 		return
 	}
 	defer closer()
 
 	for {
 		select {
-		case <-a.Ctx.Done():
+		case <-ctx.Done():
 			logg.L.Infof("Context done, exiting...")
 			return
-		case data := <-subscribeCh:
+		case data, ok := <-dataCh:
+			if !ok {
+				logg.L.Infof("Data channel closed, exiting...")
+				return
+			}
 			var pbdata corepb.Data
 			err := proto.Unmarshal(data.([]byte), &pbdata)
 			if err != nil {
