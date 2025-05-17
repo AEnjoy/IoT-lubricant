@@ -55,6 +55,10 @@ spec:
               value: "nats"
             - name: NATS_URL
               value: "nats://nats.database.svc.cluster.local:4222"
+            - name: SVC_DATASTORE_ENDPOINT
+              value: datastore.lubricant.svc.cluster.local:5423
+            - name: SVC_DATASTORE_MODE
+              value: mq # mq or rpc
 ---
 apiVersion: v1
 kind: Service
