@@ -54,7 +54,7 @@ func (l *Logger) Reset() {
 	l.message = ""
 	l.version = nil
 	l.Exception = nil
-	l.operationType = svcpb.Operation_Unknown
+	l.operationType = svcpb.Operation_UnknownOperator
 	l.cost = 0
 	l.metadata = nil
 	l.printToStdout = false

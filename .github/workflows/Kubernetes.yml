@@ -104,7 +104,7 @@ jobs:
             make load-test-driver 
             bash scripts/test/mock_driver/load-test-driver.sh
           )&
-          make build-all
+          make build-all -j
           make copy-files
           FAST_BUILD=1 make load-to-kind -j
 
@@ -177,7 +177,7 @@ jobs:
         run: |
           set -e
           go mod download
-          make build-all
+          make build-all -j
           make copy-files
           FAST_BUILD=1 make docker-build
       - name: Push Image
