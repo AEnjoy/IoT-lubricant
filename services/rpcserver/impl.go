@@ -78,7 +78,7 @@ func (i *PbCoreServiceImpl) PushData(ctx context.Context, in *corepb.Data) (*cor
 		return nil, status2.Errorf(codes.Internal, err.Error())
 	}
 	logger.Debugf("Recv data stream from gateway:%s", gatewayid)
-	i.handelRecvData(in, projectId)
+	i.handelRecvData(ctx, in, projectId)
 	return &corepb.PushDataResponse{Resp: &status.Status{Code: 0, Message: "ok"}}, nil
 }
 
@@ -329,7 +329,7 @@ func (i *PbCoreServiceImpl) PushDataStream(d grpc.BidiStreamingServer[corepb.Dat
 			logg.L.WithOperatorID(gatewayid).Errorf("failed to get project id: %v", err)
 			return status2.Errorf(codes.Internal, err.Error())
 		}
-		i.handelRecvData(data, projectId)
+		i.handelRecvData(d.Context(), data, projectId)
 
 		err = d.Send(&corepb.Data{
 			MessageId: data.MessageId,

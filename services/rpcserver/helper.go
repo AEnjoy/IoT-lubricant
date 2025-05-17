@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
 	"github.com/aenjoy/iot-lubricant/pkg/types"
@@ -11,6 +12,8 @@ import (
 	"github.com/aenjoy/iot-lubricant/pkg/utils/mq"
 	corepb "github.com/aenjoy/iot-lubricant/protobuf/core"
 	metapb "github.com/aenjoy/iot-lubricant/protobuf/meta"
+	svcpb "github.com/aenjoy/iot-lubricant/protobuf/svc"
+	"github.com/aenjoy/iot-lubricant/services/corepkg/config"
 	logg "github.com/aenjoy/iot-lubricant/services/logg/api"
 
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -64,12 +67,61 @@ func (*PbCoreServiceImpl) getUserID(ctx context.Context) (string, error) {
 	return userIDs[0], nil
 }
 
-func (i *PbCoreServiceImpl) handelRecvData(data *corepb.Data, projectId string) {
+var (
+	_initDataStoreServiceClientMutex sync.Mutex
+	_storeDataCliStreamMutex         sync.Mutex
+
+	serv               svcpb.DataStoreServiceClient
+	closeCall          func() error
+	storeDataCliStream grpc.ClientStreamingClient[svcpb.StoreDataRequest, svcpb.StoreDataResponse]
+)
+
+func (i *PbCoreServiceImpl) _svcDataStoreServiceClientDataStream(ctx context.Context, data []byte, projectId string) error {
+	_storeDataCliStreamMutex.Lock()
+	if storeDataCliStream == nil || storeDataCliStream.Context().Err() != nil {
+		storeDataCli, err := serv.StoreData(ctx)
+		if err != nil {
+			logg.L.Errorf("failed to create store data stream: %v", err)
+			_storeDataCliStreamMutex.Unlock()
+			return err
+		}
+		storeDataCliStream = storeDataCli
+	}
+	_storeDataCliStreamMutex.Unlock()
+
+	err := storeDataCliStream.Send(&svcpb.StoreDataRequest{
+		Data:      data,
+		ProjectID: projectId,
+	})
+	if err != nil {
+		logg.L.Errorf("failed to send data to store data stream: %v", err)
+	}
+	return err
+}
+func (i *PbCoreServiceImpl) handelRecvData(ctx context.Context, data *corepb.Data, projectId string) {
 	err := i.pool.Submit(func() {
 		dataCli := i.DataStore
 		marshal, err := proto.Marshal(data)
 		if err != nil {
 			logg.L.Errorf("failed to marshal data: %v", err)
+		}
+		if config.GetConfig().SvcDataStoreMode == "rpc" {
+			_initDataStoreServiceClientMutex.Lock()
+			if serv == nil {
+				serv, closeCall, err = svcpb.NewDataStoreServiceClientWithHost(config.GetConfig().SvcDataStoreEndpoint, config.GetConfig().SvcDataStoreTls)
+				if err != nil {
+					logg.L.Errorf("failed to create datastore service client: %v", err)
+					_initDataStoreServiceClientMutex.Unlock()
+					return
+				}
+			}
+			_initDataStoreServiceClientMutex.Unlock()
+			err := i._svcDataStoreServiceClientDataStream(ctx, marshal, projectId)
+			if err != nil {
+				logg.L.Errorf("failed to send data to datastore service: %v", err)
+				return
+			}
+			return
 		}
 		err = dataCli.V2mq.Publish(constant.DATASTORE_PROJECT, []byte(projectId))
 		if err != nil {
