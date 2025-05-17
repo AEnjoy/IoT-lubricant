@@ -2,8 +2,6 @@ module github.com/aenjoy/iot-lubricant
 
 go 1.23.6
 
-// toolchain go1.24.1
-
 require (
 	github.com/DataDog/zstd v1.5.7
 	github.com/bytedance/sonic v1.13.2

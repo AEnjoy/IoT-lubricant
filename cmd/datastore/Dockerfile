@@ -19,7 +19,7 @@ COPY . .
 RUN apt-get update && apt-get install -y libzstd-dev libzstd1
 WORKDIR /app/cmd/datastore
 RUN GO_VERSION=`go version | awk '{print $3}'` && CGO_ENABLED=1 &&\
-	go build -v -tags=sonic -tags=avx -ldflags "\
+	go build -v -tags=sonic,avx,external_libzstd -ldflags "\
 	-w -s \
 	-X 'github.com/aenjoy/iot-lubricant/pkg/version.Version=${VERSION}' \
 	-X 'github.com/aenjoy/iot-lubricant/pkg/version.BuildTime=${BUILD_TIME}' \

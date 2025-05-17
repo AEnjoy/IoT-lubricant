@@ -73,7 +73,7 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
           )&
-          make install-tdengine-driver &
+          make install-driver &
           go mod download &
           wait
 
@@ -99,7 +99,7 @@ jobs:
           set -e
           (
           bash deployment/infra/db/deploy-mysql.sh
-          bash deployment/infra/auth/casdoor.sh
+          kubectl apply -f deployment/infra/auth/casdoor.yaml
           )&
           (
             make load-test-driver 

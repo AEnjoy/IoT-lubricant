@@ -151,7 +151,7 @@ load-to-kind: docker-build
 	@$(foreach comp,$(COMPONENTS),\
 		kind load docker-image hub.iotroom.top/aenjoy/lubricant-$(comp):nightly;)
 
-install-tdengine-driver:
+install-driver:
 	wget https://static.iotroom.top/TDengine-client-3.3.5.2-Linux-x64.tar.gz -O /tmp/tdengine.tar.gz && \
     	tar -xzf /tmp/tdengine.tar.gz -C /tmp/ && \
     	cd /tmp/TDengine-client-3.3.5.2 && \
@@ -171,6 +171,7 @@ help:
 	@echo "  mock               Generate mock files"
 	@echo "  copy-files         Copy binaries to cmd directories"
 	@echo "  load-to-kind       Load images to kind cluster"
+	@echo "  install-driver     Install TDengine driver"
 	@echo "  clean              Clean build artifacts"
 	@echo "  help               Show this help"
 	@echo ""
