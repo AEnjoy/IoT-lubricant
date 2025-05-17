@@ -29,7 +29,7 @@ LD_FLAGS = -w -s \
 
 COMPONENTS := gateway apiserver agent logg grpcserver reporter datastore
 
-.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components
+.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components install-tdengine-driver
 
 list-components:
 	@echo "Available components:"
@@ -150,6 +150,12 @@ copy-files:
 load-to-kind: docker-build
 	@$(foreach comp,$(COMPONENTS),\
 		kind load docker-image hub.iotroom.top/aenjoy/lubricant-$(comp):nightly;)
+
+install-tdengine-driver:
+	wget https://static.iotroom.top/TDengine-client-3.3.5.2-Linux-x64.tar.gz -O /tmp/tdengine.tar.gz && \
+    	tar -xzf /tmp/tdengine.tar.gz -C /tmp/ && \
+    	cd /tmp/TDengine-client-3.3.5.2 && \
+    	bash install_client.sh
 
 clean:
 	@rm -rf bin

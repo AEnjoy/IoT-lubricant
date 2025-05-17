@@ -73,6 +73,7 @@ jobs:
           chmod 700 get_helm.sh
           ./get_helm.sh
           )&
+          make install-tdengine-driver &
           go mod download &
           wait
 

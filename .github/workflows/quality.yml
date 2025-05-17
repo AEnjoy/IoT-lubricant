@@ -30,7 +30,7 @@ jobs:
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     strategy:
       matrix:
-        go: ['1.24.1']
+        go: ['1.23','1.24']
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/setup-go@v5
@@ -42,8 +42,12 @@ jobs:
 
       - name: Prepare mock
         run: |
+          set -e
           make mock
-
+      - name: install driver
+        run: |
+          set -e
+          make install-tdengine-driver
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
@@ -54,7 +58,7 @@ jobs:
     if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
     strategy:
       matrix:
-        go: ['1.24.1']
+        go: ['1.23','1.24']
     steps:
       - uses: actions/checkout@v4
 
@@ -66,4 +70,5 @@ jobs:
       - name: UnitTest
         run: |
           set -e
+          make install-tdengine-driver
           make test
