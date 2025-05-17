@@ -105,7 +105,7 @@ jobs:
             make load-test-driver 
             bash scripts/test/mock_driver/load-test-driver.sh
           )&
-          make build-all -j
+          make build-all
           make copy-files
           FAST_BUILD=1 make load-to-kind -j
 
