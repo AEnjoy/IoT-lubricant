@@ -98,8 +98,8 @@ jobs:
         run: |
           set -e
           (
-          bash deployment/infra/db/deploy-mysql.sh
-          kubectl apply -f deployment/infra/auth/casdoor.yaml
+           bash deployment/infra/db/deploy-mysql.sh
+           kubectl apply -f deployment/infra/auth/casdoor.yaml
           )&
           (
             make load-test-driver 
