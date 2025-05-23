@@ -6,7 +6,10 @@
 package mq
 
 import (
+	"encoding/gob"
+	"os"
 	"sync"
+	"time"
 
 	"github.com/aenjoy/iot-lubricant/pkg/utils"
 )
@@ -130,4 +133,53 @@ func (mq *MessageQueue[T]) Close() {
 			return true
 		})
 	})
+}
+
+const savingTime = 30 * time.Second
+
+// 定时保存数据到硬盘
+func (mq *MessageQueue[T]) startAutoSave() {
+	ticker := time.NewTicker(savingTime)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			mq.saveToDisk()
+		case <-mq.closeCh:
+			return
+		}
+	}
+}
+
+// 保存数据到硬盘
+func (mq *MessageQueue[T]) saveToDisk() {
+	file, err := os.Create("mq_bin.db")
+	if err != nil {
+		// todo:处理错误
+		return
+	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(mq.topics) // 序列化主题和订阅者信息
+	if err != nil {
+		// todo:处理错误
+		return
+	}
+}
+
+// 从硬盘加载数据
+func (mq *MessageQueue[T]) loadFromDisk() {
+	file, err := os.Open("mq_bin.db")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	decoder := gob.NewDecoder(file)
+	err = decoder.Decode(&mq.topics) // unmarshal and load
+	if err != nil {
+		// todo:处理错误
+	}
 }
