@@ -112,6 +112,7 @@ jobs:
       - name: Prepare Lubricant and Test Resources
         run: |
           set -e
+          kubectl get pods -n auth-core
           kubectl apply -f scripts/test/mock_driver/clock/test-driver.yaml
           kubectl apply -f deployment/tester/agent.yaml
           bash deployment/infra/secret.sh
