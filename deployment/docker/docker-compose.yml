@@ -1,0 +1,215 @@
+version: "3.8"
+name: development-environment
+
+services:
+  mysql:
+    image: mysql:8.4.4
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+#      - MYSQL_DATABASE=lubricant
+#      - MYSQL_USER=lubricant
+#      - MYSQL_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7.4.2
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+  nats:
+    image: nats:2.10.26
+    command: -js
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
+
+  etcd:
+    image: registry.k8s.io/etcd:3.5.21-0
+    command:
+      - /bin/sh
+      - -c
+      - |
+        etcd --name=etcd1 \
+        --data-dir=/var/lib/etcd \
+        --listen-client-urls=http://0.0.0.0:2379 \
+        --advertise-client-urls=http://etcd:2379 \
+        --listen-peer-urls=http://0.0.0.0:2380 \
+        --initial-advertise-peer-urls=http://etcd:2380 \
+        --initial-cluster=etcd1=http://etcd:2380 \
+        --initial-cluster-token=etcd-cluster-1 \
+        --initial-cluster-state=new
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - etcd_data:/var/lib/etcd
+    healthcheck:
+        test: ["CMD", "etcdctl", "endpoint", "health"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+
+  casdoor:
+    image: casbin/casdoor:v1.854.0
+    ports:
+        - "8000:8000"
+    environment:
+        - driverName=mysql
+        - dataSourceName=casdoor:${MYSQL_ROOT_PASSWORD}@tcp(mysql:3306)/
+        - redisEndpoint=redis:6379,3,${REDIS_PASSWORD}
+    depends_on:
+        mysql:
+          condition: service_healthy
+        redis:
+          condition: service_started
+
+  lubricant-apiserver:
+    image: hub.iotroom.top/aenjoy/lubricant-apiserver:nightly
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - HTTP_LISTEN_PORT=8080
+      - DB_USER=lubricant
+      - DB_ADDRESS=mysql
+      - DB_PORT=3306
+      - DB_NAME=lubricant
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_ENABLE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MQ_TYPE=nats
+      - NATS_URL=nats://nats:4222
+      - SVC_DATASTORE_ENDPOINT=lubricant-datastore:5423
+      - AUTH_PROVIDER=casdoor
+      - AUTH_ENDPOINT=http://casdoor:8000
+      - AUTH_CLIENT_ID=6551a3584403d5264584
+      - AUTH_ORGANIZATION=built-in
+      - AUTH_CLIENT_SECRET=dd9657c7b8cc10a72f77b283253b3a0a31b91175
+      - AUTH_PUBLICKEYFILE=/etc/casdoor/public.pem
+    volumes:
+      - ./casdoor:/etc/casdoor
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nats:
+        condition: service_started
+
+  lubricant-datastore:
+    image: hub.iotroom.top/aenjoy/lubricant-datastore:nightly
+    restart: always
+    environment:
+      - RUNNING_LEVEL=debug
+      - DB_USER=lubricant
+      - DB_ADDRESS=mysql
+      - DB_PORT=3306
+      - DB_NAME=lubricant
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_ENABLE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - GRPC_LISTEN_PORT=5423
+      - MQ_TYPE=nats
+      - NATS_URL=nats://nats:4222
+      - ETCD_ENDPOINTS=etcd:2379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nats:
+        condition: service_started
+      etcd:
+        condition: service_healthy
+
+  lubricant-grpcserver:
+    image: hub.iotroom.top/aenjoy/lubricant-grpcserver:nightly
+    restart: always
+    ports:
+      - "5423:5423"
+    environment:
+      - GRPC_LISTEN_PORT=5423
+      - DB_USER=lubricant
+      - DB_ADDRESS=mysql
+      - DB_PORT=3306
+      - DB_NAME=lubricant
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_ENABLE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MQ_TYPE=nats
+      - NATS_URL=nats://nats:4222
+      - SVC_DATASTORE_ENDPOINT=lubricant-datastore:5423
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nats:
+        condition: service_started
+
+  lubricant-core-logger:
+    image: hub.iotroom.top/aenjoy/lubricant-logg:nightly
+    restart: always
+    environment:
+      - DB_USER=lubricant
+      - DB_ADDRESS=mysql
+      - DB_PORT=3306
+      - DB_NAME=lubricant
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_ENABLE=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MQ_TYPE=nats
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nats:
+        condition: service_started
+
+  lubricant-reporter:
+    image: hub.iotroom.top/aenjoy/lubricant-reporter:nightly
+    restart: always
+    environment:
+      - DB_USER=lubricant
+      - DB_ADDRESS=mysql
+      - DB_PORT=3306
+      - DB_NAME=lubricant
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MQ_TYPE=nats
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      nats:
+        condition: service_started
+
+volumes:
+  mysql_data:
+  etcd_data:
