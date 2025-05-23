@@ -117,8 +117,8 @@ jobs:
           bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
-          sudo cp scripts/crt.pem /etc/casdoor/public.pem
-          openssl x509 -in scripts/crt.pem -text -noout
+          sudo cp deployment/docker/casdoor/public.pem /etc/casdoor/public.pem
+          openssl x509 -in deployment/docker/casdoor/public.pem -text -noout
           kubectl apply -f deployment/infra/lubricant-grpcserver.yaml
           kubectl apply -f deployment/infra/lubricant-core-logger.yaml
           kubectl apply -f deployment/infra/lubricant-apiserver.yaml

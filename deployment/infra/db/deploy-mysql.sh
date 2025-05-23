@@ -26,6 +26,6 @@ bash scripts/function/wait_pod.sh $mysql_pod database
 kubectl exec $mysql_pod -n database -- bash -c 'mysqladmin ping -uroot -p123456'
 
 echo "Database initialization..."
-kubectl cp deployment/infra/database.sql $mysql_pod:/tmp/database.sql -n database
+kubectl cp deployment/docker/init.d/database.sql $mysql_pod:/tmp/database.sql -n database
 kubectl exec $mysql_pod -n database -- bash -c 'mysql -uroot -p123456 < /tmp/database.sql'
 kubectl logs -n database -l app=mysql

@@ -7,7 +7,7 @@ you need to deploy mysql, redis , nats(or other message queue), and casdoor for 
 1. deploy mysql:
 ```bash
 docker run -d --name=mysql-server -p 3306:3306  -e MYSQL_ROOT_PASSWORD=123456 mysql 
-docker cp deployment/infra/database.sql mysql-server:/tmp/database.sql
+docker cp deployment/docker/init.d/database.sql mysql-server:/tmp/database.sql
 docker exec mysql-server bash -c 'mysql -uroot -p123456 < /tmp/database.sql'
 ```
 
