@@ -31,12 +31,12 @@ LD_FLAGS = -w -s \
 
 COMPONENTS := gateway apiserver agent logg grpcserver reporter datastore
 
-.PHONY: all test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components install-tdengine-driver
+.PHONY: build test test-coverage install mock docker-build clean help make-output-dir load-test-driver list-components install-tdengine-driver
 
 help:
 	@echo "Available targets:"
 	@echo "  list-components    List all available build components"
-	@echo "  build-all          Build all components (CGO_ENABLED=0 by default)"
+	@echo "  build(-all)        Build all components (CGO_ENABLED=0 by default)"
 	@echo "  build-<component>  Build specific component"
 	@echo "  docker-build       Build all Docker images"
 	@echo "  test               Run unit tests"
@@ -60,6 +60,7 @@ help:
 	@echo "   RELEASE=v0.0.1 FAST_BUILD=1 make docker-build"
 	@echo "   make load-to-kind"
 
+# List all available components
 list-components:
 	@echo "Available components:"
 	@for comp in $(COMPONENTS); do \
@@ -70,11 +71,15 @@ list-components:
     		echo "  $$comp"; \
     done
 
-all: build-all
+# Build all components
+build: build-all
 
+
+# Make output directory
 make-output-dir: clean
 	@mkdir -p ./bin
 
+# Prepare CGO environment
 cgo-init:
 ifeq ($(CGO_ENABLED),1)
 	@echo "Initializing CGO environment for $(COMPONENT)..."
@@ -146,8 +151,12 @@ load-test-driver:
 		-f scripts/test/mock_driver/clock/Dockerfile scripts/test/mock_driver/clock
 	kind load docker-image hub.iotroom.top/aenjoy/test-driver-clock:nightly
 
+# Build all components, and output to bin/
+# It is not recommended to use multithreading as it can slow down the build speed
 build-all: $(addprefix build-,$(COMPONENTS))
 
+# Build all components with docker
+# It is not recommended to use multithreading as it can slow down the build speed
 docker-build: $(addprefix docker-build-,$(COMPONENTS))
 
 test: mock
@@ -184,6 +193,7 @@ install-driver:
     	tar -xzf /tmp/tdengine.tar.gz -C /tmp/ && \
     	cd /tmp/TDengine-client-3.3.5.2 && \
     	bash install_client.sh
+
 push-image:
 	@$(foreach comp,$(COMPONENTS),\
 		docker push hub.iotroom.top/aenjoy/lubricant-$(comp):$(DOCKER_TAG);)
