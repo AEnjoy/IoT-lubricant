@@ -67,6 +67,7 @@ jobs:
           run: |
             set -e
             cd deployment/docker
+            export $(grep -v '^#' "./.env.temple" | xargs)
             docker compose up -d
 
         - name: Check Resources Readiness
