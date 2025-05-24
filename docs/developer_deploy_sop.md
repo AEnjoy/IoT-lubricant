@@ -43,6 +43,27 @@ Notes: **It is difficult to develop in kubernetes. It is recommended to use this
 
 1. set up kind or the other kubernetes cluster
 2. running
+
     a. deployment/infra/nsinit.sh
-    b.  deployment/infra/secret.sh
+
+    b. deployment/infra/secret.sh
+
+    c. deployment/infra/db/redis.sh
+    
+    d. deployment/infra/db/deploy-mysql.sh
+    
+    e. deployment/infra/db/tdengine.sh
 3. deploy lubricant by yamls:`kubectl apply -f  deployment/infra`
+
+## deploy to docker-compose:
+
+Execute those commands at project root dir: (need root privilege)
+
+```bash
+make build-all
+make copy-files
+FAST_BUILD=1 make docker-build -j
+
+cd deployment/docker
+docker compose up -d
+```
