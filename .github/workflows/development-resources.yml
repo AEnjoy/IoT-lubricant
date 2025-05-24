@@ -67,12 +67,7 @@ jobs:
           run: |
             set -e
             cd deployment/docker
-            while IFS='=' read -r key value; do
-              if [[ ! $key =~ ^# && -n $key ]]; then
-                export "$key=$value"
-              fi
-            done < ./.env.template
-            docker compose up -d
+            MYSQL_ROOT_PASSWORD=123456 DB_PASSWORD=123456 REDIS_PASSWORD=123456 docker compose up -d # todo: need to set env by not using hardcode
 
         - name: Check Resources Readiness
           run: |
