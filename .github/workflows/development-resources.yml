@@ -75,10 +75,10 @@ jobs:
             cd deployment/docker
             echo "Waiting for services to be ready..."
             sleep 5
-            services_status=$(docker compose ps --format "{{.Name}}\t{{.Status}}" | awk '{print $1 "\t" $3}')
+            services_status=$(docker compose ps --format "{{.Name}}\t{{.Status}}" | awk '{print $1 "\t" $2}')
             failed_services=""
             while IFS=$'\t' read -r service_name status; do
-            if [ "$status" != "Up" ]; then
+            if [[ "$status" != "Up" ]]; then
               failed_services="${failed_services}${service_name}, "
             fi
               done <<< "$services_status"
