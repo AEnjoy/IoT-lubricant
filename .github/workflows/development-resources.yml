@@ -73,6 +73,7 @@ jobs:
         - name: Check Resources Readiness
           run: |
             set -e
+            cd deployment/docker
             echo "Waiting for services to be ready..."
             sleep 5
             services_status=$(docker compose ps --format "{{.Name}}\t{{.Status}}" | awk '{print $1 "\t" $3}')
