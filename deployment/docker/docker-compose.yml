@@ -9,8 +9,8 @@ services:
 #      - MYSQL_DATABASE=lubricant
 #      - MYSQL_USER=lubricant
 #      - MYSQL_PASSWORD=${DB_PASSWORD}
-    ports:
-      - "3306:3306"
+#    ports:
+#      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.d:/docker-entrypoint-initdb.d
@@ -23,8 +23,8 @@ services:
   redis:
     image: redis:7.4.2
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
-    ports:
-      - "6379:6379"
+#    ports:
+#      - "6379:6379"
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     environment:
@@ -33,10 +33,10 @@ services:
   nats:
     image: nats:2.10.26
     command: -js
-    ports:
-      - "4222:4222"
-      - "6222:6222"
-      - "8222:8222"
+#    ports:
+#      - "4222:4222"
+#      - "6222:6222"
+#      - "8222:8222"
 
   etcd:
     image: registry.k8s.io/etcd:3.5.21-0
@@ -53,9 +53,9 @@ services:
         --initial-cluster=etcd1=http://etcd:2380 \
         --initial-cluster-token=etcd-cluster-1 \
         --initial-cluster-state=new
-    ports:
-      - "2379:2379"
-      - "2380:2380"
+#    ports:
+#      - "2379:2379"
+#      - "2380:2380"
     volumes:
       - etcd_data:/var/lib/etcd
     healthcheck:
@@ -66,8 +66,8 @@ services:
 
   casdoor:
     image: casbin/casdoor:v1.854.0
-    ports:
-        - "8000:8000"
+#    ports:
+#        - "8000:8000"
     environment:
         - driverName=mysql
         - dataSourceName=casdoor:${MYSQL_ROOT_PASSWORD}@tcp(mysql:3306)/
@@ -82,9 +82,9 @@ services:
     image: hub.iotroom.top/aenjoy/lubricant-apiserver:nightly
     restart: always
     ports:
-      - "8080:8080"
+      - "9090:9090"
     environment:
-      - HTTP_LISTEN_PORT=8080
+      - HTTP_LISTEN_PORT=9090
       - DB_USER=lubricant
       - DB_ADDRESS=mysql
       - DB_PORT=3306
