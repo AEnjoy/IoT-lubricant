@@ -67,7 +67,11 @@ jobs:
           run: |
             set -e
             cd deployment/docker
-            export $(grep -v '^#' "./.env.temple" | xargs)
+            while IFS='=' read -r key value; do
+              if [[ ! $key =~ ^# && -n $key ]]; then
+                export "$key=$value"
+              fi
+            done < ./.env.template
             docker compose up -d
 
         - name: Check Resources Readiness
