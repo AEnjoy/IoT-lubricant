@@ -5,7 +5,7 @@ services:
   mysql:
     image: mysql:8.4.4
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=123456 # ${MYSQL_ROOT_PASSWORD}
 #      - MYSQL_DATABASE=lubricant
 #      - MYSQL_USER=lubricant
 #      - MYSQL_PASSWORD=${DB_PASSWORD}
@@ -22,13 +22,13 @@ services:
 
   redis:
     image: redis:7.4.2
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass 123456 # ${REDIS_PASSWORD}
 #    ports:
 #      - "6379:6379"
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=123456 # ${REDIS_PASSWORD}
 
   nats:
     image: nats:2.10.26
@@ -70,8 +70,8 @@ services:
 #        - "8000:8000"
     environment:
         - driverName=mysql
-        - dataSourceName=casdoor:${MYSQL_ROOT_PASSWORD}@tcp(mysql:3306)/
-        - redisEndpoint=redis:6379,3,${REDIS_PASSWORD}
+        - dataSourceName=casdoor:123456@tcp(mysql:3306)/ # casdoor:${MYSQL_ROOT_PASSWORD}@tcp(mysql:3306)/
+        - redisEndpoint=redis:6379,3,123456 # redis:6379,3,${REDIS_PASSWORD}
     depends_on:
         mysql:
           condition: service_healthy
@@ -89,11 +89,11 @@ services:
       - DB_ADDRESS=mysql
       - DB_PORT=3306
       - DB_NAME=lubricant
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=123456 # ${DB_PASSWORD}
       - REDIS_ENABLE=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=123456 # ${REDIS_PASSWORD}
       - MQ_TYPE=nats
       - NATS_URL=nats://nats:4222
       - SVC_DATASTORE_ENDPOINT=lubricant-datastore:5423
@@ -122,11 +122,11 @@ services:
       - DB_ADDRESS=mysql
       - DB_PORT=3306
       - DB_NAME=lubricant
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=123456 # ${DB_PASSWORD}
       - REDIS_ENABLE=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=123456 # ${REDIS_PASSWORD}
       - GRPC_LISTEN_PORT=5423
       - MQ_TYPE=nats
       - NATS_URL=nats://nats:4222
@@ -152,11 +152,11 @@ services:
       - DB_ADDRESS=mysql
       - DB_PORT=3306
       - DB_NAME=lubricant
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=123456 # ${DB_PASSWORD}
       - REDIS_ENABLE=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=123456 # ${REDIS_PASSWORD}
       - MQ_TYPE=nats
       - NATS_URL=nats://nats:4222
       - SVC_DATASTORE_ENDPOINT=lubricant-datastore:5423
@@ -176,11 +176,11 @@ services:
       - DB_ADDRESS=mysql
       - DB_PORT=3306
       - DB_NAME=lubricant
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=123456 #${DB_PASSWORD}
       - REDIS_ENABLE=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=123456 #${REDIS_PASSWORD}
       - MQ_TYPE=nats
       - NATS_URL=nats://nats:4222
     depends_on:
@@ -199,7 +199,7 @@ services:
       - DB_ADDRESS=mysql
       - DB_PORT=3306
       - DB_NAME=lubricant
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=123456 #${DB_PASSWORD}
       - MQ_TYPE=nats
       - NATS_URL=nats://nats:4222
     depends_on:

@@ -67,7 +67,7 @@ jobs:
           run: |
             set -e
             cd deployment/docker
-            MYSQL_ROOT_PASSWORD=123456 DB_PASSWORD=123456 REDIS_PASSWORD=123456 docker-compose up -d # todo: need to set env by not using hardcode
+            docker compose up -d
 
         - name: Check Resources Readiness
           run: |
