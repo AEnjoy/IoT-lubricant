@@ -17,7 +17,8 @@ kubectl create secret generic -n database mysql-secret \
   --from-literal=casdoor-password=${lubricant_MYSQL_CUSTOM_PASSWORD}\
   --from-literal=mysql-username=lubricant
 
-# kubectl apply -f deployment/infra/db/mysql.yaml
+# kubectl apply -f deployment/infra/db/mysql.yaml todo: 待修复bugs 会导致mysqladmin ping -uroot -p123456失败
+
 helm upgrade --install mysql bitnami/mysql --version 12.3.0 -n database -f deployment/infra/db/values.yaml
 
 sleep 3
@@ -26,6 +27,6 @@ bash scripts/function/wait_pod.sh $mysql_pod database
 kubectl exec $mysql_pod -n database -- bash -c 'mysqladmin ping -uroot -p123456'
 
 echo "Database initialization..."
-kubectl cp deployment/infra/database.sql $mysql_pod:/tmp/database.sql -n database
+kubectl cp deployment/docker/init.d/database.sql $mysql_pod:/tmp/database.sql -n database
 kubectl exec $mysql_pod -n database -- bash -c 'mysql -uroot -p123456 < /tmp/database.sql'
 kubectl logs -n database -l app=mysql

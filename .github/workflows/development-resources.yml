@@ -1,0 +1,93 @@
+name: Check Development Resources Readiness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'docs/**'
+      - 'CHANGELOGS/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+jobs:
+  test-rescoures:
+      runs-on: ubuntu-latest
+      if: github.event_name != 'pull_request' || (!github.event.pull_request.draft && !contains(github.event.pull_request.title, 'WIP'))
+      steps:
+        - uses: actions/checkout@v4
+        - name: Cache Docker Images
+          id: cache-docker
+          uses: actions/cache@v4
+          with:
+            path: /tmp/docker-images
+            key: ${{ runner.os }}-docker-images-${{ hashFiles('scripts/docker-load-to-kind.sh','scripts/docker-pulls.sh','scripts/docker-save.sh') }}-v1
+            restore-keys: |
+              ${{ runner.os }}-docker-images-
+
+        - name: Pull and Save Docker Images
+          if: steps.cache-docker.outputs.cache-hit != 'true'
+          run: |
+            bash scripts/docker-pulls.sh
+            bash scripts/docker-save.sh
+
+        - name: Load Docker Images
+          if: steps.cache-docker.outputs.cache-hit == 'true'
+          run: |
+            if [ -f /tmp/docker-images/base-images.tar ]; then
+              echo "Cache(Hit): Loading Docker Images..."
+              docker load -i /tmp/docker-images/base-images.tar
+            fi
+
+        - name: Cache Go Modules
+          uses: actions/cache@v4
+          with:
+            path: ~/go/pkg/mod
+            key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.mod', '**/go.sum') }}
+            restore-keys: |
+              ${{ runner.os }}-go-mod-
+
+        - name: Build
+          run: |
+            set -e
+            make install-driver
+            make build-all
+            make copy-files
+            FAST_BUILD=1 make docker-build -j
+
+        - name: Load Resources
+          run: |
+            set -e
+            cd deployment/docker
+            docker compose up -d
+
+        - name: Check Resources Readiness
+          run: |
+            set -e
+            cd deployment/docker
+            echo "Waiting for services to be ready..."
+            sleep 5
+            services_status=$(docker compose ps --format "{{.Name}}\t{{.Status}}" | awk '{print $1 "\t" $2}')
+            failed_services=""
+            while IFS=$'\t' read -r service_name status; do
+            if [[ "$status" != "Up" ]]; then
+              failed_services="${failed_services}${service_name}, "
+            fi
+              done <<< "$services_status"
+            if [ -n "$failed_services" ]; then
+              echo "Failed Services: ${failed_services%,*}"
+              docker compose ps
+              docker compose logs
+              exit 1
+            else
+              echo "All ok"
+              docker compose ps
+            fi

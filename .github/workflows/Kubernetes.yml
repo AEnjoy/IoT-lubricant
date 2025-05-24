@@ -98,8 +98,8 @@ jobs:
         run: |
           set -e
           (
-          bash deployment/infra/db/deploy-mysql.sh
-          kubectl apply -f deployment/infra/auth/casdoor.yaml
+           bash deployment/infra/db/deploy-mysql.sh
+           kubectl apply -f deployment/infra/auth/casdoor.yaml
           )&
           (
             make load-test-driver 
@@ -112,13 +112,14 @@ jobs:
       - name: Prepare Lubricant and Test Resources
         run: |
           set -e
+          kubectl get pods -n auth-core
           kubectl apply -f scripts/test/mock_driver/clock/test-driver.yaml
           kubectl apply -f deployment/tester/agent.yaml
           bash deployment/infra/secret.sh
           bash scripts/push_files_to_nginx_pod.sh
           kubectl exec nginx -- bash -c 'cd /root/k8s && bash ./casdoor_init.sh'
-          sudo cp scripts/crt.pem /etc/casdoor/public.pem
-          openssl x509 -in scripts/crt.pem -text -noout
+          sudo cp deployment/docker/casdoor/public.pem /etc/casdoor/public.pem
+          openssl x509 -in deployment/docker/casdoor/public.pem -text -noout
           kubectl apply -f deployment/infra/lubricant-grpcserver.yaml
           kubectl apply -f deployment/infra/lubricant-core-logger.yaml
           kubectl apply -f deployment/infra/lubricant-apiserver.yaml

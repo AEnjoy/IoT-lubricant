@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       fast_build:
-        description: 'Choose whether to enable quick build'
+        description: 'Enable quick build'
         type: boolean
         required: true
         default: true

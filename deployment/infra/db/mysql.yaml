@@ -1,9 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql
   namespace: database
 spec:
+  serviceName: mysql
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -14,26 +16,45 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:8.4
-          ports:
-            - containerPort: 3306
+          image: mysql:8.4.4
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mysql-secret
                   key: mysql-root-password
-#          readinessProbe:
-#            exec:
-#              command:
-#                - "mysqladmin"
-#                - "ping"
-#                - "-uroot"
-#                - "-p${MYSQL_ROOT_PASSWORD}"
-#            initialDelaySeconds: 5
-#            periodSeconds: 5
-#            timeoutSeconds: 3
-#            failureThreshold: 3
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "mysqladmin ping -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
