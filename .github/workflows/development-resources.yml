@@ -58,6 +58,7 @@ jobs:
         - name: Build
           run: |
             set -e
+            make install-driver
             make build-all
             make copy-files
             FAST_BUILD=1 make docker-build -j
