@@ -66,6 +66,11 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 	var sendBufferSig = make(chan [][]byte)
 	go func() {
 		<-startSig
+		stream, err := cli.PushDataStream(ctx)
+		if err != nil {
+			logger.Errorf("Failed to create stream: send data to server: %v", err)
+			panic(err)
+		}
 
 		for d := range sendBufferSig {
 			data := &corepb.Data{
@@ -80,7 +85,7 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 				continue
 			}
 			reqStart := time.Now()
-			_, err := cli.PushData(ctx, data)
+			err := stream.Send(data)
 			timeCostCh <- time.Since(reqStart)
 			if err != nil {
 				atomic.AddInt32(&sendCountFail, 1)
