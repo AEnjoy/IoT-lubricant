@@ -6,7 +6,6 @@ import (
 	"syscall"
 
 	"github.com/aenjoy/iot-lubricant/pkg/logger"
-	"github.com/panjf2000/ants/v2"
 )
 
 func main() {
@@ -15,18 +14,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	pool, err := ants.NewPool(1024, ants.WithPreAlloc(true), ants.WithNonblocking(true))
-	if err != nil {
-		panic(err)
-	}
-	for range 1024 {
-		err := pool.Submit(func() {
-			pushData2Core(client, ctx, dataCh)
-		})
-		if err != nil {
-			logger.Errorf("failed to submit task to pool: %v", err)
-		}
-	}
+
+	go pushData2Core(client, ctx, dataCh)
 	StartConcurrentGeneration(2)
 
 	var sigCh = make(chan os.Signal, 50)
@@ -34,6 +23,7 @@ func main() {
 
 	logger.Info("Start to register agent")
 	regAgentOnline(client, ctx)
+	handleTaskResp(client, ctx)
 	logger.Info("Start to send data. Press Ctrl+C abort")
 	close(startSig)
 	<-sigCh
