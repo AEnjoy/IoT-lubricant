@@ -15,6 +15,8 @@ const (
 	ErrorIO
 	DeadLine
 	ErrorPushTaskFailed
+
+	ErrorNeedAgentID
 )
 
 // Auth
@@ -162,6 +164,7 @@ var StatusMsgMap = map[ResCode]string{
 	ErrorGetClaimsFailed:     "Get claims(user information) from context failed",
 	DeadLine:                 "context deadline or cancel",
 	ErrorPushTaskFailed:      "push task failed",
+	ErrorNeedAgentID:         "agent id is required",
 
 	// Core
 	ErrorCoreNoTask:                  "target has no task",

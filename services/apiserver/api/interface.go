@@ -36,7 +36,7 @@ type IAgent interface {
 	Operator(*gin.Context)
 	// Set : set agent gather config
 	Set(*gin.Context)
-	GetData(*gin.Context) //todo
+	GetData(*gin.Context)
 	GetAgentInfo(c *gin.Context)
 	List(*gin.Context)
 }

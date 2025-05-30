@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"sync"
 
 	"github.com/aenjoy/iot-lubricant/pkg/constant"
@@ -130,6 +131,12 @@ func (i *PbCoreServiceImpl) handelRecvData(ctx context.Context, data *corepb.Dat
 			logg.L.Errorf("failed to publish data: %v", err)
 		}
 	})
+	// rand cache data
+	if rand.IntN(100) < 10 && data.GetDataLen() > 0 {
+		_ = i.DataStore.CacheCli.Set(ctx,
+			fmt.Sprintf(constant.LatestDataCacheKey, projectId, data.GetAgentID()), string(data.Data[0]))
+	}
+	
 	if err != nil {
 		logg.L.Errorf("failed to create save data to store task thread")
 	}
