@@ -86,14 +86,26 @@ func executorTask(cli corepb.CoreServiceClient, ctx context.Context, task *corep
 		working.Working.Details = []*anypb.Any{a}
 	case *corepb.TaskDetail_GetAgentInfoRequest:
 		setWorkingStatus("ok")
+		var _1 int32 = 1
+		var _a = "default"
 		a, _ := anypb.New(&agentpb.AgentInfo{
 			AgentID:   randGetAgentID(),
 			GatewayID: &gatewayID,
+			DataSource: &agentpb.OpenapiDoc{
+				OriginalFile: []byte("{}"),
+				EnableFile:   []byte("{}"),
+			},
+			GatherCycle: &_1,
+			ReportCycle: &_1,
+			Algorithm:   &_a,
 		})
 		working.Working.Details = []*anypb.Any{a}
 	case *corepb.TaskDetail_GetAgentOpenAPIDocRequest:
 		setWorkingStatus("ok")
-		a, _ := anypb.New(&agentpb.OpenapiDoc{})
+		a, _ := anypb.New(&agentpb.OpenapiDoc{
+			OriginalFile: []byte("{}"),
+			EnableFile:   []byte("{}"),
+		})
 		working.Working.Details = []*anypb.Any{a}
 	default:
 	}
