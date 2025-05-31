@@ -73,6 +73,7 @@ func pushData2Core(cli corepb.CoreServiceClient, ctx context.Context, dataCh cha
 		}
 
 		for d := range sendBufferSig {
+			// time.Sleep(time.Second)
 			data := &corepb.Data{
 				GatewayId: gatewayID,
 				AgentID:   randGetAgentID(),
