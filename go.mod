@@ -4,7 +4,7 @@ go 1.23.6
 
 require (
 	github.com/DataDog/zstd v1.5.7
-	github.com/bytedance/sonic v1.13.2
+	github.com/bytedance/sonic v1.13.3
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/casdoor/casdoor-go-sdk v1.5.0
 	github.com/cloudwego/base64x v0.1.5
