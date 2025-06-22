@@ -34,7 +34,7 @@ require (
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/objx v0.5.2
 	github.com/stretchr/testify v1.10.0
-	github.com/taosdata/driver-go/v3 v3.5.8
+	github.com/taosdata/driver-go/v3 v3.7.1
 	go.etcd.io/etcd/client/v3 v3.6.0
 	go.opentelemetry.io/otel/trace v1.36.0
 	go.uber.org/zap v1.27.0
