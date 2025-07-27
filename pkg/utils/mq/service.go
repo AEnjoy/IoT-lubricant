@@ -21,10 +21,15 @@ type Mq interface {
 	SetConditions(capacity int)
 }
 
+
 func NewMq() Mq {
 	return &MessageQueue[any]{
 		closeCh: make(chan struct{}),
 	}
+	mq.loadFromDisk()
+
+	go mq.startAutoSave() // auto save to disk
+	return mq
 }
 
 // NewKafkaMq creates a new instance of KafkaMq
