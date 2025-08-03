@@ -31,7 +31,7 @@ require (
 	github.com/rs/xid v1.6.0
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/pflag v1.0.6
+	github.com/spf13/pflag v1.0.7
 	github.com/stretchr/objx v0.5.2
 	github.com/stretchr/testify v1.10.0
 	github.com/taosdata/driver-go/v3 v3.5.8
